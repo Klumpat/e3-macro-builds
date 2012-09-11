@@ -23,7 +23,7 @@
 |--------------------------------------------------------------------------------|
 | #EVENT AssistOn
 SUB event_Assist(line, ChatSender, SpecifiedBots)
-/varset Debug 1
+| /varset Debug 1
 /if (${Debug}) /echo |- event_EngageAssist ==>
 	
 |------------------------------------------------------------------------------------------------------------------Clean-up / Reset Variables.
@@ -106,7 +106,7 @@ SUB event_Assist(line, ChatSender, SpecifiedBots)
 	}
 	
 /if (${Debug}) /echo <== event_EngageAssist -|
-/varset Debug 0
+| /varset Debug 0
 /RETURN
 
 
@@ -134,38 +134,42 @@ SUB Get_AssistStickDistance
 |- Engages /stick on an AssistTarget.	-|
 |----------------------------------------|
 SUB StickToAssistTarget
+| /varset Debug 1
 /if (${Debug}) /echo |- StickToAssistTarget ==>
 	
 	/if (${AssistStickPoint.Equal[behind]}) {
 		
+		/if (${Debug}) /echo |- StickToAssistTarget -| Attempting to stick behind [${AssistStickDistanceSetting}].
 		/squelch /stick moveback snaproll 15 uw
 		/delay 10 !${Me.Moving} || ${Target.Distance} < 15
-		/squelch stick hold moveback behind ${AssistStickDistanceSetting} uw	
+		/squelch /stick hold moveback behind ${AssistStickDistanceSetting} uw	
 		/delay 10 ${Me.Moving}
 		
 	} else /if (${AssistStickPoint.Equal[behindonce]}) {
 	
+		/if (${Debug}) /echo |- StickToAssistTarget -| Attempting to stick behindonce [${AssistStickDistanceSetting}].
 		/squelch /stick moveback snaproll 15 uw
 		/delay 10 !${Me.Moving} || ${Target.Distance} < 20
-		/squelch stick hold moveback behindonce ${AssistStickDistanceSetting} uw
+		/squelch /stick hold moveback behindonce ${AssistStickDistanceSetting} uw
 		/delay 10 ${Me.Moving}
 		
 	} else /if (${AssistStickPoint.Equal[pin]}) {
 	
+		/if (${Debug}) /echo |- StickToAssistTarget -| Attempting to stick pin [${AssistStickDistanceSetting}].
 		/squelch /stick moveback snaproll 15 uw
 		/delay 10 !${Me.Moving} || ${Target.Distance} < 20
-		/squelch stick hold moveback pin ${AssistStickDistanceSetting} uw
+		/squelch /stick hold moveback pin ${AssistStickDistanceSetting} uw
 		/delay 10 ${Me.Moving}
 		
 	} else /if (${AssistStickPoint.Equal[front]}) {
 	
-		/squelch /stick moveback snaproll 15 uw
-		/delay 10 !${Me.Moving} || ${Target.Distance} < 20
-		/squelch stick hold moveback front ${AssistStickDistanceSetting} uw
+		/if (${Debug}) /echo |- StickToAssistTarget -| Attempting to stick front [${AssistStickDistanceSetting}].
+		/squelch /stick hold front ${AssistStickDistanceSetting} uw
 		/delay 10 ${Me.Moving}
 		
 	} else /if (${AssistStickPoint.Equal[!front]}) {
 		
+		/if (${Debug}) /echo |- StickToAssistTarget -| Attempting to stick !front [${AssistStickDistanceSetting}].
 		/squelch /stick moveback snaproll 15 uw
 		/delay 10 !${Me.Moving} || ${Target.Distance} < 20
 		/squelch stick hold moveback !front ${AssistStickDistanceSetting} uw
@@ -177,9 +181,12 @@ SUB StickToAssistTarget
 	/if (${Debug}) /echo |- StickToAssistTarget -| :waitToStop
 	
 	/doevents getCloser
-	/if (${Me.Moving} && ${miscTimer}) /goto :waitToStop
+	/if (${Me.Moving}) {
+		/if (${miscTimer}) /goto :waitToStop
+	}
 
 /if (${Debug}) /echo <== StickToAssistTarget -|	
+| /varset Debug 0
 /RETURN
 
 
@@ -216,7 +223,6 @@ SUB check_AssistStatus
 					
 				|---------------------------------------------------------------------------------------------------------If I'm not autofiring, and out of range, stick to the assist target.s
 					/call check_IsLookingAt
-				
 					/if (!${Me.AutoFire} && ${Target.Distance} > ${AssistStickDistanceSetting} || ${Target.Distance} < ${Math.Calc[${AssistStickDistanceSetting}*.7]} || ${Me.Combat} && ${Macro.Return} && !${Select[${AssistStickPoint},front,behindonce]}) /call StickToAssistTarget
 				
 					/if (!${Me.AutoFire} && !${Me.Combat}) /attack on
@@ -368,7 +374,7 @@ SUB AssistOff
 
 #EVENT getCloser "Your target is too far away, get closer!"
 SUB EVENT_getCloser
-/varset Debug 1
+| /varset Debug 1
 /if (${Debug}) /echo |- EVENT_getCloser ==>
 
 	/if (${Assisting} && ${AllowControl} && !${getCloserTimer}) {
@@ -385,7 +391,7 @@ SUB EVENT_getCloser
 	}
 
 /if (${Debug}) /echo <== EVENT_getCloser -|
-/varset Debug 0
+| /varset Debug 0
 /RETURN
 
 
@@ -395,61 +401,66 @@ SUB EVENT_getCloser
 |------------------------------------------------|
 SUB CombatAbilities
 /if (${Debug}) /echo |- CombatAbilities ==>
-
-|----------------------------------------------------------------Check Target distance.
-	/if (${Target.Distance} > ${Spawn[${Target.ID}].MaxRangeTo}) {
-		/if (${Debug}) /echo |- CombatAbilities -| I am too far away from [${Spawn[id ${AssistTarget}].CleanName}] to use abilities.
+		/if (${Debug}) /echo |- CombatAbilities -| Abilities are only used on AssistTargets.
+	/if (${Target.ID} != ${AssistTarget}) {
+		
 	} else {
 	
-		/declare i int local
-	
-	|----------------------------------------------------------------------------------------For 1 to the size of MyAbilities array, use each ability.
-		/for i 1 to ${MyAbilities.Size}
+	|----------------------------------------------------------------Check Target distance.
+		/if (${Target.Distance} > ${Spawn[${Target.ID}].MaxRangeTo}) {
+			/if (${Debug}) /echo |- CombatAbilities -| I am too far away from [${Spawn[id ${AssistTarget}].CleanName}] to use abilities.
+		} else {
 		
-		/if (${MyAbilities[${i}].Arg[2,/].Equal[ability]}) {
-			/if (!${Me.AbilityReady[${MyAbilities[${i}].Arg[1,/]}]}) {
-				/if (${Debug}) /echo |- CombatAbilities -| Ability [${MyAbilities[${i}].Arg[1,/]}] is not ready.
-			} else {
-				/if (${MyAbilities[${i}].Arg[1,/].Equal[Backstab]}) {
-					/call Attempt_Backstab
-				} else /if (${MyAbilities[${i}].Arg[1,/].Equal[Bash]}) {
-					/call Attempt_Bash
-				} else /if (${MyAbilities[${i}].Arg[1,/].Equal[Taunt]}) {
-					/call Attempt_Taunt
-				} else /if (${Me.AbilityReady[${MyAbilities[${i}].Arg[1,/]}]}) {
-				
-				|-----------------------------------------------------------------Misc.
-					/doability "${MyAbilities[${i}].Arg[1,/]}"
-				}
-			}
-		} else /if (${MyAbilities[${i}].Arg[2,/].Equal[alt]}) {
-			/if (!${Me.AltAbilityReady[${MyAbilities[${i}].Arg[1,/]}]} || ${alt_Timer_${Me.AltAbility[${MyAbilities[${i}].Arg[1,/]}].ID}}) {
-				/if (${Debug}) /echo |- CombatAbilities -| Alternate Ability [${MyAbilities[${i}].Arg[1,/]}] is not ready.
-			} else {
-				/call e3_Cast ${AssistTarget} "${MyAbilities[${i}].Arg[1,/]}" alt
-			}
-		} else /if (${MyAbilities[${i}].Arg[2,/].Equal[disc]}) {
-			/if (!${Me.CombatAbilityReady[${MyAbilities[${i}].Arg[1,/]}]} || ${disc_Timer_${MyAbilities[${i}].Arg[1,/].Replace[ ,]}}) {
-				/if (${Debug}) /echo |- CombatAbilities -| Discipline [${MyAbilities[${i}].Arg[1,/]}] is not ready.
-			} else {
-				
-			|-----------------------------------------------------------Rogue Assassin's Strike.
-				/if (${MyAbilities[${i}].Arg[1,/].Equal[Thief's Vengeance]} || ${MyAbilities[${i}].Arg[1,/].Equal[Assassin's Strike]} || ${MyAbilities[${i}].Arg[1,/].Equal[Kyv Strike]} || ${MyAbilities[${i}].Arg[1,/].Equal[Ancient: Chaos Strike]}) {
-					/call Attempt_Backstab
-				
-			|-----------------------------------------------------------Warrior Bellow.	
-				} else /if (${MyAbilities[${i}].Arg[1,/].Equal[Provoke]} || ${MyAbilities[${i}].Arg[1,/].Equal[Bellow]} || ${MyAbilities[${i}].Arg[1,/].Equal[Berate]} || ${MyAbilities[${i}].Arg[1,/].Equal[Incite]} || ${MyAbilities[${i}].Arg[1,/].Equal[Bellow of the Mastruq]} || ${MyAbilities[${i}].Arg[1,/].Equal[Ancient: Chaos Cry]}) {
-					/call Attempt_Bellow
-					
-			|-------------------------------------------------------All other disciplines.
+			/declare i int local
+		
+		|----------------------------------------------------------------------------------------For 1 to the size of MyAbilities array, use each ability.
+			/for i 1 to ${MyAbilities.Size}
+			
+			/if (${MyAbilities[${i}].Arg[2,/].Equal[ability]}) {
+				/if (!${Me.AbilityReady[${MyAbilities[${i}].Arg[1,/]}]}) {
+					/if (${Debug}) /echo |- CombatAbilities -| Ability [${MyAbilities[${i}].Arg[1,/]}] is not ready.
 				} else {
-					/if (!${disc_Timer_${MyAbilities[${i}].Arg[1,/].Replace[ ,]}}) /call useDisc "${MyAbilities[${i}].Arg[1,/]}"
+					/if (${MyAbilities[${i}].Arg[1,/].Equal[Backstab]}) {
+						/call Attempt_Backstab
+					} else /if (${MyAbilities[${i}].Arg[1,/].Equal[Bash]}) {
+						/call Attempt_Bash
+					} else /if (${MyAbilities[${i}].Arg[1,/].Equal[Taunt]}) {
+						/call Attempt_Taunt
+					} else /if (${Me.AbilityReady[${MyAbilities[${i}].Arg[1,/]}]}) {
+					
+					|-----------------------------------------------------------------Misc.
+						/doability "${MyAbilities[${i}].Arg[1,/]}"
+					}
+				}
+			} else /if (${MyAbilities[${i}].Arg[2,/].Equal[alt]}) {
+				/if (!${Me.AltAbilityReady[${MyAbilities[${i}].Arg[1,/]}]} || ${alt_Timer_${Me.AltAbility[${MyAbilities[${i}].Arg[1,/]}].ID}}) {
+					/if (${Debug}) /echo |- CombatAbilities -| Alternate Ability [${MyAbilities[${i}].Arg[1,/]}] is not ready.
+				} else {
+					/call e3_Cast ${AssistTarget} "${MyAbilities[${i}].Arg[1,/]}" alt
+				}
+			} else /if (${MyAbilities[${i}].Arg[2,/].Equal[disc]}) {
+				/if (!${Me.CombatAbilityReady[${MyAbilities[${i}].Arg[1,/]}]} || ${disc_Timer_${MyAbilities[${i}].Arg[1,/].Replace[ ,]}}) {
+					/if (${Debug}) /echo |- CombatAbilities -| Discipline [${MyAbilities[${i}].Arg[1,/]}] is not ready.
+				} else {
+					
+				|-----------------------------------------------------------Rogue Assassin's Strike.
+					/if (${MyAbilities[${i}].Arg[1,/].Equal[Thief's Vengeance]} || ${MyAbilities[${i}].Arg[1,/].Equal[Assassin's Strike]} || ${MyAbilities[${i}].Arg[1,/].Equal[Kyv Strike]} || ${MyAbilities[${i}].Arg[1,/].Equal[Ancient: Chaos Strike]}) {
+						/call Attempt_Backstab
+					
+				|-----------------------------------------------------------Warrior Bellow.	
+					} else /if (${MyAbilities[${i}].Arg[1,/].Equal[Provoke]} || ${MyAbilities[${i}].Arg[1,/].Equal[Bellow]} || ${MyAbilities[${i}].Arg[1,/].Equal[Berate]} || ${MyAbilities[${i}].Arg[1,/].Equal[Incite]} || ${MyAbilities[${i}].Arg[1,/].Equal[Bellow of the Mastruq]} || ${MyAbilities[${i}].Arg[1,/].Equal[Ancient: Chaos Cry]}) {
+						/call Attempt_Bellow
+						
+				|-------------------------------------------------------All other disciplines.
+					} else {
+						/if (!${disc_Timer_${MyAbilities[${i}].Arg[1,/].Replace[ ,]}}) /call useDisc "${MyAbilities[${i}].Arg[1,/]}"
+					}
 				}
 			}
+			
+			/delay 2
+			/next i
 		}
-		
-		/delay 2
-		/next i
 	}
 
 /if (${Debug}) /echo <== CombatAbilities -|
@@ -995,7 +1006,7 @@ SUB event_QuickBurn(line, ChatSender)
 |- QuickBurn's MainLoop hook, calls QuickBurns in succession until your target dies.	-|
 |----------------------------------------------------------------------------------------|
 SUB QuickBurns
-/varset Debug 1
+| /varset Debug 1
 /if (${Debug}) /echo |- QuickBurn ==>
 
 	/if (${QBurn_Counter} <= ${QuickBurns.Size}) {
@@ -1021,7 +1032,7 @@ SUB QuickBurns
 	/varset combatTimer ${combatDelay}
 
 /if (${Debug}) /echo <== QuickBurn -|
-/varset Debug 0
+| /varset Debug 0
 /RETURN
 
 

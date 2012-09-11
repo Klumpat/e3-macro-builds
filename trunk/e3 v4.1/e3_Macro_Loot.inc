@@ -5,7 +5,7 @@
 |- Automatically loots corpses of mobs you have killed.					-|
 |------------------------------------------------------------------------|
 
-
+${Widow[LootWnd].Child[LW_CorpseName].Text.Equal[${Me.CleanName}'s corpse]}
 
 |------------------------------------------------------------|
 |- Automatically engage looting functions when a mob dies.	-|
