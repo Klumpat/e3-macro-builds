@@ -1,0 +1,28 @@
+e3.mac Change Log
+
+*** v4.1 - September 11th, 2012 ***
++ Revamped e3_Settings.ini. Moved many settings into function specific sections, along with adding quite a few new settings to tweak.
++ Revamped Magician Pet Weapons function.  Added code to make this more reliable, may need further work.
++ Revamped Taunt and warrior Bellow functions.
++ Revamped Find Items function to list all items that match your query, along with corresponding bag slots.
++ Revamped Remove Buffs function.  You can now use partial names to specify buffs.
++ Revamped Assist calls.
+
++ Added RestrictedBuffs to e3_Settings.ini.  List spells here to restrict them from being requested as a buff.
++ Added validation during ini import.  The macro will warn you about bad ini entries, and remove them from corresponding arrays, to avoid later conflicts.
++ Added Spellbook and AutoInventory timer settings to e3_Settings.ini.
++ Added Ranged attack functionality.
++ Added Symbol of Ancient Summoning to Pet Shrink function.
++ Added functions to update your loot.ini from in game.
+
++ Fixed stick behind on melee engage.  Melee should now spin with your assist target.
++ Fixed Evac functions.  There was a typo preventing correct spell names from being passed.
++ Fixed Pet Buffs.  Added ini input validation during startup to fix incorrect array entries.
++ Fixed [Shadow Knight] Character_Ini entries.
++ Fixed issues caused by the "/group" tag in BuffOthers and CombatBuffs.
++ Fixed Wizard "AutoHarvest".
+
++ Replaced [Assist_Stick] sections of the Character_Ini with [Assists] section. Added AssistType(Melee/Ranged) to specify which type of assisting you want to do.
++ Depricated the [Abilities] section of the Character_Ini.
++ Moved ability toggles into class specific Character_Ini sections, and changed them to On/Off toggles.
++ Moved ConstantIllusion setting to Bot_Inis.  You can now specify different illusions to use on each character.
