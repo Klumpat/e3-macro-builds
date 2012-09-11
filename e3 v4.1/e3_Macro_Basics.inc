@@ -92,7 +92,7 @@ SUB event_bark(line, msgTarget,  barkIt, ChatSender, SpecifiedBots)
 |- @param locToStart: Where to stand when trying to click the door.	-|
 |--------------------------------------------------------------------|
 SUB EVENT_clickIt(line, ChatSender, locToStart)
-/varset Debug 1
+| /varset Debug 1
 /if (${Debug}) /echo |- EVENT_clickIt ==>
 
 	/if (${ChatSender.Left[1].Compare[ ]}<0) /varset ChatSender ${ChatSender.Right[-2].Left[-1]}
@@ -177,7 +177,7 @@ SUB EVENT_clickIt(line, ChatSender, locToStart)
 	}
 	
 /if (${Debug}) /echo  <== EVENT_clickIt -|
-/varset Debug 0
+| /varset Debug 0
 /RETURN
 
 
@@ -781,7 +781,7 @@ SUB event_CheckBuffs(line, BuffToCheck)
 #event RemoveBuff "[#*#] Remove [#1#]"
 #event RemoveBuff "[#*#] Remove #1#"
 SUB event_RemoveBuff(line, badBuff)
-/varset Debug TRUE
+| /varset Debug TRUE
 /if (${Debug}) /echo |- EVENT_RemoveBuff ==>
 
 	/declare i int local
@@ -798,7 +798,7 @@ SUB event_RemoveBuff(line, badBuff)
 	/next i
 
 /if (${Debug}) /echo <== EVENT_RemoveBuff -|
-/varset Debug FALSE
+| /varset Debug FALSE
 /RETURN
 
 
