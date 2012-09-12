@@ -222,8 +222,8 @@ SUB check_AssistStatus
 					/if (${Target.ID}!=${AssistTarget}) /call TrueTarget ${AssistTarget}
 					
 				|---------------------------------------------------------------------------------------------------------If I'm not autofiring, and out of range, stick to the assist target.s
-					/call check_IsLookingAt
-					/if (!${Me.AutoFire} && ${Target.Distance} > ${AssistStickDistanceSetting} || ${Target.Distance} < ${Math.Calc[${AssistStickDistanceSetting}*.7]} || ${Me.Combat} && ${Macro.Return} && !${Select[${AssistStickPoint},front,behindonce]}) /call StickToAssistTarget
+					/call check_IsLookingAt	
+					/if (!${Me.AutoFire} && ${Target.Distance} > ${AssistStickDistanceSetting} || ${AssistStickDistance.Equal[MaxMelee]} &&  ${Target.Distance} < ${Math.Calc[${AssistStickDistanceSetting}*.7]} || ${Me.Combat} && ${Macro.Return} && !${Select[${AssistStickPoint},front,behindonce]}) /call StickToAssistTarget
 				
 					/if (!${Me.AutoFire} && !${Me.Combat}) /attack on
 					
@@ -400,10 +400,11 @@ SUB EVENT_getCloser
 |- Uses combat abilities, AAs, and disciplines.	-|
 |------------------------------------------------|
 SUB CombatAbilities
+| /varset Debug 1
 /if (${Debug}) /echo |- CombatAbilities ==>
-		/if (${Debug}) /echo |- CombatAbilities -| Abilities are only used on AssistTargets.
+
 	/if (${Target.ID} != ${AssistTarget}) {
-		
+		/if (${Debug}) /echo |- CombatAbilities -| Abilities are only used on AssistTargets.
 	} else {
 	
 	|----------------------------------------------------------------Check Target distance.
@@ -464,6 +465,7 @@ SUB CombatAbilities
 	}
 
 /if (${Debug}) /echo <== CombatAbilities -|
+| /varset Debug 0
 /RETURN
 
 
@@ -561,12 +563,12 @@ SUB Debuffs_OnAssist
 	|-----------------------------------------------------------------Cast an item.
 		} else /if (${Assist_Debuffs[${x}].Arg[2,/].Equal[item]}) {
 			/if (${Spawn[id ${AssistTarget}].Distance}<=${Spell[${FindItem[${Assist_Debuffs[${x}].Arg[1,/]}].Spell}].MyRange} && !${${AssistTarget}_${FindItem[${Assist_Debuffs[${x}].Arg[1,/]}].ID}}) {
-				/call Check_LongTermSpell ${AssistTarget} "${Assist_Debuffs[${x}].Arg[1,/]}" ${Assist_Debuffs[${x}].Arg[2,/]}
+				/call Check_LongTermSpell ${AssistTarget} "${Assist_Debuffs[${x}].Arg[1,/]}" item
 			}
 			
 	|------------------------------------------------------------------Cast an AA.
 		} else /if (${Assist_Debuffs[${x}].Arg[2,/].Equal[alt]}) {
-			/call Check_LongTermSpell ${AssistTarget} "${Assist_Debuffs[${x}].Arg[1,/]}" ${Assist_Debuffs[${x}].Arg[2,/]}
+			/call Check_LongTermSpell ${AssistTarget} "${Assist_Debuffs[${x}].Arg[1,/]}" alt
 		}
 	
 	/if (!${ActionTaken}) /next x
@@ -580,6 +582,7 @@ SUB Debuffs_OnAssist
 |- Casts Spells listed in the [DoTs] section of the Character_Ini, on AssistTargets.	-|
 |----------------------------------------------------------------------------------------|
 SUB DoTs_OnAssist
+/varset Debug 1
 /if (${Debug}) /echo |- DoTs_OnAssist ==>
 
 	/declare x int local
@@ -605,6 +608,7 @@ SUB DoTs_OnAssist
 	/if (!${ActionTaken}) /next x
 				
 /if (${Debug}) /echo <== DoTs_OnAssist -|
+/varset Debug 0
 /RETURN
 
 
@@ -779,6 +783,7 @@ SUB Event_DoTsOn(line, int DoTTarget, ChatSender)
 |- Casts Command_DoTs on targets listed in DoT_Targets array.	-|
 |----------------------------------------------------------------|
 SUB DoTs_OnCommand
+| /varset Debug 1
 /if (${Debug}) /echo |- DoTs_OnCommand ==>
 
 |----------------------------------------------------------Declare counting variables.
@@ -799,7 +804,8 @@ SUB DoTs_OnCommand
 			|--------------------------------------------------------------------Cast a spell.
 				/if (${Command_DoTs[${x}].Arg[2,/].Left[3].Equal[gem]}) {
 					/if (${Me.PctMana}>${Command_DoTs[${x}].Arg[3,/].Replace[m,]} && ${Spawn[${DoT_Targets[${i}].Arg[1,_]}].Distance}<=${Spell[${Command_DoTs[${x}].Arg[1,/]}].MyRange} && !${${DoT_Targets[${i}].Arg[1,_]}_${Spell[${Command_DoTs[${x}].Arg[1,/]}].ID}}) {
-						/call Check_LongTermSpell ${DoT_Targets[${i}].Arg[1,_]} "${Command_DoTs[${x}].Arg[1,/]}" ${Command_DoTs[${x}].Arg[2,/]} ${If[${StickOn} || ${Me.Combat},0s,${If[${Me.Gem[${MyNukes[${i}].Arg[1,/]}]},0s,9s]}]}
+						/if (${Debug}) /echo |- DoTs_OnCommand -| Attempting to cast [${Command_DoTs[${x}].Arg[1,/]}] on [${Spawn[id ${DoT_Targets[${i}].Arg[1,_]}].CleanName} - ${AssistTarget}] with a retry timer of [${If[${Me.Combat},0s,${If[${Me.Gem[${Command_DoTs[${x}].Arg[1,/]}]},2s,9s]}]}].
+						/call Check_LongTermSpell ${DoT_Targets[${i}].Arg[1,_]} "${Command_DoTs[${x}].Arg[1,/]}" ${Command_DoTs[${x}].Arg[2,/]} ${If[${Me.Combat},0s,${If[${Me.Gem[${Command_DoTs[${x}].Arg[1,/]}]},2s,9s]}]}
 					}
 				
 			|-----------------------------------------------------------------Cast an item.
@@ -818,6 +824,7 @@ SUB DoTs_OnCommand
 	/if (${Debuff_Targets.Size} && !${ActionTaken}) /next i
 	
 /if (${Debug}) /echo <== DoTs_OnCommand -|
+| /varset Debug 0
 /RETURN
 
 
@@ -831,7 +838,7 @@ SUB event_DoTsOff
 
 	/if (${DoT_Targets.Size}) {
 		/if (${Verbosity}) /docommand ${ChatToggle} Ending DoTs
-		/deletevar Debuff_Targets
+		/deletevar DoT_Targets
 	}
 
 /if (${Debug}) /echo <== event_DoTsOff -|

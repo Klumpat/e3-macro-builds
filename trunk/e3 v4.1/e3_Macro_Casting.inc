@@ -196,6 +196,7 @@ SUB cast_Spell(int targetID, castName, spellGem, timer giveUpTimer, SubToRun)
 			/call Background_Events
 		}
 		/if (${giveUpTimer}) {
+			/delay 2
 			/goto :waitToCast
 		} else {
 			/if (${Debug}) /echo |- e3_Cast -| ERROR: [${castName}] was not ready within the allotted time.
@@ -470,7 +471,6 @@ SUB e3_CastingChecks(SubToRun)
 
 
 
-
 SUB SwapItem(itemName,slotName)
 /if (${Debug}) /echo |- SwapItem ==>
 
@@ -517,7 +517,7 @@ SUB Check_LongTermSpell(int SpellTarget, SpellName, CastType, GiveUpTimer, int G
 	/if (${CastType.Left[3].Equal[gem]}) {
 		/varset dot_Timer ${SpellTarget}_${Spell[${SpellName}].ID}
 		/varset timer_Setting ${Math.Calc[${Spell[${SpellName}].Duration}*6-6]}s
-	
+
 |-------------------------------Set variables for an item.
 	} else /if (${CastType.Equal[item]}) {
 		/varset dot_Timer ${SpellTarget}_${FindItem[${SpellName}].ID}
@@ -535,7 +535,7 @@ SUB Check_LongTermSpell(int SpellTarget, SpellName, CastType, GiveUpTimer, int G
 	} else {
 		/if (${Verbosity}) /docommand ${ChatToggle} Attempting to cast ${SpellName} on ${Spawn[${SpellTarget}].CleanName}.
 		:recast
-		/if (${Debug}) /echo |- Check_LongTermSpell -| Casting [${SpellName}][${CastType}] on [${Spawn[id ${SpellTarget}].CleanName}]
+		/if (${Debug}) /echo |- Check_LongTermSpell -| Casting [${SpellName}][${CastType}] on [${Spawn[id ${SpellTarget}].CleanName}]. GiveUpTimer=${GiveUpTimer}${If[${Defined[GiveUpValue]},Retries=${GiveUpValue},]}.
 		/call e3_Cast ${SpellTarget} "${SpellName}" ${CastType} ${GiveUpTimer}
 		
 	|---------------------------------------------If the spell was resisted.

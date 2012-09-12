@@ -97,7 +97,7 @@ Sub SHD_Setup
 	}
 
 	/if (${Ini[${Character_Ini},${Me.Class},LifeTap(Spell/Gem/Pct)].Length}) {
-		/call INItoVar ${Character_Ini},${Me.Class},LifeTap(Spell/Gem/Pct) UNDEFINED string local
+		/call INItoVar "${Character_Ini},${Me.Class},LifeTap(Spell/Gem/Pct)" UNDEFINED string local
 		/declare LifeTapSpell string outer ${Macro.Return.Arg[1,/]}
 		/declare LifeTapPct int outer ${Macro.Return.Arg[3,/]}
 		/declare LifeTapGem int outer ${Macro.Return.Arg[2,/]}
