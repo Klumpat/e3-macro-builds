@@ -101,9 +101,8 @@ Sub ROG_Setup
 			/call BuildArray MyAbilities "${StrikeName}/disc"
 		}
 	}
-/varset Debug 1
 	/call INItoVar ${Character_Ini},Rogue,Auto_Hide(On/Off) AutoHide bool outer
-/varset Debug 0
+
 /if (${Debug}) /echo <== ROG_Setup -|	
 /return
 
