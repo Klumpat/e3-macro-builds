@@ -66,9 +66,9 @@ Sub WAR_Setup
 	/if (!${Ini[${Character_Ini},${Me.Class}].Length}) /call Make${Me.Class.ShortName}_Ini
 	
 |-------------------------------------------------------------------------------------------------Auto_Bash
-	/call IniToVar "${Character_Ini},${Me.Class},Auto_Bash(Off)" UNDEFINED bool local
+	/call IniToVar "${Character_Ini},${Me.Class},Auto_Bash(On/Off)" UNDEFINED bool local
 	/if (${Macro.Return}) /call BuildArray MyAbilities Bash/Ability
-	
+
 |-------------------------------------------------------------------------------------------------Auto_Bellow
 	/call IniToVar "${Character_Ini},${Me.Class},Auto_Bellow(On/Off)" UNDEFINED bool local
 	/if (${Macro.Return}) {

@@ -159,7 +159,7 @@ SUB e3_Setup
 SUB startMsg
 /if (${Debug}) /echo |- startMsg ==>
 
-	/declare MsgNum int local ${Math.Rand[6]}
+	/declare MsgNum int local ${Math.Rand[8]}
 
 	/if (${MsgNum}==1) {
 		/echo ** Unless you have recently made use of the donation link at http://code.google.com/p/e3-macro-builds/, I do not provide technical support for this macro. **
@@ -170,9 +170,13 @@ SUB startMsg
 	} else /if (${MsgNum}==4) {
 		/echo ** Unless you're a hot chick with firm breasts, or have recently made use of the donation link on the webpage, post all questions, issues, or suggestions on the issues page of http://code.google.com/p/e3-macro-builds/. **
 	} else /if (${MsgNum}==5) {
-		/echo ** What's that?! Oh, it's the donations link at, http://code.google.com/p/e3-macro-builds/.  Maybe we should check it out... **
+		/echo ** What's that?! Oh, it's the donations link at, http://code.google.com/p/e3-macro-builds/.  Maybe you should check it out... **
 	} else /if (${MsgNum}==6) {
 		/echo ** Have you used the website's donation button today? **
+	} else /if (${MsgNum}==7) {
+		/echo ** If you like my macro, give me money!  Go to, http://code.google.com/p/e3-macro-builds/, and donate.
+	} else /if (${MsgNum}==8) {
+		/echo ** Unless you have donated, do not bug me for tech support. **
 	}
 	
 /if (${Debug}) /echo <== startMsg -|
@@ -871,32 +875,73 @@ SUB Build_Alphabetized_Ini(Ini_File)
 |------------------------|
 SUB Make_discTimers_Ini
 /echo Building [${discTimer_Ini}] file...
+
+|- Bard entries -|
+
 /call WriteToIni "${discTimer_Ini},Bard,Puretone Discipline" 4050s
 /call WriteToIni "${discTimer_Ini},Bard,Deftdance Discipline" 3780s
 /call WriteToIni "${discTimer_Ini},Bard,Fearless Discipline" 1800s
 /call WriteToIni "${discTimer_Ini},Bard,Resistant Discipline" 1800s
+
+|- Beastlord entries -|
 
 /call WriteToIni "${discTimer_Ini},Beastlord,Protective Spirit Discipline" 234s
 /call WriteToIni "${discTimer_Ini},Beastlord,Bestial Fury Discipline" 1530s
 /call WriteToIni "${discTimer_Ini},Beastlord,Fearless Discipline" 1800s
 /call WriteToIni "${discTimer_Ini},Beastlord,Resistant Discipline" 1800s
 
-/call WriteToIni "${discTimer_Ini},Berserker,Rage Axe" 6s
-/call WriteToIni "${discTimer_Ini},Berserker,Battlerage Axe" 6s
-/call WriteToIni "${discTimer_Ini},Berserker,Tainted Axe of Hatred" 6s
-/call WriteToIni "${discTimer_Ini},Berserker,Rage Volley" 12s
+|- Berserker entries -|
+
+/call WriteToIni "${discTimer_Ini},Berserker,Resistant Discipline" 1800s
+/call WriteToIni "${discTimer_Ini},Berserker,Fearless Discipline" 1800s
+/call WriteToIni "${discTimer_Ini},Berserker,Healing Will Discipline" 300s
+/call WriteToIni "${discTimer_Ini},Berserker,Focused Will Discipline" 300s
+/call WriteToIni "${discTimer_Ini},Berserker,Leg Strike" 12s
+/call WriteToIni "${discTimer_Ini},Berserker,Leg Cut" 12s
+/call WriteToIni "${discTimer_Ini},Berserker,Leg Slice" 12s
+/call WriteToIni "${discTimer_Ini},Berserker,Head Strike" 12s
+/call WriteToIni "${discTimer_Ini},Berserker,Head Pummel" 12s
+/call WriteToIni "${discTimer_Ini},Berserker,Head Crush" 12s
+/call WriteToIni "${discTimer_Ini},Berserker,Divertive Strike" 12s
+/call WriteToIni "${discTimer_Ini},Berserker,Distracting Strike" 12s
 /call WriteToIni "${discTimer_Ini},Berserker,Confusing Strike" 12s
+/call WriteToIni "${discTimer_Ini},Berserker,Corroded Axe" 6s
+/call WriteToIni "${discTimer_Ini},Berserker,Blunt Axe" 6s
+/call WriteToIni "${discTimer_Ini},Berserker,Steel Axe" 6s
+/call WriteToIni "${discTimer_Ini},Berserker,Bearded Axe" 6s
+/call WriteToIni "${discTimer_Ini},Berserker,Mithril Axe" 6s
+/call WriteToIni "${discTimer_Ini},Berserker,Balanced War Axe" 6s
+/call WriteToIni "${discTimer_Ini},Berserker,Bonesplicer Axe" 6s
+/call WriteToIni "${discTimer_Ini},Berserker,Fleshtear Axe" 6s
+/call WriteToIni "${discTimer_Ini},Berserker,Cold Steel Cleaving Axe" 6s
+/call WriteToIni "${discTimer_Ini},Berserker,Mithril Bloodaxe" 6s
+/call WriteToIni "${discTimer_Ini},Berserker,Rage Axe" 6s
+/call WriteToIni "${discTimer_Ini},Berserker,Bloodseeker's Axe" 6s
+/call WriteToIni "${discTimer_Ini},Berserker,Battlerage Axe" 6s
+/call WriteToIni "${discTimer_Ini},Berserker,Deathfury Axe" 6s
+/call WriteToIni "${discTimer_Ini},Berserker,Battle Cry" 1800s
+/call WriteToIni "${discTimer_Ini},Berserker,War Cry" 1800s
+/call WriteToIni "${discTimer_Ini},Berserker,Battle Cry of Dravel" 1800s
+/call WriteToIni "${discTimer_Ini},Berserker,War Cry of Dravel" 1800s
+/call WriteToIni "${discTimer_Ini},Berserker,Battle Cry of the Mastruq" 1800s
+/call WriteToIni "${discTimer_Ini},Berserker,Ancient: Cry of Chaos" 1800s
+/call WriteToIni "${discTimer_Ini},Berserker,Burning Rage Discipline" 1800s
+/call WriteToIni "${discTimer_Ini},Berserker,Focused Fury Discipline" 1500s
+/call WriteToIni "${discTimer_Ini},Berserker,Cleaving Rage Discipline" 1500s
+/call WriteToIni "${discTimer_Ini},Berserker,Battle Focus Discipline" 2400s
+/call WriteToIni "${discTimer_Ini},Berserker,Inspired Anger Discipline" 1500s
+/call WriteToIni "${discTimer_Ini},Berserker,Reckless Discipline" 2400s
+/call WriteToIni "${discTimer_Ini},Berserker,Blind Rage Discipline" 1500s
 /call WriteToIni "${discTimer_Ini},Berserker,Indomitable Discipline" 1320s
 /call WriteToIni "${discTimer_Ini},Berserker,Cleaving Anger Discipline" 1320s
-/call WriteToIni "${discTimer_Ini},Berserker,Cleaving Rage Discipline" 1500s
-/call WriteToIni "${discTimer_Ini},Berserker,Focused Fury Discipline" 1500s
-/call WriteToIni "${discTimer_Ini},Berserker,Burning Rage Discipline" 1800s
 /call WriteToIni "${discTimer_Ini},Berserker,Sprint Discipline" 1800s
-/call WriteToIni "${discTimer_Ini},Berserker,War Cry of Dravel" 1800s
-/call WriteToIni "${discTimer_Ini},Berserker,War Cry of the Mastruq" 1800s
-/call WriteToIni "${discTimer_Ini},Berserker,Ancient: Cry of Chaos" 1800s
-/call WriteToIni "${discTimer_Ini},Berserker,Reckless Discipline" 2400s
+/call WriteToIni "${discTimer_Ini},Berserker,Tainted Axe of Hatred" 6s
+/call WriteToIni "${discTimer_Ini},Berserker,Throw Stone" 10s
 
+|- Monk entries -|
+
+/call WriteToIni "${discTimer_Ini},Monk,Earthwalk Discipline" 234s
+/call WriteToIni "${discTimer_Ini},Monk,Ancient: Phantom Chaos" 20s
 /call WriteToIni "${discTimer_Ini},Monk,Throw Stone" 10s
 /call WriteToIni "${discTimer_Ini},Monk,Phantom Zephyr" 20s
 /call WriteToIni "${discTimer_Ini},Monk,Phantom Wind" 20s
@@ -918,20 +963,33 @@ SUB Make_discTimers_Ini
 /call WriteToIni "${discTimer_Ini},Monk,Healing Will Discipline" 300s
 /call WriteToIni "${discTimer_Ini},Monk,Resistant Discipline" 1800s
 
+|- Paladin entries -|
+
 /call WriteToIni "${discTimer_Ini},Paladin,Holyforge Discipline" 4050s
 /call WriteToIni "${discTimer_Ini},Paladin,Sanctification Discipline" 4050s
 /call WriteToIni "${discTimer_Ini},Paladin,Fearless Discipline" 1800s
 /call WriteToIni "${discTimer_Ini},Paladin,Resistant Discipline" 1800s
+
+|- Ranger entries -|
 
 /call WriteToIni "${discTimer_Ini},Ranger,Weapon Shield Discipline" 4050s
 /call WriteToIni "${discTimer_Ini},Ranger,Trueshot Discipline" 4050s
 /call WriteToIni "${discTimer_Ini},Ranger,Fearless Discipline" 1800s
 /call WriteToIni "${discTimer_Ini},Ranger,Resistant Discipline" 1800s
 
+|- Rogue entries -|
+
+/call WriteToIni "${discTimer_Ini},Rogue,Weapon Affinity Discipline"
+/call WriteToIni "${discTimer_Ini},Rogue,Fearless Discipline" 1800s
+/call WriteToIni "${discTimer_Ini},Rogue,Resistant Discipline" 1800s
+/call WriteToIni "${discTimer_Ini},Rogue,Healing Will Discipline" 300s
+/call WriteToIni "${discTimer_Ini},Rogue,Focused Will Discipline" 300s
+/call WriteToIni "${discTimer_Ini},Rogue,Sneak Attack" 30s
 /call WriteToIni "${discTimer_Ini},Rogue,Thief's Vengeance" 30s
 /call WriteToIni "${discTimer_Ini},Rogue,Assassin's Strike" 30s
 /call WriteToIni "${discTimer_Ini},Rogue,Kyv Strike" 30s
 /call WriteToIni "${discTimer_Ini},Rogue,Ancient: Chaos Strike" 30s
+/call WriteToIni "${discTimer_Ini},Rogue,Throw Stone" 10s
 /call WriteToIni "${discTimer_Ini},Rogue,Deadly Precision Discipline" 300s
 /call WriteToIni "${discTimer_Ini},Rogue,Kinesthetics Discipline" 300s
 /call WriteToIni "${discTimer_Ini},Rogue,Deadeye Discipline" 1200s
@@ -941,10 +999,14 @@ SUB Make_discTimers_Ini
 /call WriteToIni "${discTimer_Ini},Rogue,Twisted Chance Discipline" 1320s
 /call WriteToIni "${discTimer_Ini},Rogue,Counterattack Discipline" 2400s
 
+|- Shadow Knight entries -|
+
 /call WriteToIni "${discTimer_Ini},Shadow Knight,Leechcurse Discipline" 4050s
 /call WriteToIni "${discTimer_Ini},Shadow Knight,Unholy Aura Discipline" 2160s
 /call WriteToIni "${discTimer_Ini},Shadow Knight,Fearless Discipline" 1800s
 /call WriteToIni "${discTimer_Ini},Shadow Knight,Resistant Discipline" 1800s
+
+|- Warrior entries -|
 
 /call WriteToIni "${discTimer_Ini},Warrior,Ancient: Chaos Cry" 30s
 /call WriteToIni "${discTimer_Ini},Warrior,Bellow of the Mastruq" 30s
@@ -976,6 +1038,7 @@ SUB Make_discTimers_Ini
 |- Build SpellAliases_Ini.	-|
 |----------------------------|
 SUB MakeSpellAliases_Ini
+
 /echo Building [${SpellAliases_Ini}] file...
 |-------------------------------------------------------------------------------------Beastlord Aliases.
 	/call WriteToIni "${SpellAliases_Ini},Beastlord,SD" "Spiritual Dominion"
