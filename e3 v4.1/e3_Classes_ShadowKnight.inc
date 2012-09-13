@@ -85,17 +85,6 @@ Sub SHD_Setup
 
 	/if (!${Ini[${Character_Ini},${Me.Class}].Length}) /call Make${Me.Class.ShortName}_Ini
 
-|-------------------------------------------------------------------------------------------------Auto_Bash
-	/call IniToVar "${Character_Ini},${Me.Class},Auto_Bash(On/Off)" UNDEFINED bool local
-	/if (${Macro.Return}) /call BuildArray MyAbilities Bash/Ability
-
-|-------------------------------------------------------------------------------------------------Auto_Taunt
-	/call IniToVar "${Character_Ini},${Me.Class},Auto_Taunt(On/Off)" UNDEFINED bool local
-	/if (${Macro.Return}) {
-		/call BuildArray MyAbilities Taunt/Ability
-		/declare do_Taunt bool outer TRUE
-	}
-
 	/if (${Ini[${Character_Ini},${Me.Class},LifeTap(Spell/Gem/Pct)].Length}) {
 		/call INItoVar "${Character_Ini},${Me.Class},LifeTap(Spell/Gem/Pct)" UNDEFINED string local
 		/declare LifeTapSpell string outer ${Macro.Return.Arg[1,/]}
@@ -115,8 +104,7 @@ Sub SHD_Setup
 |------------------------------------------------------------------------|
 Sub MakeSHD_Ini
 /if (${Debug}) /echo |- SHD_Ini ==>
-	/call WriteToIni "${Character_Ini},${Me.Class},Auto_Bash(On/Off)" On 0
-	/call WriteToIni "${Character_Ini},${Me.Class},Auto_Taunt(On/Off)" Off 0
+
 	/call WriteToIni "${Character_Ini},${Me.Class},LifeTap(Spell/Gem/Pct)" "*Lifetap spell to cast, gem to mem it to, and percent to cast it at."
 	
 /if (${Debug}) /echo <== SHD_Ini -|

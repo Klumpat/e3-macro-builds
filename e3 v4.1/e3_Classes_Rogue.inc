@@ -72,9 +72,32 @@ Sub ROG_Setup
 
 	/if (!${Ini[${Character_Ini},${Me.Class}].Length}) /call Make${Me.Class.ShortName}_Ini
 
-|-------------------------------------------------------------------------------------------------Auto_Kick
-	/call IniToVar "${Character_Ini},${Me.Class},Auto_Backstab(On/Off)" UNDEFINED bool local
-	/if (${Macro.Return}) /call BuildArray MyAbilities Backstab/Ability
+	/call INItoVar ${Character_Ini},Rogue,Auto_Hide(On/Off) AutoHide bool outer
+	
+|---------------------------------------------------------------------------------Check MyAbilities for an Assassin's Strike type disc.
+	/if (${MyAbilities.Size}) {
+		/declare i int local
+		
+		/for i 1 to ${MyAbilities.Size}
+		|-----------------------------------------------------------------------------------------Check for the best available 'Assassin's Strike' to use.
+			/if (${MyAbilities[${i}].Arg[1,/].Equal[Ancient: Chaos Strike]}) {
+				/declare StrikeName string outer Ancient: Chaos Strike
+				/declare MinStrikeEndurance int outer 575
+			} else /if (${MyAbilities[${i}].Arg[1,/].Equal[Kyv Strike]}) {
+				/declare StrikeName string outer Kyv Strike
+				/declare MinStrikeEndurance int outer 550
+			} else /if (${MyAbilities[${i}].Arg[1,/].Equal[Assassin's Strike]}) {
+				/declare StrikeName string outer Assassin's Strike
+				/declare MinStrikeEndurance int outer 515
+			} else /if (${MyAbilities[${i}].Arg[1,/].Equal[Thief's Vengeance]}) {
+				/declare StrikeName string outer Thief's Vengeance
+				/declare MinStrikeEndurance int outer 425
+			}	
+		/next i
+	}
+
+/if (${Debug}) /echo <== ROG_Setup -|	
+/return
 
 |-------------------------------------------------------------------------------------------------Auto_Strike
 	/call IniToVar "${Character_Ini},${Me.Class},Auto_Strike(On/Off)" UNDEFINED bool local
@@ -101,12 +124,6 @@ Sub ROG_Setup
 			/call BuildArray MyAbilities "${StrikeName}/disc"
 		}
 	}
-	/call INItoVar ${Character_Ini},Rogue,Auto_Hide(On/Off) AutoHide bool outer
-
-/if (${Debug}) /echo <== ROG_Setup -|	
-/return
-
-
 
 |----------------------------------------------------------------|
 |- MakeROG_Ini													-|
@@ -116,9 +133,7 @@ Sub ROG_Setup
 Sub MakeROG_Ini
 /if (${Debug}) /echo |- ROG_Ini ==>
 
-	/call WriteToIni "${Character_Ini},${Me.Class},Auto_Backstab(On/Off)" On 0
 	/call WriteToIni "${Character_Ini},${Me.Class},Auto_Hide(On/Off)" "Do you want this character to automatically sneak / hide whenever you're not in combat?" 0
-	/call WriteToIni "${Character_Ini},${Me.Class},Auto_Strike(On/Off)" On 0
 	/call WriteToIni "${Character_Ini},${Me.Class},Auto_Forage(On/Off)" "*Do you want this character to automatically forage?" 0
 	
 /if (${Debug}) /echo <== ROG_Ini -|

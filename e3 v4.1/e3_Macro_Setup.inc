@@ -108,10 +108,10 @@ SUB e3_Setup
 	
 	/call setup_Background_Services
 	
-	/call ${Me.Class.ShortName}_Setup
-	
 	/call setup_Assists
 
+	/call ${Me.Class.ShortName}_Setup
+	
 	/call setup_BegForBuffs
 
 	/call setup_Buffs
@@ -759,6 +759,13 @@ SUB MakeCharacter_Ini
 	}
 }	
 
+|----------------------------------------------------------------------If I'm a melee class, add Abilities entries.
+/if (${Select[${Me.Class.ShortName},BER,BST,MNK,PAL,RNG,ROG,SHD,WAR]}) {
+	/if (!${Ini[${Character_Ini},Abilities].Length}) {
+		/call WriteToIni ${Character_Ini},Abilities,Ability#1 "*List any melee abilities you want this character to use, add /ability, /alt, or /disc respectively. Ex. Ability#1=Feral Swipe/alt"
+	}
+}
+
 |-------------------------------------------------------------------------If I'm a casting class, add Nuke entries.
 /if (${Select[${Me.Class.ShortName},BST,DRU,ENC,MAG,PAL,NEC,RNG,SHD,SHM,WIZ]}) {
 	/if (!${Ini[${Character_Ini},Nukes].Length}) {
@@ -937,6 +944,7 @@ SUB Make_discTimers_Ini
 /call WriteToIni "${discTimer_Ini},Berserker,Sprint Discipline" 1800s
 /call WriteToIni "${discTimer_Ini},Berserker,Tainted Axe of Hatred" 6s
 /call WriteToIni "${discTimer_Ini},Berserker,Throw Stone" 10s
+/call WriteToIni "${discTimer_Ini},Berserker,Rage Volley" 12s
 
 |- Monk entries -|
 

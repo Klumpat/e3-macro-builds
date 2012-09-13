@@ -63,11 +63,47 @@ Sub WAR_Assist
 Sub WAR_Setup
 /if (${Debug}) /echo |- WAR_Setup ==>
 
-	/if (!${Ini[${Character_Ini},${Me.Class}].Length}) /call Make${Me.Class.ShortName}_Ini
+	| /if (!${Ini[${Character_Ini},${Me.Class}].Length}) /call Make${Me.Class.ShortName}_Ini
+
+	|---------------------------------------------------------------------------------Check MyAbilities for an Bellow type disc.
+	/if (${MyAbilities.Size}) {
+		/declare i int local
+		
+		/for i 1 to ${MyAbilities.Size}
+
+		|-----------------------------------------------------------------------------------------Check for the best available 'Bellow' to use.
+			/if (${MyAbilities[${i}].Arg[1,/].Equal[Ancient: Chaos Cry]}) {
+				/declare BellowName string outer Ancient: Chaos Cry
+				/declare MinBellowEndurance int outer ${Math.Calc[300*3]}
+				/if (!${Defined[do_Taunt]}) /declare do_Taunt bool outer TRUE
+			} else /if (${MyAbilities[${i}].Arg[1,/].Equal[Bellow of the Mastruq]}) {
+				/declare BellowName string outer Bellow of the Mastruq
+				/declare MinBellowEndurance int outer ${Math.Calc[275*3]}
+				/if (!${Defined[do_Taunt]}) /declare do_Taunt bool outer TRUE
+			} else /if (${MyAbilities[${i}].Arg[1,/].Equal[Incite]}) {
+				/declare BellowName string outer Incite
+				/declare MinBellowEndurance int outer ${Math.Calc[250*3]}
+				/if (!${Defined[do_Taunt]}) /declare do_Taunt bool outer TRUE
+			} else /if (${MyAbilities[${i}].Arg[1,/].Equal[Berate]}) {
+				/declare BellowName string outer Berate
+				/declare MinBellowEndurance int outer ${Math.Calc[200*3]}
+				/if (!${Defined[do_Taunt]}) /declare do_Taunt bool outer TRUE
+			} else /if (${MyAbilities[${i}].Arg[1,/].Equal[Bellow]}) {
+				/declare BellowName string outer Bellow
+				/declare MinBellowEndurance int outer ${Math.Calc[175*3]}
+				/if (!${Defined[do_Taunt]}) /declare do_Taunt bool outer TRUE
+			} else /if (${MyAbilities[${i}].Arg[1,/].Equal[Provoke]}) {
+				/declare BellowName string outer Provoke
+				/declare MinBellowEndurance int outer ${Math.Calc[85*3]}
+				/if (!${Defined[do_Taunt]}) /declare do_Taunt bool outer TRUE
+			}
+			
+		/next i
+	}
 	
-|-------------------------------------------------------------------------------------------------Auto_Bash
-	/call IniToVar "${Character_Ini},${Me.Class},Auto_Bash(On/Off)" UNDEFINED bool local
-	/if (${Macro.Return}) /call BuildArray MyAbilities Bash/Ability
+/if (${Debug}) /echo <== WAR_Setup -|
+/return
+
 
 |-------------------------------------------------------------------------------------------------Auto_Bellow
 	/call IniToVar "${Character_Ini},${Me.Class},Auto_Bellow(On/Off)" UNDEFINED bool local
@@ -102,21 +138,8 @@ Sub WAR_Setup
 		}
 	}
 
-|-------------------------------------------------------------------------------------------------Auto_Kick
-	/call IniToVar "${Character_Ini},${Me.Class},Auto_Kick(On/Off)" UNDEFINED bool local
-	/if (${Macro.Return}) /call BuildArray MyAbilities Kick/Ability
 
-|-------------------------------------------------------------------------------------------------Auto_Taunt
-	/call IniToVar "${Character_Ini},${Me.Class},Auto_Taunt(On/Off)" UNDEFINED bool local
-	/if (${Macro.Return}) {
-		/call BuildArray MyAbilities Taunt/Ability
-		/declare AutoAggro bool outer TRUE
-	}
-	
-/if (${Debug}) /echo <== WAR_Setup -|
-/return
-
-
+create do_Taunt toggles
 
 |--------------------------------------------------------------------|
 |- MakeWAR_Ini														-|
@@ -126,10 +149,7 @@ Sub WAR_Setup
 Sub MakeWAR_Ini
 /if (${Debug}) /echo |- WAR_Ini ==>
 
-	/call WriteToIni "${Character_Ini},${Me.Class},Auto_Bash(On/Off)" On 0
-	/call WriteToIni "${Character_Ini},${Me.Class},Auto_Bellow(On/Off)" On 0
-	/call WriteToIni "${Character_Ini},${Me.Class},Auto_Kick(On/Off)" On 0
-	/call WriteToIni "${Character_Ini},${Me.Class},Auto_Taunt(On/Off)" On 0
+
 	
 /if (${Debug}) /echo <== WAR_Ini -|
 /return

@@ -67,35 +67,7 @@ Sub MNK_Assist
 Sub MNK_Setup
 /if (${Debug}) /echo |- MNK_Setup ==>
 
-	/if (!${Ini[${Character_Ini},${Me.Class}].Length}) /call Make${Me.Class.ShortName}_Ini
-	
-|-------------------------------------------------------------------------------------------------Auto_Flying Kick
-	/call IniToVar "${Character_Ini},${Me.Class},Auto_FlyingKick(On/Off)" UNDEFINED bool local
-	/if (${Macro.Return}) /call BuildArray MyAbilities "Flying Kick/Ability"	
-	
-|-------------------------------------------------------------------------------------------------Auto_Dragon Punch
-	/call IniToVar "${Character_Ini},${Me.Class},Auto_DragonPunch(On/Off)" UNDEFINED bool local
-	/if (${Macro.Return}) /call BuildArray MyAbilities "Dragon Punch/Ability"
-
-|-------------------------------------------------------------------------------------------------Auto_Dragon Punch
-	/call IniToVar "${Character_Ini},${Me.Class},Auto_TailRake(On/Off)" UNDEFINED bool local
-	/if (${Macro.Return}) /call BuildArray MyAbilities "Tail Rake/Ability"
-	
-|-------------------------------------------------------------------------------------------------Auto_Eagle Strike
-	/call IniToVar "${Character_Ini},${Me.Class},Auto_EagleStrike(On/Off)" UNDEFINED bool local
-	/if (${Macro.Return}) /call BuildArray MyAbilities "Eagle Strike/Ability"	
-	
-|-------------------------------------------------------------------------------------------------Auto_Tiger Claw
-	/call IniToVar "${Character_Ini},${Me.Class},Auto_TigerClaw(On/Off)" UNDEFINED bool local
-	/if (${Macro.Return}) /call BuildArray MyAbilities "Tiger Claw/Ability"
-	
-|-------------------------------------------------------------------------------------------------Auto_Round Kick
-	/call IniToVar "${Character_Ini},${Me.Class},Auto_RoundKick(On/Off)" UNDEFINED bool local
-	/if (${Macro.Return}) /call BuildArray MyAbilities "Round Kick/Ability"
-	
-|-------------------------------------------------------------------------------------------------Auto_Kick
-	/call IniToVar "${Character_Ini},${Me.Class},Auto_Kick(On/Off)" UNDEFINED bool local
-	/if (${Macro.Return}) /call BuildArray MyAbilities Kick/Ability
+	| /if (!${Ini[${Character_Ini},${Me.Class}].Length}) /call Make${Me.Class.ShortName}_Ini
 	
 /if (${Debug}) /echo <== MNK_Setup -|
 /return
@@ -110,13 +82,6 @@ Sub MNK_Setup
 Sub MakeMNK_Ini
 /if (${Debug}) /echo |- MNK_Ini ==>
 
-	/call WriteToIni "${Character_Ini},${Me.Class},Auto_DragonPunch(On/Off)" On 0
-	/call WriteToIni "${Character_Ini},${Me.Class},Auto_EagleStrike(On/Off)" On 0
-	/call WriteToIni "${Character_Ini},${Me.Class},Auto_FlyingKick(On/Off)" On 0
-	/call WriteToIni "${Character_Ini},${Me.Class},Auto_Kick(On/Off)" On 0
-	/call WriteToIni "${Character_Ini},${Me.Class},Auto_RoundKick(On/Off)" On 0
-	/call WriteToIni "${Character_Ini},${Me.Class},Auto_TailRake(On/Off)" On 0
-	/call WriteToIni "${Character_Ini},${Me.Class},Auto_TigerClaw(On/Off)" On 0
 	/call WriteToIni "${Character_Ini},${Me.Class},Auto_Forage(On/Off)" "*Do you want this character to automatically forage?"
 	
 /if (${Debug}) /echo <== MNK_Ini -|	

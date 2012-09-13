@@ -94,15 +94,7 @@ Sub BST_Assist
 Sub BST_Setup
 /if (${Debug}) /echo |- BST_Setup ==>
 
-	/if (!${Ini[${Character_Ini},${Me.Class}].Length}) /call Make${Me.Class.ShortName}_Ini
-	
-|-------------------------------------------------------------------------------------------------Auto_Kick
-	/call IniToVar "${Character_Ini},${Me.Class},Auto_FeralSwipe(On/Off)" UNDEFINED bool local
-	/if (${Macro.Return}) /call BuildArray MyAbilities "Feral Swipe/Alt"
-	
-|-------------------------------------------------------------------------------------------------Auto_Kick
-	/call IniToVar "${Character_Ini},${Me.Class},Auto_Kick(On/Off)" UNDEFINED bool local
-	/if (${Macro.Return}) /call BuildArray MyAbilities Kick/Ability
+	| /if (!${Ini[${Character_Ini},${Me.Class}].Length}) /call Make${Me.Class.ShortName}_Ini
 	
 /if (${Debug}) /echo <== BST_Setup -|
 /return
@@ -116,9 +108,6 @@ Sub BST_Setup
 |--------------------------------------------------------------------|
 Sub MakeBST_Ini
 /if (${Debug}) /echo |- BST_Ini ==>
-	
-	/call WriteToIni "${Character_Ini},${Me.Class},Auto_FeralSwipe(On/Off)" On 0
-	/call WriteToIni "${Character_Ini},${Me.Class},Auto_Kick(On/Off)" On 0
 
 /if (${Debug}) /echo <== BST_Ini -|
 /return
