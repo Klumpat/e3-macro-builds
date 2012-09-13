@@ -1193,38 +1193,46 @@ SUB setup_Assists
 	
 	
 |						|
+|---------------------------------------------------------------------------------------------------------------------------------------[Abilities].
+	/if (${Ini[${Character_Ini},Abilities].Length}) {	
+		/call INItoArray ${Character_Ini},Abilities,Ability# MyAbilities
 	
-|----------------------------------------Validate abilities in MyAbilities array
-	/if (${MyAbilities.Size}) {
-		/for i 1 to ${MyAbilities.Size}
-			/if (!${MyAbilities[${i}].Arg[2,/].Length}) {
-				/if (!${Me.Ability[${MyAbilities[${i}]}]}) {
-					/echo ERROR: @[MyAbilities#${i}] - I do not have [${MyAbilities[${i}]}] listed on my abilities tab. Removing it from MyAbilities.
-					/varset MyAbilities[${i}] BAD_ENTRY
-				} else {
-					/varset MyAbilities[${i}] ${MyAbilities[${i}]}/ability
+	|----------------------------------------Validate abilities in MyAbilities array
+		/if (${MyAbilities.Size}) {
+			/for i 1 to ${MyAbilities.Size}
+				/if (!${MyAbilities[${i}].Arg[2,/].Length}) {
+					/if (!${Me.Ability[${MyAbilities[${i}]}]}) {
+						/echo ERROR: @[MyAbilities#${i}] - I do not have [${MyAbilities[${i}]}] listed on my abilities tab. Removing it from MyAbilities.
+						/varset MyAbilities[${i}] BAD_ENTRY
+					} else {
+						/varset MyAbilities[${i}] ${MyAbilities[${i}]}/ability
+					}
+				} else /if (${MyAbilities[${i}].Arg[2,/].Equal[ability]}) {
+					/if (!${Me.Ability[${MyAbilities[${i}].Arg[1,/]}]}) {
+						/echo ERROR: @[MyAbilities#${i}] - I do not have [${MyAbilities[${i}].Arg[1,/]}] listed on my abilities tab. Removing it from MyAbilities.
+						/varset MyAbilities[${i}] BAD_ENTRY
+					}
 				}
-			} else /if (${MyAbilities[${i}].Arg[2,/].Equal[ability]}) {
-				/if (!${Me.Ability[${MyAbilities[${i}].Arg[1,/]}]}) {
-					/echo ERROR: @[MyAbilities#${i}] - I do not have [${MyAbilities[${i}].Arg[1,/]}] listed on my abilities tab. Removing it from MyAbilities.
-					/varset MyAbilities[${i}] BAD_ENTRY
+				/if (${MyAbilities[${i}].Arg[2,/].Equal[alt]} || ${MyAbilities[${i}].Arg[2,/].Equal[aa]}) {
+					/if (!${Me.AltAbility[${MyAbilities[${i}].Arg[1,/]}].ID}) {
+						/echo ERROR: @[MyAbilities#${i}] - I do not have any ranks spent in [${MyAbilities[${i}]}]. Removing it from MyAbilities.
+						/varset MyAbilities[${i}] BAD_ENTRY
+					}
+				} else /if (${MyAbilities[${i}].Arg[2,/].Equal[disc]} || ${MyAbilities[${i}].Arg[2,/].Equal[discipline]}) {
+					/if (!${Me.CombatAbility[${MyAbilities[${i}].Arg[1,/]}]}) {
+						/echo ERROR: @[MyAbilities#${i}] - I do not have [${MyAbilities[${i}].Arg[1,/]}] on my Combat Abilities page. Removing it from MyAbilities.
+						/varset MyAbilities[${i}] BAD_ENTRY
+					}
 				}
-			}
-			/if (${MyAbilities[${i}].Arg[2,/].Equal[alt]} || ${MyAbilities[${i}].Arg[2,/].Equal[aa]}) {
-				/if (!${Me.AltAbility[${MyAbilities[${i}].Arg[1,/]}].ID}) {
-					/echo ERROR: @[MyAbilities#${i}] - I do not have any ranks spent in [${MyAbilities[${i}]}]. Removing it from MyAbilities.
-					/varset MyAbilities[${i}] BAD_ENTRY
-				}
-			} else /if (${MyAbilities[${i}].Arg[2,/].Equal[disc]} || ${MyAbilities[${i}].Arg[2,/].Equal[discipline]}) {
-				/if (!${Me.CombatAbility[${MyAbilities[${i}].Arg[1,/]}]}) {
-					/echo ERROR: @[MyAbilities#${i}] - I do not have [${MyAbilities[${i}].Arg[1,/]}] on my Combat Abilities page. Removing it from MyAbilities.
-					/varset MyAbilities[${i}] BAD_ENTRY
-				}
-			}
-		/next i
-		
-		/call RemoveArrayElement MyAbilities BAD_ENTRY
-	}
+				
+			|------------------------------------------------------------------------------------------If the ability is 'Taunt' create do_Taunt variable.
+				/if (${MyAbilities[${i}].Arg[1,/].Equal[taunt]}) /declare do_Taunt bool outer TRUE
+				
+			/next i
+			
+			/call RemoveArrayElement MyAbilities BAD_ENTRY
+		}
+	}	
 	
 	|-------------------------------------------------------------------------------------------------------------------------------------------[Nukes].
 	/if (${Ini[${Character_Ini},Nukes].Length}) {

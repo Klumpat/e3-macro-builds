@@ -37,8 +37,6 @@ Sub RNG_Main
 |-----------------------------------------------------------------------------------------------------------------------------------------#5 Auto Forage.
 	/if (${autoForage}) /call AutoForage
 	
-	| /if (${Target.ID} && !${Assisting} && !${Me.Combat} && ${Target.Distance} < 10 && ${Me.AbilityReady[begging]}) /doability begging
-	
 /if (${Debug}) /echo <== RNG_Main -|
 /return
 
@@ -85,17 +83,6 @@ Sub RNG_Setup
 /if (${Debug}) /echo |- RNG_Setup ==>
 
 	/if (!${Ini[${Character_Ini},${Me.Class}].Length}) /call Make${Me.Class.ShortName}_Ini
-	
-|-------------------------------------------------------------------------------------------------Auto_Kick
-	/call IniToVar "${Character_Ini},${Me.Class},Auto_Kick(On/Off)" UNDEFINED bool local
-	/if (${Macro.Return}) /call BuildArray MyAbilities Kick/Ability
-
-|-------------------------------------------------------------------------------------------------Auto_Taunt
-	/call IniToVar "${Character_Ini},${Me.Class},Auto_Taunt(On/Off)" UNDEFINED bool local
-	/if (${Macro.Return}) {
-		/call BuildArray MyAbilities Taunt/Ability
-		/declare do_Taunt bool outer TRUE
-	}
 
 /if (${Debug}) /echo <== RNG_Setup -|
 /return
@@ -111,8 +98,7 @@ Sub MakeRNG_Ini
 /if (${Debug}) /echo |- RNG_Ini ==>
 
 	/call WriteToIni "${Character_Ini},${Me.Class},Auto_Forage(On/Off)" "*Do you want this character to automatically forage?" 0
-	/call WriteToIni "${Character_Ini},${Me.Class},Auto_Kick(On/Off)" On 0 
-	/call WriteToIni "${Character_Ini},${Me.Class},Auto_Taunt(On/Off)" Off 0
+
 	
 /if (${Debug}) /echo <== RNG_Ini -|
 /return

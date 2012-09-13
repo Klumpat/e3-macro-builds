@@ -63,19 +63,7 @@ Sub BER_Assist
 Sub BER_Setup
 /if (${Debug}) /echo |- BER_Setup ==>
 
-	/if (!${Ini[${Character_Ini},${Me.Class}].Length}) /call Make${Me.Class.ShortName}_Ini
-
-|-------------------------------------------------------------------------------------------------Auto_Frenzy
-	/call IniToVar "${Character_Ini},${Me.Class},Auto_Frenzy(On/Off)" UNDEFINED bool local
-	/if (${Macro.Return}) /call BuildArray MyAbilities Frenzy/Ability
-
-|-------------------------------------------------------------------------------------------------Auto_Kick
-	/call IniToVar "${Character_Ini},${Me.Class},Auto_Kick(On/Off)" UNDEFINED bool local
-	/if (${Macro.Return}) /call BuildArray MyAbilities Kick/Ability
-	
-|-------------------------------------------------------------------------------------------------Auto_Kick
-	/call IniToVar "${Character_Ini},${Me.Class},Auto_RageVolley(On/Off)" UNDEFINED bool local
-	/if (${Macro.Return}) /call BuildArray MyAbilities "Rage Volley/disc"
+	| /if (!${Ini[${Character_Ini},${Me.Class}].Length}) /call Make${Me.Class.ShortName}_Ini
 	
 /if (${Debug}) /echo <== BER_Setup -|
 /return
@@ -90,9 +78,7 @@ Sub BER_Setup
 Sub MakeBER_Ini
 /if (${Debug}) /echo |- BER_Ini ==>
 
-	/call WriteToIni "${Character_Ini},${Me.Class},Auto_Frenzy(On/Off)" On 0
-	/call WriteToIni "${Character_Ini},${Me.Class},Auto_Kick(On/Off)" On 0
-	/call WriteToIni "${Character_Ini},${Me.Class},Auto_RageVolley(On/Off)" On 0
+
 
 /if (${Debug}) /echo <== BER_Ini -|
 /return

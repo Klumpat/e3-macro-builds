@@ -70,18 +70,7 @@ Sub PAL_Assist
 Sub PAL_Setup
 /if (${Debug}) /echo |- PAL_Setup ==>
 	
-	/if (!${Ini[${Character_Ini},${Me.Class}].Length}) /call Make${Me.Class.ShortName}_Ini
-
-|-------------------------------------------------------------------------------------------------Auto_Bash
-	/call IniToVar "${Character_Ini},${Me.Class},Auto_Bash(On/Off)" UNDEFINED bool local
-	/if (${Macro.Return}) /call BuildArray MyAbilities Bash/Ability
-
-|-------------------------------------------------------------------------------------------------Auto_Taunt
-	/call IniToVar "${Character_Ini},${Me.Class},Auto_Taunt(On/Off)" UNDEFINED bool local
-	/if (${Macro.Return}) {
-		/call BuildArray MyAbilities Taunt/Ability
-		/declare AutoAggro bool outer TRUE
-	}
+	| /if (!${Ini[${Character_Ini},${Me.Class}].Length}) /call Make${Me.Class.ShortName}_Ini
 	
 /if (${Debug}) /echo <== PAL_Setup -|
 /return
@@ -96,8 +85,7 @@ Sub PAL_Setup
 Sub MakePAL_Ini
 /if (${Debug}) /echo |- PAL_Ini ==>
 
-	/call WriteToIni "${Character_Ini},${Me.Class},Auto_Bash(On/Off)" On 0
-	/call WriteToIni "${Character_Ini},${Me.Class},Auto_Taunt(On/Off)" Off 0
+
 	
 /if (${Debug}) /echo <== PAL_Ini -|
 /return
