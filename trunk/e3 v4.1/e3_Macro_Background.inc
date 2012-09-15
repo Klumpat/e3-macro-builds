@@ -141,28 +141,30 @@ SUB Background_Events
 	/if (${Bool[${Me.Class}]}) /call ${Me.Class.ShortName}_Background_Events
 	
 |-----------------------------------------------------------------------------------------------------GoD Alerts.
-	/doevents Define_UquaKey
-	/doevents setClass_Warrior
-	/doevents setClass_Shaman
-	/doevents setClass_Beastlord
-	/doevents setClass_Necromancer
-	/doevents setClass_Cleric
-	/doevents setClass_Shadowknight
-	/doevents setClass_Monk
-	/doevents setClass_Bard
-	/doevents setClass_Paladin
-	/doevents setClass_Rogue
-	/doevents setClass_Enchanter
-	/doevents setClass_Wizard
-	/doevents setClass_Berserker
-	/doevents setClass_Magician
-	/doevents setClass_Druid
-	/doevents setClass_Ranger
-	/doevents MobSet
-	/doevents startClass_Priests
-	/doevents startClass_Hybrids
-	/doevents startClass_Casters
-	/doevents startClass_Melees
+	/if (${Zone.ShortName.Equal[uqua]}) /doevents Define_UquaKey
+	/if (${Zone.ShortName.Equal[ikkinz]}) {
+		/doevents setClass_Warrior
+		/doevents setClass_Shaman
+		/doevents setClass_Beastlord
+		/doevents setClass_Necromancer
+		/doevents setClass_Cleric
+		/doevents setClass_Shadowknight
+		/doevents setClass_Monk
+		/doevents setClass_Bard
+		/doevents setClass_Paladin
+		/doevents setClass_Rogue
+		/doevents setClass_Enchanter
+		/doevents setClass_Wizard
+		/doevents setClass_Berserker
+		/doevents setClass_Magician
+		/doevents setClass_Druid
+		/doevents setClass_Ranger
+		/doevents MobSet
+		/doevents startClass_Priests
+		/doevents startClass_Hybrids
+		/doevents startClass_Casters
+		/doevents startClass_Melees
+	}
 	
 /if (${Debug}) /echo <== Background_Events -|
 /RETURN
