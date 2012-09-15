@@ -43,6 +43,8 @@ Sub SHM_Main
 		/if (${ActionTaken}) /return
 
 |-------------------------------------------------------------------------------------------------------------------------------------------#7 AutoCanni.
+	
+	/echo /if (${AutoCanni} && ${Me.PctMana} < 95) /call autoCanni
 	/if (${AutoCanni} && ${Me.PctMana} < 95) /call autoCanni
 	
 |--------------------------------------------------------------------------------------------------------------------------------------------#8 Pet heal.
@@ -95,8 +97,9 @@ Sub SHM_Setup
 /if (${Debug}) /echo |- SHM_Setup ==>
 
 	/if (!${Ini[${Character_Ini},Shaman].Length}) /call MakeSHM_Ini
+	/varset Debug TRUE
 	/call INItoVar ${Character_Ini},Shaman,AutoCanni(On/Off) AutoCanni bool outer
-	
+	/varset Debug FALSE
 /if (${Debug}) /echo <== SHM_Setup -|
 /return
 
@@ -110,7 +113,7 @@ Sub SHM_Setup
 Sub MakeSHM_Ini
 /if (${Debug}) /echo |- SHM_Ini ==>
 
-	/call WriteToIni ${Character_Ini},Shaman,Auto_Canni(On/Off)
+	/call WriteToIni ${Character_Ini},Shaman,AutoCanni(On/Off)
 	
 /if (${Debug}) /echo <== SHM_Ini -|
 /return
