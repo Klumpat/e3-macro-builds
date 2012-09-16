@@ -359,7 +359,7 @@ SUB AssistOff
 |-------------------------------------------------------------Reset Nuke variables.
 	/if (${Defined[NukeTimer]}) /varset NukeTimer 0
 	
-|--------------------------------------------------Check loot, and reaquire follow.
+|--------------------------------------------------Check loot, and reacquire follow.
 	/if (${Select[${Stick},ON]}) /squelch /stick off
 	/if (${Following}) /call AquireFollow
 	/doevents YourKill

@@ -240,7 +240,7 @@ SUB cast_Spell(int targetID, castName, spellGem, timer giveUpTimer, SubToRun)
 			/varset castReturn CAST_CANCELLED
 		}
 		
-	|-----------------------------------------------------------------Reaquire follow, and return twist.
+	|-----------------------------------------------------------------reacquire follow, and return twist.
 		/if (${Following} && !${Assisting} && ${NetAdvPath.State} != 1) /call AquireFollow
 		/if (${returnTwist}) /squelch /twist start
 	}
@@ -315,7 +315,7 @@ SUB cast_Item(int targetID, itemName, itemTimer, SubToRun)
 	
 	/if (${Cursor.Name.Equal[${itemName}]}) /call ClearCursor
 	
-|-----------------------------------------------------------------Reaquire follow, and return twist.
+|-----------------------------------------------------------------reacquire follow, and return twist.
 	/if (${Following} && !${Assisting} && ${NetAdvPath.State} != 1) /call AquireFollow
 	/if (${returnTwist}) /squelch /twist start	
 	
@@ -358,7 +358,7 @@ SUB cast_AltAbility(int targetID, altName, SubToRun)
 	/varset altRecast_Timer 2s
 	/call CreateTimer alt_Timer_${Me.AltAbility[${altName}].ID} ${Me.AltAbility[${altName}].ReuseTime}s
 
-|-----------------------------------------------------------------Reaquire follow, and return twist.
+|-----------------------------------------------------------------reacquire follow, and return twist.
 	/if (${Following} && !${Assisting} && ${NetAdvPath.State} != 1) /call AquireFollow
 	/if (${returnTwist}) /squelch /twist start	
 	

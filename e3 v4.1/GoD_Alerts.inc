@@ -7,7 +7,7 @@
 
 #event Define_UquaKey "#*#The #1# must unlock the door to the next room.#*#"
 SUB event_Define_UquaKey(string line, string KeyToUse)
-	/gu >>^<< The ${KeyToUse} unlocks the door >>^<<
+	/rs >>^<< The ${KeyToUse} unlocks the door >>^<<
 	/popup >>^<< The ${KeyToUse} unlocks the door >>^<<
 /return
 
@@ -30,82 +30,82 @@ SUB event_Define_UquaKey(string line, string KeyToUse)
 
 SUB event_setClass_Warrior
 	/popup Spawn must be killed by a >>^<< WARRIOR >>^<<
-	/docommand ${ChatToggle} Spawn must be killed by a >>^<< WARRIOR >>^<<
+	/rs Spawn must be killed by a >>^<< WARRIOR >>^<<
 /return
 
 SUB event_setClass_Shaman
 	/popup Spawn must be killed by a >>^<< SHAMAN >>^<< 
-	/docommand ${ChatToggle} Spawn must be killed by a >>^<< SHAMAN >>^<< 
+	/rs Spawn must be killed by a >>^<< SHAMAN >>^<< 
 /return
 
 SUB event_setClass_Beastlord
 	/popup Spawn must be killed by a >>^<< BEASTLORD >>^<< 
-	/docommand ${ChatToggle} Spawn must be killed by a >>^<< BEASTLORD >>^<< 
+	/rs Spawn must be killed by a >>^<< BEASTLORD >>^<< 
 /return
 
 SUB event_setClass_Necromancer
 	/popup Spawn must be killed by a >>^<< NECROMANCER >>^<< 
-	/docommand ${ChatToggle} Spawn must be killed by a >>^<< NECROMANCER >>^<< 
+	/rs Spawn must be killed by a >>^<< NECROMANCER >>^<< 
 /return
 
 SUB event_setClass_Cleric
 	/popup Spawn must be killed by a >>^<< CLERIC >>^<< 
-	/docommand ${ChatToggle} Spawn must be killed by a >>^<< CLERIC >>^<< 
+	/rs Spawn must be killed by a >>^<< CLERIC >>^<< 
 /return
 
 SUB event_setClass_Shadowknight
 	/popup Spawn must be killed by a >>^<< SHADOWKNIGHT >>^<< 
-	/docommand ${ChatToggle} Spawn must be killed by a >>^<< SHADOWKNIGHT >>^<< 
+	/rs Spawn must be killed by a >>^<< SHADOWKNIGHT >>^<< 
 /return
 
 SUB event_setClass_Monk
 	/popup Spawn must be killed by a >>^<< MONK >>^<< 
-	/docommand ${ChatToggle} Spawn must be killed by a >>^<< MONK >>^<< 
+	/rs Spawn must be killed by a >>^<< MONK >>^<< 
 /return
 
 SUB event_setClass_Bard
 	/popup Spawn must be killed by a >>^<< BARD >>^<< 
-	/docommand ${ChatToggle} Spawn must be killed by a >>^<< BARD >>^<< 
+	/rs Spawn must be killed by a >>^<< BARD >>^<< 
 /return
 
 SUB event_setClass_Paladin
 	/popup Spawn must be killed by a >>^<< PALADIN >>^<< 
-	/docommand ${ChatToggle} Spawn must be killed by a >>^<< PALADIN >>^<< 
+	/rs Spawn must be killed by a >>^<< PALADIN >>^<< 
 /return
 
 SUB event_setClass_Rogue
 	/popup Spawn must be killed by a >>^<< ROGUE >>^<< 
-	/docommand ${ChatToggle} Spawn must be killed by a >>^<< ROGUE >>^<< 
+	/rs Spawn must be killed by a >>^<< ROGUE >>^<< 
 /return
 
 SUB event_setClass_Enchanter
 	/popup Spawn must be killed by a >>^<< ENCHANTER >>^<< 
-	/docommand ${ChatToggle} Spawn must be killed by a >>^<< ENCHANTER >>^<< 
+	/rs Spawn must be killed by a >>^<< ENCHANTER >>^<< 
 /return
 
 SUB event_setClass_Wizard
 	/popup Spawn must be killed by a >>^<< WIZARD >>^<< 
-	/docommand ${ChatToggle} Spawn must be killed by a >>^<< WIZARD >>^<< 
+	/rs Spawn must be killed by a >>^<< WIZARD >>^<< 
 /return
 
 SUB event_setClass_Berserker
 	/popup Spawn must be killed by a >>^<< BERSERKER >>^<< 
-	/docommand ${ChatToggle} Spawn must be killed by a >>^<< BERSERKER >>^<< 
+	/rs Spawn must be killed by a >>^<< BERSERKER >>^<< 
 /return
 
 SUB event_setClass_Magician
 	/popup Spawn must be killed by a >>^<< MAGICIAN >>^<< 
-	/docommand ${ChatToggle} Spawn must be killed by a >>^<< MAGICIAN >>^<< 
+	/rs Spawn must be killed by a >>^<< MAGICIAN >>^<< 
 /return
 
 SUB event_setClass_Druid
 	/popup Spawn must be killed by a >>^<< DRUID >>^<< 
-	/docommand ${ChatToggle} Spawn must be killed by a >>^<< DRUID >>^<< 
+	/rs Spawn must be killed by a >>^<< DRUID >>^<< 
 /return
 
 SUB event_setClass_Ranger
 	/popup Spawn must be killed by a >>^<< RANGER >>^<< 
-	/docommand ${ChatToggle} Spawn must be killed by a >>^<< RANGER >>^<< 
+	/rs Spawn must be killed by a >>^<< RANGER >>^<< 
 /return
 
 #event startClass_Priests "#*#The creature cannot stand up to the power of healers#*#"
@@ -119,7 +119,7 @@ SUB event_startClass_Priests
 	} else /if (${Defined[murauderKill]}) {
 		/varset murauderKill 3
 	}
-	/docommand ${ChatToggle} Spawn must be killed by a >>^<< PRIEST >>^<< 
+	/rs Spawn must be killed by a >>^<< PRIEST >>^<< 
 /return
 
 SUB event_startClass_Hybrids
@@ -128,7 +128,7 @@ SUB event_startClass_Hybrids
 	} else /if (${Defined[murauderKill]}) {
 		/varset murauderKill 2
 	}
-	/docommand ${ChatToggle} Spawn must be killed by a >>^<< HYBRID >>^<< 
+	/rs Spawn must be killed by a >>^<< HYBRID >>^<< 
 /return
 
 SUB event_startClass_Casters
@@ -137,7 +137,7 @@ SUB event_startClass_Casters
 	} else /if (${Defined[murauderKill]}) {
 		/varset murauderKill 1
 	}
-	/docommand ${ChatToggle} Spawn must be killed by a >>^<< CASTER >>^<< 
+	/rs Spawn must be killed by a >>^<< CASTER >>^<< 
 /return
 
 SUB event_startClass_Melees
@@ -146,7 +146,7 @@ SUB event_startClass_Melees
 	} else /if (${Defined[murauderKill]}) {
 		/varset murauderKill 4
 	}
-	/docommand ${ChatToggle} Spawn must be killed by a >>^<< MELEE >>^<< 
+	/rs Spawn must be killed by a >>^<< MELEE >>^<< 
 /return
 
 #event MobSet "#*#shudders as if somehow changing.#*#"
@@ -157,12 +157,12 @@ SUB event_MobSet
 		/if (${Defined[murauderKill]}) /varset murauderKill 1
 	}
 	/if (${murauderKill} == 1) {
-		/docommand ${ChatToggle} Vrex Xalkaks Marauder must be killed by a  >>^<< CASTER >>^<< 
+		/rs Vrex Xalkaks Marauder must be killed by a  >>^<< CASTER >>^<< 
 	} else /if (${murauderKill} == 2) {
-		/docommand ${ChatToggle} Vrex Xalkaks Marauder must be killed by a >>^<< HYBRID >>^<< 
+		/rs Vrex Xalkaks Marauder must be killed by a >>^<< HYBRID >>^<< 
 	} else /if (${murauderKill} == 3) {
-		/docommand ${ChatToggle} Vrex Xalkaks Marauder must be killed by a >>^<< PRIEST >>^<< 
+		/rs Vrex Xalkaks Marauder must be killed by a >>^<< PRIEST >>^<< 
 	} else /if (${murauderKill} == 4) {
-		/docommand ${ChatToggle} Vrex Xalkaks Marauder must be killed by a >>^<< MELEE >>^<< 
+		/rs Vrex Xalkaks Marauder must be killed by a >>^<< MELEE >>^<< 
 	}
 /return
