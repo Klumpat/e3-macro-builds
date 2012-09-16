@@ -58,8 +58,10 @@ SUB event_bark(line, msgTarget,  barkIt, ChatSender, SpecifiedBots)
 |--------------------------------------------------------Check SpecifiedBots
 	/if (${Select[${Me.CleanName},${SpecifiedBots}]} || ${Select[${Me.Class.ShortName},${SpecifiedBots}]} || ${Select[${Me.Class},${SpecifiedBots}]} || !${Defined[SpecifiedBots]} || ${SpecifiedBots.Equal[all]} || ${SpecifiedBots.Equal[melee]} && ${Select[${Me.Class.ShortName},${MeleeClasses}]} || ${SpecifiedBots.Equal[casters]} && ${Select[${Me.Class.ShortName},${CasterClasses}]} || ${SpecifiedBots.Equal[ranged]} && ${Select[${Me.Class.ShortName},${RangedClasses}]} || ${SpecifiedBots.Equal[Healers]} && ${Select[${Me.Class.ShortName},${PriestClasses}]} || ${SpecifiedBots.Equal[Priests]} && ${Select[${Me.Class.ShortName},${PriestClasses}]}) {
 
-	|------------------------------------------------------------------------Look for the spawn to bark at.	
-		/if (!${SpawnCount[npc ${msgTarget}]}) {
+	|------------------------------------------------------------------------Look for the spawn to bark at.
+		/if (!${Int[${msgTarget}]}) /varset msgTarget ${Spawn[npc ${msgTarget}].ID}
+		
+		/if (!${SpawnCount[id ${msgTarget}]}) {
 			/docommand ${ChatToggle} I don't see [${msgTarget}] in ${Zone}.
 		} else {
 		
@@ -68,9 +70,9 @@ SUB event_bark(line, msgTarget,  barkIt, ChatSender, SpecifiedBots)
 				/docommand ${ChatToggle} [${msgTarget}] is too far away to bark at.
 			} else {
 				
-				/call TrueTarget ${Spawn[npc ${msgTarget}].ID}
+				/call TrueTarget ${msgTarget}
 				
-				/if (${Target.Distance} > 7) /call MoveToSpawn ${Spawn[npc ${msgTarget}].ID}
+				/if (${Target.Distance} > 7) /call MoveToSpawn ${msgTarget}
 				
 			|-----------------------------------------Wait a moment, then bark the message.
 				/delay ${Math.Rand[50]}
