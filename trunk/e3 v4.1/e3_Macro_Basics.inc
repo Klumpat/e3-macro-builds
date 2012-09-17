@@ -1075,7 +1075,7 @@ SUB event_MGB(Line, ChatSender, SpecifiedBots)
 SUB event_Lessons
 /if (${Debug}) /echo |- EVENT_Lessons ==>
 
-	/if (!${Me.AltAbilityReady[361]}) {
+	/if (!${Me.AltAbilityReady[Lessons of the Devoted]}) {
 		/docommand ${ChatToggle} Lessons of the Devoted is not ready.
 	} else {
 		
@@ -1084,7 +1084,7 @@ SUB event_Lessons
 			/declare overrideTwist bool outer TRUE
 		}
 		
-		/call e3_Cast ${Me.ID} 361 alt
+		/call e3_Cast ${Me.ID} "Lessons of the Devoted" alt
 		
 		/if (${overrideTwist}) /timed 50 /squelch /twist start
 	}
@@ -1101,7 +1101,7 @@ SUB event_Lessons
 SUB event_Infusion
 /if (${Debug}) /echo |- EVENT_Infusion ==>
 
-	/if (!${Me.AltAbilityReady[362]}) {
+	/if (!${Me.AltAbilityReady[Infusion of the Faithful]}) {
 		/docommand ${ChatToggle} Infusion of the Faithful is not ready.
 	} else {
 		
@@ -1110,7 +1110,7 @@ SUB event_Infusion
 			/declare overrideTwist bool outer TRUE
 		}
 		
-		/call e3_Cast ${Me.ID} 362 alt
+		/call e3_Cast ${Me.ID} "Infusion of the Faithful" alt
 		
 		/if (${overrideTwist}) /timed 50 /squelch /twist start
 	}
@@ -1130,7 +1130,7 @@ SUB event_Staunch(line, SpecifiedBots)
 |--------------------------------------------------------Check SpecifiedBots
 	/if (${Select[${Me.CleanName},${SpecifiedBots}]} || ${Select[${Me.Class.ShortName},${SpecifiedBots}]} || ${Select[${Me.Class},${SpecifiedBots}]} || !${Defined[SpecifiedBots]} || ${SpecifiedBots.Equal[all]} || ${SpecifiedBots.Equal[melee]} && ${Select[${Me.Class.ShortName},${MeleeClasses}]} || ${SpecifiedBots.Equal[casters]} && ${Select[${Me.Class.ShortName},${CasterClasses}]} || ${SpecifiedBots.Equal[ranged]} && ${Select[${Me.Class.ShortName},${RangedClasses}]} || ${SpecifiedBots.Equal[Healers]} && ${Select[${Me.Class.ShortName},${PriestClasses}]} || ${SpecifiedBots.Equal[Priests]} && ${Select[${Me.Class.ShortName},${PriestClasses}]}) {
 	
-		/if (!${Me.AltAbilityReady[366]}) {
+		/if (!${Me.AltAbilityReady[Staunch Recovery]}) {
 			/docommand ${ChatToggle} Staunch Recovery is not ready.
 		} else {
 			
@@ -1139,7 +1139,7 @@ SUB event_Staunch(line, SpecifiedBots)
 				/declare overrideTwist bool outer TRUE
 			}
 			
-			/call e3_Cast ${Me.ID} 366 alt
+			/call e3_Cast ${Me.ID} "Staunch Recovery" alt
 			
 			/if (${overrideTwist}) /timed 50 /squelch /twist start
 		}
@@ -1158,7 +1158,7 @@ SUB event_Staunch(line, SpecifiedBots)
 SUB event_Servant
 /if (${Debug}) /echo |- EVENT_Servant ==>
 
-	/if (!${Me.AltAbilityReady[365]}) {
+	/if (!${Me.AltAbilityReady[Steadfast Servant]}) {
 		/docommand ${ChatToggle} Steadfast Servant is not ready.
 	} else {
 		
@@ -1167,7 +1167,7 @@ SUB event_Servant
 			/declare overrideTwist bool outer TRUE
 		}
 		
-		/call e3_Cast ${Me.ID} 365 alt
+		/call e3_Cast ${Me.ID} "Steadfast Servant" alt
 		
 		/if (${overrideTwist}) /timed 50 /squelch /twist start
 	}
@@ -1185,7 +1185,7 @@ SUB event_Servant
 SUB event_Intensity
 /if (${Debug}) /echo |- EVENT_Intensity ==>
 
-	/if (!${Me.AltAbilityReady[367]}) {
+	/if (!${Me.AltAbilityReady[Intensity of the Resolute]}) {
 		/docommand ${ChatToggle} Intensity of the Resolute is not ready.
 	} else {
 		
@@ -1194,7 +1194,7 @@ SUB event_Intensity
 			/declare overrideTwist bool outer TRUE
 		}
 		
-		/call e3_Cast ${Me.ID} 367 alt
+		/call e3_Cast ${Me.ID} "Intensity of the Resolute" alt
 		
 		/if (${overrideTwist}) /timed 50 /squelch /twist start
 	}
@@ -1212,7 +1212,7 @@ SUB event_Intensity
 SUB event_RecoverCorpses
 /if (${Debug}) /echo |- EVENT_RecoverCorpses ==>
 
-	/if (!${Me.AltAbilityReady[364]}) {
+	/if (!${Me.AltAbilityReady[Expedient Reovery]}) {
 		/docommand ${ChatToggle} Expedient is not ready.
 	} else {
 		
@@ -1221,7 +1221,7 @@ SUB event_RecoverCorpses
 			/declare overrideTwist bool outer TRUE
 		}
 		
-		/call e3_Cast ${Me.ID} 364 alt
+		/call e3_Cast ${Me.ID} "Expedient Reovery" alt
 		
 		/if (${overrideTwist}) /timed 50 /squelch /twist start
 	}
@@ -1239,7 +1239,7 @@ SUB event_RecoverCorpses
 SUB event_GateToLobby
 /if (${Debug}) /echo |- EVENT_GateToLobby ==>
 
-	/if (!${Me.AltAbilityReady[392]}) {
+	/if (!${Me.AltAbilityReady[Throne of Heros]}) {
 		/docommand ${ChatToggle} Throne of Heroes is not ready.
 	} else {
 		
@@ -1248,7 +1248,7 @@ SUB event_GateToLobby
 			/declare overrideTwist bool outer TRUE
 		}
 		
-		/call e3_Cast ${Me.ID} 392 alt
+		/call e3_Cast ${Me.ID} "Throne of Heros" alt
 		
 		/if (${overrideTwist}) /timed 200 /squelch /twist start
 	}
