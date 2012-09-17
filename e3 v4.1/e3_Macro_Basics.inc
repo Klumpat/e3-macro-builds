@@ -1232,14 +1232,14 @@ SUB event_RecoverCorpses
 
 
 |--------------------------------------------------------|
-|- Uses 'Throne of Heros', on all bots who are able.	-|
+|- Uses 'Throne of Heroes', on all bots who are able.	-|
 |--------------------------------------------------------|
 #event GateToLobby "<#*#> Gate to lobby"
 #event RecoverCorpses "<#*#> Use Throne of Heroes"
 SUB event_GateToLobby
 /if (${Debug}) /echo |- EVENT_GateToLobby ==>
 
-	/if (!${Me.AltAbilityReady[Throne of Heros]}) {
+	/if (!${Me.AltAbilityReady[Throne of Heroes]}) {
 		/docommand ${ChatToggle} Throne of Heroes is not ready.
 	} else {
 		
@@ -1248,7 +1248,7 @@ SUB event_GateToLobby
 			/declare overrideTwist bool outer TRUE
 		}
 		
-		/call e3_Cast ${Me.ID} "Throne of Heros" alt
+		/call e3_Cast ${Me.ID} "Throne of Heroes" alt
 		
 		/if (${overrideTwist}) /timed 200 /squelch /twist start
 	}
