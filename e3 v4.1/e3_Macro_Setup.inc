@@ -1115,7 +1115,7 @@ SUB MakeSpellAliases_Ini
 	/call WriteToIni "${SpellAliases_Ini},Enchanter,KEI" "Koadic's Endless Intellect"
 	/call WriteToIni "${SpellAliases_Ini},Enchanter,C4" "Koadic's Endless Intellect"
 	/call WriteToIni "${SpellAliases_Ini},Enchanter,GoD" "Guard of Druzzil"
-	/call WriteToIni "${SpellAliases_Ini},Enchanter,CHA" "Radiant Visage"
+	/call WriteToIni "${SpellAliases_Ini},Enchanter,CHA" "Overwhelming Splendor"
 
 	
 |-------------------------------------------------------------------------------------Magician Aliases.
@@ -1135,7 +1135,7 @@ SUB MakeSpellAliases_Ini
 |-------------------------------------------------------------------------------------Ranger Aliases.	
 	/call WriteToIni "${SpellAliases_Ini},Ranger,SoTP" "Spirit of the Predator"
 	/call WriteToIni "${SpellAliases_Ini},Ranger,Pred" "Spirit of the Predator"
-	/call WriteToIni "${SpellAliases_Ini},Ranger,SoT" "Stringth of Tunare"
+	/call WriteToIni "${SpellAliases_Ini},Ranger,SoT" "Strength of Tunare"
 	/call WriteToIni "${SpellAliases_Ini},Ranger,Tunare" "Strength of Tunare"
 	/call WriteToIni "${SpellAliases_Ini},Ranger,Rathe" "Call of the Rathe"
 	/call WriteToIni "${SpellAliases_Ini},Ranger,CoR" "Call of the Rathe"
@@ -1171,7 +1171,7 @@ SUB MakeSpellAliases_Ini
 	/call WriteToIni "${SpellAliases_Ini},Shaman,GroupShrink" "Tiny Terror"
 	/call WriteToIni "${SpellAliases_Ini},Shaman,GShrink" "Tiny Terror"
 	/call WriteToIni "${SpellAliases_Ini},Shaman,RGC" "Remove Greater Curse"
-	/call WriteToIni "${SpellAliases_Ini},Shaman,Cha" "Glamour"
+	/call WriteToIni "${SpellAliases_Ini},Shaman,Cha" "Unfailing Reverence"
 
 |-------------------------------------------------------------------------------------Wizard Aliases.	
 	/call WriteToIni "${SpellAliases_Ini},Wizard,Decess" "Decession"
