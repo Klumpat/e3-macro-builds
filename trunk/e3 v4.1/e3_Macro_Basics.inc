@@ -1075,7 +1075,7 @@ SUB event_MGB(Line, ChatSender, SpecifiedBots)
 SUB event_Lessons
 /if (${Debug}) /echo |- EVENT_Lessons ==>
 
-	/if (!${Me.AltAbilityReady[Lessons of the Devoted]}) {
+	/if (!${Me.AltAbilityReady[Lesson of the Devoted]}) {
 		/docommand ${ChatToggle} Lessons of the Devoted is not ready.
 	} else {
 		
@@ -1084,7 +1084,7 @@ SUB event_Lessons
 			/declare overrideTwist bool outer TRUE
 		}
 		
-		/call e3_Cast ${Me.ID} "Lessons of the Devoted" alt
+		/call e3_Cast ${Me.ID} "Lesson of the Devoted" alt
 		
 		/if (${overrideTwist}) /timed 50 /squelch /twist start
 	}
@@ -1251,6 +1251,11 @@ SUB event_GateToLobby
 		/call e3_Cast ${Me.ID} "Throne of Heroes" alt
 		
 		/if (${overrideTwist}) /timed 200 /squelch /twist start
+		
+	} else {/if (${Me.Hiding}) {
+		/doability Hide 
+		/timed 200
+		}
 	}
 
 /if (${Debug}) /echo <== EVENT_GateToLobby -|
