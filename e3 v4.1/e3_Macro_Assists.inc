@@ -944,43 +944,46 @@ SUB event_SwarmPets(line, ChatSender, swarmTarget)
 		
 	|-------------------------------------------------------------------------------------------------Magician abilities.
 		/if (${Me.Class.ShortName.Equal[MAG]}) {
-			/if (${Me.AltAbilityReady[162]} && !${alt_Timer_162}) {
-				/call e3_Cast ${swarmTarget} 162 alt
-			} else /if (!${Me.AltAbilityReady[162]} || ${alt_Timer_162}) {
+			/if (${Me.AltAbilityReady[Servant of Ro]} && ${alt_Timer_${Me.AltAbility[Servant of Ro].ID}}) {
+				/call e3_Cast ${swarmTarget} ${Me.AltAbility[Servant of Ro].ID} alt
+			} else /if (!${Me.AltAbilityReady[Servant of Ro]} || ${alt_Timer_${Me.AltAbility[Servant of Ro].ID}) {
 				/if (${Verbosity}) /docommand ${ChatToggle} Servant of Ro is not ready.
 			}
-			/if (${Me.AltAbilityReady[195]} && !${alt_Timer_195}) {
+			/if (${Me.AltAbilityReady[Host of the Elements]} && ${alt_Timer_${Me.AltAbility[Host of the Elements].ID}}) {
 				/delay 5
-				/call e3_Cast ${swarmTarget} 195 alt
-			} else /if (!${Me.AltAbilityReady[195]} || ${alt_Timer_195}) {
+				/call e3_Cast ${swarmTarget} ${Me.AltAbilityReady[Host of the Elements].ID} alt
+			} else /if (!${Me.AltAbilityReady[Host of the Elements]} || ${Me.AltAbility[Host of the Elements].ID}) {
 				/if (${Verbosity}) /docommand ${ChatToggle} Host of the Elements is not ready.
 			}
 			
 	|------------------------------------------------------------------------------------------Necromancer abilities.
 		} else /if (${Me.Class.ShortName.Equal[NEC]}) {
-			/if (${Me.AltAbilityReady[257]} && !${alt_Timer_257}) {
-				/call e3_Cast ${swarmTarget} 257 alt
-			} else /if (!${Me.AltAbilityReady[257]} || ${alt_Timer_257}) {
+			/if (${Me.AltAbilityReady[Swarm of Decay]} && ${alt_Timer_${Me.AltAbility[Swarm of Decay].ID}}) {
+				/call e3_Cast ${swarmTarget} ${Me.AltAbility[Swarm of Decay].ID} alt
+			} else /if (${Me.AltAbilityReady[Swarm of Decay]} || ${alt_Timer_${Me.AltAbility[Swarm of Decay].ID}}) {
 				/if (${Verbosity}) /docommand ${ChatToggle} Swarm of Decay is not ready.
 			}
-			/if (${Me.AltAbilityReady[163]} && !${alt_Timer_163}) {
+			/if (${Me.AltAbilityReady[Wake the Dead]} && ${alt_Timer_${Me.AltAbility[Wake the Dead].ID}}) { {
 				/delay 5
-				/call e3_Cast ${swarmTarget} 163 alt
-			} else /if (!${Me.AltAbilityReady[163]} || ${alt_Timer_163}) {
+				/call e3_Cast ${swarmTarget} ${Me.AltAbility[Wake the Dead].ID} alt
+			} else /if (${Me.AltAbilityReady[Wake the Dead]} || ${alt_Timer_${Me.AltAbility[Wake the Dead].ID}}) {
 				/if (${Verbosity}) /docommand ${ChatToggle} Wake The Dead is not ready.
 			}
 			
 	|-----------------------------------------------------------------------------------------------Shaman abilities.
 		} else /if (${Me.Class.ShortName.Equal[SHM]}) {
-			/if (${Me.AltAbilityReady[165]} && !${alt_Timer_165}) {
-				/call e3_Cast ${swarmTarget} 165 alt
+			/if (${Me.AltAbilityReady[Spirit Call]} && ${alt_Timer_${Me.AltAbility[Spirit Call].ID}}) {
+				/call e3_Cast ${swarmTarget} ${Me.AltAbility[Spirit Call].ID} alt
+   		} else /if (!${Me.AltAbilityReady[Spirit Call]} || ${Me.AltAbility[Spirit Call].ID}) {
+			/if (${Verbosity}) /docommand ${ChatToggle} Host of the Elements is not ready.
+			}
 			}
 			
 	|----------------------------------------------------------------------------------------------Wizard abilities.		
 		} else /if (${Me.Class.ShortName.Equal[WIZ]}) {
-			/if (${Me.AltAbilityReady[196]} && !${alt_Timer_196}) {
-				/call e3_Cast ${swarmTarget} 196 alt
-			} else /if (!${Me.AltAbilityReady[196]} || ${alt_Timer_196}) {
+			/if (${Me.AltAbilityReady[Call of Xuzl]} && ${alt_Timer_${Me.AltAbility[Call of Xuzl].ID}}) {
+				/call e3_Cast ${swarmTarget} ${Me.AltAbility[Call of Xuzl].ID} alt
+			} else /if (${Me.AltAbilityReady[Call of Xuzl]} || ${alt_Timer_${Me.AltAbility[Call of Xuzl].ID}}) {
 				/if (${Verbosity}) /docommand ${ChatToggle} Call of Xuzl is not ready.
 			}
 		}
