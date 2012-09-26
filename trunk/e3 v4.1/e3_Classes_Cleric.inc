@@ -25,7 +25,8 @@ Sub CLR_Main
 		/if (${ActionTaken}) /return
 
 |-------------------------------------------------------------------------------------------------------------------------------------#2 Celestial Regen.
-	/if (${celestialRegen_Pct} && ${Group}>2 && !${alt_Timer_38}) /call check_celestialRegen
+	/if (${celestialRegen_Pct} && ${Group}>2 && !${Me.AltAbility[Celestial Regeneration].ID}) /call check_celestialRegen
+	
 
 |-----------------------------------------------------------------------------------------------------------------------------------#2 check_CombatBuffs.
 	/if (!${idle} && ${PriorityBuffs.Size}) /call checkPriorityBuffs
@@ -194,7 +195,7 @@ sub check_celestialRegen
 /if (${denominator}>1) {
 	/varcalc average_HPs ${average_HPs} / ${denominator}
 	/if (${average_HPs}<${celestialRegen_Pct}) {
-		/call e3_Cast ${Me.ID} 38 alt
+		/call e3_Cast ${Me.ID} ${Me.AltAbilityReady[Celestial Regeneration]} alt   
 	}
 }
 /return
