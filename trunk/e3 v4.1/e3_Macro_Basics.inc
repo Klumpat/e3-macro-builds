@@ -1072,6 +1072,9 @@ SUB event_MGB(Line, ChatSender, SpecifiedBots)
 |- Uses 'Lessons of the Devoted', on all bots who are able.	-|
 |------------------------------------------------------------|
 #event Lessons "<#*#> Lessons"
+#event Lessons "#*# tells the group, 'Lessons'"
+#event Lessons "#*# tells you, 'Lessons'"
+#event Lessons "#*# you tell your party, 'Lessons'"
 SUB event_Lessons
 /if (${Debug}) /echo |- EVENT_Lessons ==>
 
@@ -1097,7 +1100,10 @@ SUB event_Lessons
 |----------------------------------------------------------------|
 |- Uses 'Infusion of the Faithful', on all bots who are able.	-|
 |----------------------------------------------------------------|
-#event Infusion	"<#*#> Infusions"
+#event Infusion "<#*#> Infusions"
+#event Infusion "#*# tells the group, 'Infusions'"
+#event Infusion "#*# tells you, 'Infusions'"
+#event Infusion "#*# you tell your party, 'Infusions'"
 SUB event_Infusion
 /if (${Debug}) /echo |- EVENT_Infusion ==>
 
@@ -1123,7 +1129,10 @@ SUB event_Infusion
 |--------------------------------------------------------|
 |- Uses 'Staunch Recovery', on all bots who are able.	-|
 |--------------------------------------------------------|
-#event Staunch "<#*#> #1# Recover"
+#event Staunch "<#*#> Recover"
+#event Staunch "#*# tells the group, 'Recover'"
+#event Staunch "#*# tells you, 'Recover'"
+#event Staunch "#*# you tell your party, 'Recover'"
 SUB event_Staunch(line, SpecifiedBots)
 /if (${Debug}) /echo |- EVENT_Staunch ==>
 
@@ -1154,7 +1163,9 @@ SUB event_Staunch(line, SpecifiedBots)
 |- Uses 'Steadfast Servant', on all bots who are able.	-|
 |--------------------------------------------------------|
 #event Servant "<#*#> Servants"
-#event Servant "<#*#> Use Steadfast Servant"
+#event Servant  "#*# tells the group, 'Servants'"
+#event Servant  "#*# tells you, 'Servants'"
+#event Servant  "#*# you tell your party, 'Servants'""
 SUB event_Servant
 /if (${Debug}) /echo |- EVENT_Servant ==>
 
@@ -1182,6 +1193,9 @@ SUB event_Servant
 |----------------------------------------------------------------|
 #event Intensity "<#*#> Intensify"
 #event Intensity "<#*#> Use Intensity of the Resolute"
+#event Intensity  "#*# tells the group, 'Intensify'"
+#event Intensity  "#*# tells you, 'Intensify'"
+#event Intensity  "#*# you tell your party, 'Intensify'""
 SUB event_Intensity
 /if (${Debug}) /echo |- EVENT_Intensity ==>
 
@@ -1209,6 +1223,9 @@ SUB event_Intensity
 |--------------------------------------------------------|
 #event RecoverCorpses "<#*#> Recover Corpses"
 #event RecoverCorpses "<#*#> Use expedient recovery"
+#event RecoverCorpses  "#*# tells the group, 'Recover Corpses'"
+#event RecoverCorpses  "#*# tells you, 'Recover Corpses'"
+#event RecoverCorpses  "#*# you tell your party, 'Recover Corpses'""
 SUB event_RecoverCorpses
 /if (${Debug}) /echo |- EVENT_RecoverCorpses ==>
 
@@ -1235,11 +1252,15 @@ SUB event_RecoverCorpses
 |- Uses 'Throne of Heroes', on all bots who are able.	-|
 |--------------------------------------------------------|
 #event GateToLobby "<#*#> Gate to lobby"
-#event RecoverCorpses "<#*#> Use Throne of Heroes"
+#event GateToLobby "<#*#> Use Throne of Heroes"
+#event GateToLobby  "#*# tells the group, 'Gate to lobby'"
+#event GateToLobby  "#*# tells you, 'Gate to lobby'"
+#event GateToLobby  "#*# you tell your party, 'Gate to lobby'""
+
 SUB event_GateToLobby
 /if (${Debug}) /echo |- EVENT_GateToLobby ==>
 
-	/if (!${Me.AltAbilityReady[Throne of Heroes]}) {
+	/if (!${Me.AltAbilityReady[Throne of Heros]}) {
 		/docommand ${ChatToggle} Throne of Heroes is not ready.
 	} else {
 		
@@ -1248,14 +1269,9 @@ SUB event_GateToLobby
 			/declare overrideTwist bool outer TRUE
 		}
 		
-		/call e3_Cast ${Me.ID} "Throne of Heroes" alt
+		/call e3_Cast ${Me.ID} "Throne of Heros" alt
 		
 		/if (${overrideTwist}) /timed 200 /squelch /twist start
-		
-	} else {/if (${Me.Hiding}) {
-		/doability Hide 
-		/timed 200
-		}
 	}
 
 /if (${Debug}) /echo <== EVENT_GateToLobby -|
