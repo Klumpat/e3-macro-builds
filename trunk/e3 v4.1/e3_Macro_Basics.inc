@@ -1219,7 +1219,7 @@ SUB event_Intensity
 
 
 |--------------------------------------------------------|
-|- Uses 'Expedient Reovery', on all bots who are able.	-|
+|- Uses 'Expedient Recovery', on all bots who are able.	-|
 |--------------------------------------------------------|
 #event RecoverCorpses "<#*#> Recover Corpses"
 #event RecoverCorpses "<#*#> Use expedient recovery"
