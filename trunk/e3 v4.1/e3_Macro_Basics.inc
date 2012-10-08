@@ -979,12 +979,14 @@ SUB event_RaidAccept
 |------------------------------------------------------------|
 |- Use, /tell 'RaidLeader' Raid invite, or, /gu Raid Invite	-|
 |------------------------------------------------------------|
-#event RaidInvite "#1# tells you, 'raid invite'"
-#event RaidInvite "#1# tells the guild, 'raid invite'"
+#event RaidInvite "#1# tells you, 'gatraid'"
+#event RaidInvite "#1# tells the guild, 'gatraid"
+#event RaidInvite "#1# tells you, 'gat raid'"
+#event RaidInvite "#1# tells the guild, 'gat raid"
 SUB event_RaidInvite(line, InviteTarget)
 /if (${InviteTarget.Left[1].Compare[ ]}<0) /varset InviteTarget ${InviteTarget.Right[-2].Left[-1]}
 /if (${SpawnCount[${InviteTarget}]}) {
-	/if (${Raid.Leader.Name.Equal[${Me.CleanName}]} || ${Me.Name.Equal[Killians]}) {
+	/if (${Raid.Leader.Name.Equal[${Me.CleanName}]} || ${Me.Name.Equal[Gatean]}) {
 		/raidinvite ${InviteTarget}
 	}
 }
@@ -1165,7 +1167,7 @@ SUB event_Staunch(line, SpecifiedBots)
 #event Servant "<#*#> Servants"
 #event Servant  "#*# tells the group, 'Servants'"
 #event Servant  "#*# tells you, 'Servants'"
-#event Servant  "#*# you tell your party, 'Servants'""
+#event Servant  "#*# you tell your party, 'Servants'"
 SUB event_Servant
 /if (${Debug}) /echo |- EVENT_Servant ==>
 
@@ -1195,7 +1197,7 @@ SUB event_Servant
 #event Intensity "<#*#> Use Intensity of the Resolute"
 #event Intensity  "#*# tells the group, 'Intensify'"
 #event Intensity  "#*# tells you, 'Intensify'"
-#event Intensity  "#*# you tell your party, 'Intensify'""
+#event Intensity  "#*# you tell your party, 'Intensify'"
 SUB event_Intensity
 /if (${Debug}) /echo |- EVENT_Intensity ==>
 
@@ -1225,7 +1227,7 @@ SUB event_Intensity
 #event RecoverCorpses "<#*#> Use expedient recovery"
 #event RecoverCorpses  "#*# tells the group, 'Recover Corpses'"
 #event RecoverCorpses  "#*# tells you, 'Recover Corpses'"
-#event RecoverCorpses  "#*# you tell your party, 'Recover Corpses'""
+#event RecoverCorpses  "#*# you tell your party, 'Recover Corpses'"
 SUB event_RecoverCorpses
 /if (${Debug}) /echo |- EVENT_RecoverCorpses ==>
 
@@ -1255,12 +1257,12 @@ SUB event_RecoverCorpses
 #event GateToLobby "<#*#> Use Throne of Heroes"
 #event GateToLobby  "#*# tells the group, 'Gate to lobby'"
 #event GateToLobby  "#*# tells you, 'Gate to lobby'"
-#event GateToLobby  "#*# you tell your party, 'Gate to lobby'""
+#event GateToLobby  "#*# you tell your party, 'Gate to lobby'"
 
 SUB event_GateToLobby
 /if (${Debug}) /echo |- EVENT_GateToLobby ==>
 
-	/if (!${Me.AltAbilityReady[Throne of Heros]}) {
+	/if (!${Me.AltAbilityReady[Throne of Heroes]}) {
 		/docommand ${ChatToggle} Throne of Heroes is not ready.
 	} else {
 		
@@ -1269,7 +1271,7 @@ SUB event_GateToLobby
 			/declare overrideTwist bool outer TRUE
 		}
 		
-		/call e3_Cast ${Me.ID} "Throne of Heros" alt
+		/call e3_Cast ${Me.ID} "Throne of Heroes" alt
 		
 		/if (${overrideTwist}) /timed 200 /squelch /twist start
 	}
