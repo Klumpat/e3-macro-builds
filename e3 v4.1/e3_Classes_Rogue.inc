@@ -99,31 +99,7 @@ Sub ROG_Setup
 /if (${Debug}) /echo <== ROG_Setup -|	
 /return
 
-|-------------------------------------------------------------------------------------------------Auto_Strike
-	/call IniToVar "${Character_Ini},${Me.Class},Auto_Strike(On/Off)" UNDEFINED bool local
-	/if (${Macro.Return}) {
-	
-	|-----------------------------------------------------------------------------------------Check for the best available 'Assassin's Strike' to use.
-		/if (${Me.CombatAbilityReady[Ancient: Chaos Strike]}) {
-			/declare StrikeName string outer Ancient: Chaos Strike
-			/declare MinStrikeEndurance int outer 575
-		} else /if (${Me.CombatAbilityReady[Kyv Strike]}) {
-			/declare StrikeName string outer Kyv Strike
-			/declare MinStrikeEndurance int outer 550
-		} else /if (${Me.CombatAbilityReady[Assassin's Strike]}) {
-			/declare StrikeName string outer Assassin's Strike
-			/declare MinStrikeEndurance int outer 515
-		} else /if (${Me.CombatAbilityReady[Thief's Vengeance]}) {
-			/declare StrikeName string outer Thief's Vengeance
-			/declare MinStrikeEndurance int outer 425
-		}
-		
-		/if (!${Defined[StrikeName]}) {
-			/echo ERROR: @[Auto_Strike] - No 'Assassin's Strike' type disc dectected, disabling.
-		} else {
-			/call BuildArray MyAbilities "${StrikeName}/disc"
-		}
-	}
+
 
 |----------------------------------------------------------------|
 |- MakeROG_Ini													-|

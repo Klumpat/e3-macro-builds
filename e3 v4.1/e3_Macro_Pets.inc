@@ -76,7 +76,7 @@ SUB check_PetBuffs
 
 			|----------------------------------------------------------------------------Cast PetBuff, and return.	
 				/if (${Debug}) /echo |- check_PetBuffs -| Attempting to cast [${MyPetBuffs[${i}].Arg[1,/]}] on [${Spawn[id ${Me.Pet.ID}].CleanName} - ${Me.Pet.ID}] with a retry timer of [].
-				/call e3_Cast ${Me.Pet.ID} "${MyPetBuffs[${i}].Arg[1,/]}" Gem${DefaultGem} 5s
+				/call e3_Cast ${Me.Pet.ID} "${MyPetBuffs[${i}].Arg[1,/]}" Gem${DefaultGem} ${If[${Me.Gem[${Spell[${MyPetBuffs[${i}].Arg[1,/]}]}]},25,90]}
 				/RETURN
 			}
 			
@@ -87,7 +87,7 @@ SUB check_PetBuffs
 			/if (${FindItem[${MyPetBuffs[${i}].Arg[1,/]}].ID} && !${Me.PetBuff[${FindItem[${MyPetBuffs[${i}].Arg[1,/]}].Spell}]} && ${Spell[${FindItem[${MyPetBuffs[${i}].Arg[1,/]}].Spell}].StacksPet}) {
 			
 			|--------------------------------------------------------------------------------Cast PetBuff, and return.
-				/call e3_Cast ${Me.Pet.ID} "${MyPetBuffs[${i}].Arg[1,/]}" item 3s
+				/call e3_Cast ${Me.Pet.ID} "${MyPetBuffs[${i}].Arg[1,/]}" item
 				/RETURN
 			}
 			
@@ -119,7 +119,7 @@ SUB check_AutoShrink
 	/if (${FindItemCount[=Symbol of Ancient Summoning]}) {
 		/call e3_Cast ${Me.Pet.ID} "Symbol of Ancient Summoning" item
 	} else /if (${Me.Book[Tiny Companion]}) {
-		/call e3_Cast ${Me.Pet.ID} "Tiny Companion" Gem${DefaultGem} 5s
+		/call e3_Cast ${Me.Pet.ID} "Tiny Companion" Gem${DefaultGem} ${If[${Me.Gem[Tiny Companion]},25,90]}
 	}
 
 /if (${Debug}) /echo <== check_AutoShrink -|
@@ -156,7 +156,7 @@ SUB event_suspendMinion
 SUB event_returnMinion
 /if (${suspend_Pets}) /docommand ${ChatToggle} Returning my pet
 	/if (${currently_Suspended}) {
-		/call e3_Cast "Suspended Minion" alt 5s
+		/call e3_Cast "Suspended Minion" alt
 		/varset currently_Suspended FALSE
 	}
 	/if (${suspend_Pets}) /varset suspend_Pets FALSE
@@ -176,7 +176,7 @@ SUB PetHeal
 	
 |-------------------------------------------------------------------------------------------------------------Check Pet Health and cast heal spell.
 	/if (${Me.Pet.PctHPs} < ${Pet_Heal.Arg[3,/]}) {
-		/call e3_Cast ${Me.Pet.ID} "${Pet_Heal.Arg[1,/]}" ${Pet_Heal.Arg[2,/]} 5s
+		/call e3_Cast ${Me.Pet.ID} "${Pet_Heal.Arg[1,/]}" ${Pet_Heal.Arg[2,/]} ${If[${Me.Gem[${Spell[${Pet_Heal.Arg[1,/]}]}]},25,90]}
 	}
 
 /if (${Debug}) /echo <== PetHeal -|
@@ -195,13 +195,13 @@ SUB setup_Pets
 		
 		|------------------------------Validate pet entries.
 		/if (${Defined[PetSpell]}) {
-			/if (!${Int[${Me.Book[${PetSpell.Arg[1,/]}]}]}) {
-				/echo I can't find [${PetSpell.Arg[1,/]}] in my spellbook, disabling pets.
-				/deletevar PetSpell
-			} else /if (${PetSpell.Arg[2,/].Length} && !${FindItemCount[${PetSpell.Arg[2,/]}]}) {
-				/echo I don't have any [${PetSpell.Arg[2,/]}], disabling pets. Please review my settings and reload e3.
-				/deletevar PetSpell
-			}
+				/if (!${Int[${Me.Book[${PetSpell.Arg[1,/]}]}]}) {
+					/echo I can't find [${PetSpell.Arg[1,/]}] in my spellbook, disabling pets.
+					/deletevar PetSpell
+				} else /if (${PetSpell.Arg[2,/].Length} && !${FindItemCount[${PetSpell.Arg[2,/]}]}) {
+					/echo I don't have any [${PetSpell.Arg[2,/]}], disabling pets. Please review my settings and reload e3.
+					/deletevar PetSpell
+				}
 			
 			/if (${Defined[PetSpell]}) {
 				/declare Pets bool outer TRUE

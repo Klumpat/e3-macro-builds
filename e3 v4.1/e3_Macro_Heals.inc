@@ -31,6 +31,7 @@ SUB CheckHeals
 	/if (${Defined[HoT_Spell]} && ${NetBots.Counts}) /call check_HoT
 	
 	/if (${recentHeal_Timer}) /varset ActionTaken TRUE
+	
 /if (${Debug}) /echo <== CheckHeals -|
 /RETURN
 
@@ -159,12 +160,7 @@ SUB check_HoT
 			}
 		/next i
 	}
-|**	 CURRENTLY UNUSED - The MainTank list is currently dynamic from bot to bot.  This mode would only work with a static, universal TankList.
-|--------------------------------------------------------------Not MT.
-	} else /if (${HoT_Mode.Equal[NotMT]}) {
-	
-	}
-**|
+
 /if (${Debug}) /echo <== check_HoT -|
 /RETURN
 
@@ -208,8 +204,6 @@ SUB HoT_CastingChecks
 
 /if (${Debug}) /echo <== HoT_CastingChecks -|
 /RETURN
-
-
 
 
 

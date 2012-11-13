@@ -78,8 +78,6 @@ Sub BER_Setup
 Sub MakeBER_Ini
 /if (${Debug}) /echo |- BER_Ini ==>
 
-
-
 /if (${Debug}) /echo <== BER_Ini -|
 /return
 

@@ -76,6 +76,13 @@ SUB event_Chat(ChatChannel, ChatSender, ChatText)
 		
 		/if (!${Me.Book[${ChatText}]}) {
 			/if (${Ini[${SpellAliases_Ini},${Me.Class},${ChatText}].Length}) {
+				
+			|--------------------------------------------------------------------Disable follow before porting.	
+				/if (${ChatText.Find[gport]}) {
+					/if (${Stick.Active}) /squelch /stick off
+					/if (${NetAdvPath.State}) /squelch /netfollow off
+					/delay 3
+				}
 				/varset ChatText ${Ini[${SpellAliases_Ini},${Me.Class},${ChatText}]}
 				/goto :Retry_Alias
 			}

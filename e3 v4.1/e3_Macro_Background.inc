@@ -14,6 +14,7 @@
 |- Calls background functions, as an extention of the main loop.	-|
 |--------------------------------------------------------------------|
 SUB Background_Services
+/if (${Debug}) /echo |- Background_Services ==>
 |-------------------------------------------------------------------------------------------------------------------------------------Status check.
 	/call check_Active
 	/if (${currentZone} != ${Zone.ID}) /call check_Zone
@@ -27,25 +28,33 @@ SUB Background_Services
 	/if (${auto_AssistOn} && !${Assisting}) /call autoAssist
 	
 |---------------------------------------------------------------------------------------------------------------------------------------------Misc.
-	/if (!${Cursor.ID} && !${Me.Casting.ID} || !${Cursor.ID} && ${Me.Class.ShortName.Equal[BRD]}) {
-		/if (${lifeSupport.Size} && !${Cursor.ID}) /call check_lifeSupport
-		/if (${Defined[ConstantIllusion]} && !${Select[${Me.Race},${illusionRace}]}) /call check_Illusion
+	/if (!${Cursor.ID}) {
+		/if (!${Me.Casting.ID} || ${Me.Class.ShortName.Equal[BRD]}) {
+			/if (${lifeSupport.Size}) /call check_lifeSupport
+			/if (${Defined[ConstantIllusion]} && !${Select[${Me.Race},${illusionRace}]}) /call check_Illusion
+		}
 	}
 	/call Background_Events
+	
+/if (${Debug}) /echo <== Background_Services -|
 /RETURN
 
 
 
 |------------------------------------------------------------|
-|- Background.inc's Teritary mainloop hook.					-|
+|- Background.inc's Tertiary mainloop hook.					-|
 |------------------------------------------------------------|											
 |- Calls clean-up and maintenance functions.				-|	
 |------------------------------------------------------------|
-SUB Teritary_Services
-/if (${timerArray.Size}) /call check_macroTimers
-/if (${track_Reageants.Size}) /call check_Reageants
-/if (${medBreak}) /call check_MedBreak
-/doevents
+SUB Tertiary_Services
+/if (${Debug}) /echo |- Tertiary_Services ==>
+
+	/if (${timerArray.Size}) /call check_macroTimers
+	/if (${track_Reageants.Size}) /call check_Reageants
+	/if (${medBreak}) /call check_MedBreak
+	/doevents
+
+/if (${Debug}) /echo <== Tertiary_Services -|
 /RETURN
 
 
@@ -75,6 +84,10 @@ SUB Background_Events
 	/doevents QuickBurn
 	/doevents FullBurn
 
+	/if (${Assisting}) {
+		/call check_AssistTarget
+	}
+	
 |--------------------------------------------------------------------------------------------------Background
 	/doevents SetSafeZone
 	
@@ -129,13 +142,14 @@ SUB Background_Events
 	/doevents list_Routes
 	
 |--------------------------------------------------------------------------------------------------------------Wait4Rez.
-	/if (!${Waiting4Rez}) /doevents Dead
 	/doevents LootNow
-	/if (!${Waiting4Rez}) /doevents WaitNow
+	/if (!${Waiting4Rez}) {
+		/doevents WaitNow
+		/doevents Dead
+	}
 	
 |---------------------------------------------------------------------------------------------------------Misc scripts.
 	/if (${userTimers.Size}) /call check_userTimers
-	/if (${Assisting}) /call check_AssistTarget
 
 |--------------------------------------------------------------------------------------Class Specific Background Events.
 	/if (${Bool[${Me.Class}]}) /call ${Me.Class.ShortName}_Background_Events

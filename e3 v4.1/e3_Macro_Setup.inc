@@ -50,10 +50,11 @@
 |- Checks plugins, creates inis, imports variables, and calls setup functions associated with other includes.	-|
 |----------------------------------------------------------------------------------------------------------------|
 SUB e3_Setup
-/echo Initializing...
 |---------------------------------------------------------------------------------------------------Declare Macro_Ini path\file and check plugins.
 /declare Macro_Ini string outer Macro_Inis\e3_Settings.ini
 /call CheckPlugins
+
+/echo Initializing...
 
 |--------------------------------------------------------------------------------------------------------------------------Create macro variables.
 /declare ActionTaken bool outer
@@ -78,6 +79,7 @@ SUB e3_Setup
 |-------------------------------------------------------------------------------------------------------------------------Load Macro_Ini settings.
 	/echo Importing Macro Ini settings...
 	/call INItoVar ${Macro_Ini},Settings,DebugMode Debug bool outer
+	/call INItoVar ${Macro_Ini},Settings,ValidateIniEntries validation_On bool outer
 	/call IniToVar ${Macro_Ini},Settings,ChatChannel ChatToggle string outer
 	/call IniToVar ${Macro_Ini},Settings,Verbosity Verbosity bool outer
 	
@@ -189,6 +191,7 @@ SUB startMsg
 |----------------------------------------------------|
 SUB CheckPlugins
 /echo Checking Plugins...
+
 |-----------------------------------------------------------------------------------------------------------------------------------Check MQ2EQBC.
 /if (!${Plugin[MQ2EQBC].Name.Length}) {
 	/echo Plugin MQ2EQBC is not loaded, attempting to resolve...
@@ -638,6 +641,7 @@ SUB MakeMacro_Ini(Version)
 	/call WriteToIni ${Macro_Ini},Settings,e3_Version 4.1 1
 	/call WriteToIni ${Macro_Ini},Settings,ChatChannel /bc
 	/call WriteToIni ${Macro_Ini},Settings,DebugMode Off
+	/call WriteToIni ${Macro_Ini},Settings,ValidateIniEntries On
 	/call WriteToIni ${Macro_Ini},Settings,Verbosity Off
 	
 |---------------------------------------------------------------------------------------------------------------------e3_Macro_Assist.inc entries.

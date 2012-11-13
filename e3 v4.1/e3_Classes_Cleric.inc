@@ -18,15 +18,19 @@
 Sub CLR_Main
 /if (${Debug}) /echo |- CLR_Main ==>
 
-/if (${DivineArb_Pct} && ${Group}>2 && !${alt_Timer_157} && ${Me.AltAbilityReady[157]}) /call check_DivineArb
+/if (${DivineArb_Pct} && ${Group}>2 && !${alt_Timer_${Me.AltAbility[Divine Arbitration].ID}} && ${Me.AltAbilityReady[Divine Arbitration]}) /call check_DivineArb
 
 |-----------------------------------------------------------------------------------------------------------------------------------------#1 check_Heals.
 	/if (${Heals}) /call CheckHeals
 		/if (${ActionTaken}) /return
 
 |-------------------------------------------------------------------------------------------------------------------------------------#2 Celestial Regen.
+| <<<<<<< .mine
+	/if (${celestialRegen_Pct} && ${Group}>2 && ${alt_Timer_${Me.AltAbility[Celestial Regeneration].ID}}) /call check_celestialRegen
+| =======
 	/if (${celestialRegen_Pct} && ${Group}>2 && !${Me.AltAbility[Celestial Regeneration].ID}) /call check_celestialRegen
 	
+| >>>>>>> .r22
 
 |-----------------------------------------------------------------------------------------------------------------------------------#2 check_CombatBuffs.
 	/if (!${idle} && ${PriorityBuffs.Size}) /call checkPriorityBuffs
@@ -177,7 +181,7 @@ sub check_DivineArb
 /declare i int local
 /for i 0 to ${Group}
 	/if (${Spawn[${Group.Member[${i}]}].PctHPs}<${DivineArb_Pct} && ${Spawn[${Group.Member[${i}]}].PctHPs}) {
-		/call e3_Cast 0 157 alt
+		/call e3_Cast ${Me.ID} ${Me.AltAbility[Divine Arbitration].ID} alt
 	}
 /next i
 /return
@@ -195,7 +199,7 @@ sub check_celestialRegen
 /if (${denominator}>1) {
 	/varcalc average_HPs ${average_HPs} / ${denominator}
 	/if (${average_HPs}<${celestialRegen_Pct}) {
-		/call e3_Cast ${Me.ID} ${Me.AltAbilityReady[Celestial Regeneration]} alt   
+		/call e3_Cast ${Me.ID} ${Me.AltAbility[Celestial Regeneration].ID} alt
 	}
 }
 /return

@@ -21,7 +21,6 @@
 |--------------------------------------------------------------------------------|
 |- Use, 'Assist on ${Target.ID}' in /tell, /group, or /bc.						-|
 |--------------------------------------------------------------------------------|
-| #EVENT AssistOn
 SUB event_Assist(line, ChatSender, SpecifiedBots)
 | /varset Debug 1
 /if (${Debug}) /echo |- event_EngageAssist ==>
@@ -417,28 +416,43 @@ SUB CombatAbilities
 		|----------------------------------------------------------------------------------------For 1 to the size of MyAbilities array, use each ability.
 			/for i 1 to ${MyAbilities.Size}
 			
+		|-----------------------------------------------------------------------If this is an Ability.
 			/if (${MyAbilities[${i}].Arg[2,/].Equal[ability]}) {
+				
+			|---------------------------------------------------------------------If the Ability is not ready.
 				/if (!${Me.AbilityReady[${MyAbilities[${i}].Arg[1,/]}]}) {
 					/if (${Debug}) /echo |- CombatAbilities -| Ability [${MyAbilities[${i}].Arg[1,/]}] is not ready.
 				} else {
+					
+				|-----------------------------------------------------------------------Use Backstab.
 					/if (${MyAbilities[${i}].Arg[1,/].Equal[Backstab]}) {
 						/call Attempt_Backstab
+						
+				|-----------------------------------------------------------------------Use Bash.
 					} else /if (${MyAbilities[${i}].Arg[1,/].Equal[Bash]}) {
 						/call Attempt_Bash
+						
+				|-----------------------------------------------------------------------Use Taunt.
 					} else /if (${MyAbilities[${i}].Arg[1,/].Equal[Taunt]}) {
 						/call Attempt_Taunt
+						
+				|-----------------------------------------------------------------------Use a misc Ability.
 					} else /if (${Me.AbilityReady[${MyAbilities[${i}].Arg[1,/]}]}) {
 					
 					|-----------------------------------------------------------------Misc.
 						/doability "${MyAbilities[${i}].Arg[1,/]}"
 					}
 				}
+				
+		|-----------------------------------------------------------------------If this is an Alternate Ability.
 			} else /if (${MyAbilities[${i}].Arg[2,/].Equal[alt]}) {
 				/if (!${Me.AltAbilityReady[${MyAbilities[${i}].Arg[1,/]}]} || ${alt_Timer_${Me.AltAbility[${MyAbilities[${i}].Arg[1,/]}].ID}}) {
 					/if (${Debug}) /echo |- CombatAbilities -| Alternate Ability [${MyAbilities[${i}].Arg[1,/]}] is not ready.
 				} else {
 					/call e3_Cast ${AssistTarget} "${MyAbilities[${i}].Arg[1,/]}" alt
 				}
+				
+		|-----------------------------------------------------------------------If this is a Discipline.
 			} else /if (${MyAbilities[${i}].Arg[2,/].Equal[disc]}) {
 				/if (!${Me.CombatAbilityReady[${MyAbilities[${i}].Arg[1,/]}]} || ${disc_Timer_${MyAbilities[${i}].Arg[1,/].Replace[ ,]}}) {
 					/if (${Debug}) /echo |- CombatAbilities -| Discipline [${MyAbilities[${i}].Arg[1,/]}] is not ready.
@@ -582,7 +596,7 @@ SUB Debuffs_OnAssist
 |- Casts Spells listed in the [DoTs] section of the Character_Ini, on AssistTargets.	-|
 |----------------------------------------------------------------------------------------|
 SUB DoTs_OnAssist
-/varset Debug 1
+| /varset Debug 1
 /if (${Debug}) /echo |- DoTs_OnAssist ==>
 
 	/declare x int local
@@ -608,7 +622,7 @@ SUB DoTs_OnAssist
 	/if (!${ActionTaken}) /next x
 				
 /if (${Debug}) /echo <== DoTs_OnAssist -|
-/varset Debug 0
+| /varset Debug 0
 /RETURN
 
 

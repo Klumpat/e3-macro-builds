@@ -109,7 +109,7 @@ SUB event_record_Route
 	/if (${Defined[tempRoute]}) /deletevar tempRoute
 	/declare tempRoute string outer ${Me.Loc.Replace[ ,]}|
 
-|----------------------------------------------------------------Declare the starting zone of this recording. (This is checked the recording is saved.)
+|----------------------------------------------------------------Declare the starting zone of this recording. (This is checked as the recording is saved.)
 	/if (${Defined[tempRouteStartZone]}) /deletevar tempRouteStartZone
 	/declare tempRouteStartZone int outer ${Zone.ID}	
 	
@@ -125,6 +125,7 @@ SUB event_record_Route
 |-------------------------------------------------------------------------------------------------------------------------Start tracing the route.
 	:trace_Route_Loop
 	/if (${Debug}) /echo |- event_record_Route -| :trace_Route_Loop
+	
 |-----------------------------------------------------------------------------Popup recording alert every 5 sec.
 	/if (!${popup_Timer}) {
 		/popup ** Recording Route **
@@ -133,7 +134,7 @@ SUB event_record_Route
 		
 	/call Triangulate_Distance ${old_Loc} ${Me.Loc.Replace[ ,]}
 	
-|------------------------------------------------------------------If my heading has changed, set a new heading.
+|------------------------------------------------------------------If my heading has changed, or I have moved more than 250 units, set a new heading.
 	/if (${Me.Heading.Degrees}!=${old_Heading} || ${Int[${Macro.Return}]} > 250) {
 		/varset old_Heading ${Me.Heading.Degrees}
 		
@@ -579,6 +580,36 @@ SUB next_WP(float y_loc, float x_loc)
 	
 |------------------------------------------------------------------------------Check if movement events were called.
 	/call Movement_Events
+	
+|------------------------------------------If a 'stop route' was called, stop moving, and return to event_run_Route.
+	/if (${stop_Route}) {
+		/moveto off
+		/goto :skip_wait4Stop
+	}	
+
+|-------------Calculate distance to my destination.  If I'm closer than 5 units, start moving to the next waypoint.
+	/call Triangulate_Distance ${Me.Loc.Replace[ ,]} ${y_loc},${x_loc}	
+	/if (${Macro.Return}<15) {
+		/echo skipping to next wp
+		/goto :skip_wait4Stop
+	}
+	
+|------------------------------------------------------------------------------------------Look up, if I'm in water.
+	/if (${Me.Underwater} && ${Me.Look} < 5) /look 5	
+
+|---------------------------------------------------------------------------------------------------------------If I'm still moving, wait to stop.
+	/if (${Me.Moving}) /goto :wait4Stop	
+	
+| ADD STUCK LOGIC HERE
+
+	:skip_wait4Stop
+
+/if (${Debug}) /echo <== next_WP -|
+/RETURN
+
+
+|------------------------------------------------------------------------------Check if movement events were called.
+	/call Movement_Events
 	/call Background_Events
 	
 |------------------------------------------------------------------------------------------Look up, if I'm in water.
@@ -592,19 +623,14 @@ SUB next_WP(float y_loc, float x_loc)
 	
 |-------------Calculate distance to my destination.  If I'm closer than 5 units, start moving to the next waypoint.
 	/call Triangulate_Distance ${Me.Loc.Replace[ ,]} ${y_loc},${x_loc}
-	/if (${Macro.Return}<10) {
+	/echo /if (${Macro.Return}<15)
+	/if (${Macro.Return}<15) {
+		/echo skipping to next wp
 		/goto :skip_wait4Stop
 	}
 	
 |---------------------------------------------------------------------------------------------------------------If I'm still moving, wait to stop.
 	/if (${Me.Moving}) /goto :wait4Stop
-
-| ADD STUCK LOGIC HERE
-
-	:skip_wait4Stop
-
-/if (${Debug}) /echo <== next_WP -|
-/RETURN
 
 
 

@@ -18,38 +18,28 @@ Sub Main
 /if (${Debug}) /echo |- MainLoop ==>
 
 |---------------------------------------------------------------Call Background functions. Return to top if I'm active.
-	/if (${Debug}) /echo |- Background_Services ==>
 	/call Background_Services
-	/if (${Debug}) /echo <== Background_Services -|
 	/if (${activeTimer}) /goto :MainLoop
 
 |-----------------------------------------------Call my class specific MainLoop. Return to top if I've taken an action.	
 	/if (${Bool[${Me.Class}]}) {
-		/if (${Debug}) /echo |- ${Me.Class}Loop ==>
 		/call ${Me.Class.ShortName}_Main
-		/if (${Debug}) /echo <== ClassLoop -|
 		/if (${ActionTaken}) /goto :MainLoop
 	}
 	
 |---------If I've been inactive long enough to rebuff, call BuffCheck functions. Return to top if I've taken an action.
 	/if (${BuffCheck} && !${combatTimer} && !${activeTimer} && !${rebuffTimer}) {
-		/if (${Debug}) /echo |- BuffCheck ==>
 		/call buffCheck
-		/if (${Debug}) /echo <== BuffCheck -|
 		/if (${ActionTaken}) /goto :MainLoop
 	}
 
 |----------------------If I've been inactive long enough, check my pets status.  Return to top if I've taken an action.
 	/if (${Pets} && !${suspend_Pets} && !${combatTimer} && !${activeTimer} && !${pet_rebuffTimer}) {
-		/if (${Debug}) /echo |- PetCheck ==>
 		/call check_PetStatus
-		/if (${Debug}) /echo <== PetCheck -|
 	}
 	
 |--------------------------------------------If I have nothing else to do, call cleanup services.  Then, return to top.
-	/if (${Debug}) /echo |- Teritary ==>
-	/call Teritary_Services
-	/if (${Debug}) /echo <== Teritary -|
+	/call Tertiary_Services
 	
 /if (${Debug}) {
 	/echo <== MainLoop -|

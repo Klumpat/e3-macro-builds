@@ -91,6 +91,7 @@ SUB event_bark(line, msgTarget,  barkIt, ChatSender, SpecifiedBots)
 |--------------------------------------------------------------------|
 |- Moves to a given location, and clicks the nearest object.		-|
 |--------------------------------------------------------------------|
+|- @param ChatSender: The command sender
 |- @param locToStart: Where to stand when trying to click the door.	-|
 |--------------------------------------------------------------------|
 SUB EVENT_clickIt(line, ChatSender, locToStart)
@@ -184,79 +185,76 @@ SUB EVENT_clickIt(line, ChatSender, locToStart)
 
 
 
-|**
-|--------------------------------------------------------------------|
-|- Adds a run through zone to the route you're currently recording.	-|
-|--------------------------------------------------------------------|
-#event add_run_Thru_Zone "[MQ2] Add Run thru zone"
-#event add_run_Thru_Zone "[MQ2] Add Run through zone"
-SUB event_add_run_Thru_Zone
-/if (${Debug}) /echo |- add_run_Thru_Zone ==>
-
-	/if (${keep_Tracing}) {
-		/echo Adding run through zone function to your route...
-		/call event_end_Recording
-		/echo ** To continue this route through a zone line, please save the route in this zone, then record a route in your destination zone with the same name. For example, to go from the Guild Lobby to the Plane of Time zone in Tranquility, you'd need a route named 'Plane of Time' in both PoKnowledge and PoTranquility. **
-		/call BuildArray ${temp_Route_Name} ${Me.Loc.Replace[ ,]}_**runThruZone_${Me.Heading.Degrees}_${Me.Look}
-	} else {
-		/echo I'm not currently recording a route, dumbass.
-	}
-	
-/if (${Debug}) /echo <== add_run_Thru_Zone -|	
-/RETURN
-
-
-
 |----------------------------------------------------------------------------|
-|- Runs through a zone line on a recorded route.							-|
+|- Points faces bots to your current heading, and runs through a zone line.	-|
 |----------------------------------------------------------------------------|
+|- @param ChatSender: The command sender.									-|
 |- @param locToStart: Where to stand when trying to click the door.			-|
 |- @param snapHeading: The direction to face when trying to click the door.	-|
-|- @param snapLook: The angle to look when trying to click the door.		-|
-|- @param startZone: Zone you are attempting to leave.						-|
 |----------------------------------------------------------------------------|
-SUB run_Thru_Zone(locToStart, float snapHeading, float snapLook, int startZone)
-/if (${Debug}) /echo |- run_Thru_Zone ==>
-
-	/declare tryToZone_Timer timer local ${tryToZone_Timer_Setting}
-
-|-------------------------------------------------------------------------------------Switch to first person camera.
-	/keypress First_Person_Camera
-	:retry
-	/if (${Zone.ID}==${startZone}) {
+#EVENT runThruZone "<#1#> Run through zone at #2# #3#"
+SUB EVENT_runThruZone(Line, ChatSender, locToStart, snapHeading)
+| /varset Debug 1
+/if (${Debug}) /echo |- EVENT_runThruZone ==>
 	
-	|-------------------------------------------------------------------------------------------------Move to the zone line I want to run through.
-		/call Triangulate_Distance ${Me.Loc.Replace[ ,]} ${locToStart}
-		/if (${Macro.Return} > 8) {
-			/squelch /moveto loc ${locToStart.Arg[1,,]} ${locToStart.Arg[2,,]} dist 8
-			/delay 1s ${Me.Moving}
-			/delay 5s !${Me.Moving}
+	/if (${ChatSender.Left[1].Compare[ ]}<0) /varset ChatSender ${ChatSender.Right[-2].Left[-1]}
+	/if (${ChatSender.Equal[You]}) /varset ChatSender ${Me.CleanName}
+	
+|-----------------------------------------------------------------------------------------------------------------------------------------------------Check that you are in the same zone as the chatsender.
+	/if (!${SpawnCount[pc ${ChatSender}]}) {
+		/docommand ${ChatToggle} ${ChatSender} and I are not in the same zone.
+	} else {
+	
+	|-----------------------------------------------------------------------------------------------------------------------------------------------------Check that you can see the location to click from.
+		/if (!${LineOfSight[${Me.Loc.Replace[ ,]}:${locToStart}]}) {
+			/docommand ${ChatToggle} I cannot see ${ChatSender}.
+		} else {
+			
+		|-------------------------------------------------------------------------------------------------------------------------------------------------------------Check distance to the destination loc.
+			/call Triangulate_Distance ${locToStart} ${Me.Loc.Replace[ ,]}
+			/if (${Debug}) /echo |- EVENT_runThruZone -| Distance to start location= [${Macro.Return}]
+			
+		|----------------------------------------------------------------------------------------------------------If the location is greater than your MoveToBreakDistance (default 750), announce to user.
+			/if (${Macro.Return} > ${MoveToBreakDistance}) {
+				/docommand ${ChatToggle} I am too far away to run through that zone.
+			} else {
+				
+				/if (${Stick.Active}) /squelch /stick off
+				/if (${NetAdvPath.State}==1) /squelch /netfollow off
+				
+				/declare startZone int local ${Zone.ID}
+				/declare miscTimer timer local
+				/declare retryTimer timer local 1200
+				
+				:retry
+				/if (${Debug}) /echo |- EVENT_runThruZone -| Retry Loop
+				
+			|-------------------------------------------------------------------------------------------------Move to the zone line I want to run through.
+				/if (${Macro.Return} > 8) {
+					/squelch /moveto loc ${locToStart.Arg[1,,]} ${locToStart.Arg[2,,]} dist 8
+					/delay 1s ${Me.Moving}
+					/delay 5s !${Me.Moving}
+				}
+				
+			|-------------------------------------------------------------------------------------------------Face the zone and run foward for 15 seconds.
+				/face fast heading ${Math.Calc[${snapHeading}*-1]}
+				/look ${snapLook}
+				/delay 5
+				/keypress forward hold
+				/delay 100 !${Zone.ID} || ${Zone.ID} != ${startZone}
+				/if (!${Zone.ID}) /delay 300 ${Zone.ID} 
+			|------------------------------------------------------------------------------------------------If I haven't zoned, move back, and try again.
+				/if (${Zone.ID} == ${startZone} && ${retryTimer}) {
+					/delay ${Math.Rand[50]}
+					/goto :retry
+				}
+			}	
 		}
-		
-	|-------------------------------------------------------------------------------------------------Face the zone and run foward for 15 seconds.
-		/face fast heading ${Math.Calc[${snapHeading}*-1]}
-		/look ${snapLook}
-		/delay 5
-		/keypress forward hold
-		/delay 15s
-		/keypress back
-		
-	|------------------------------------------------------------------------------------------------If I haven't zoned, move back, and try again.
-		/if (${Zone.ID} && ${Zone.ID} == ${startZone} && ${tryToZone_Timer}) {
-			/squelch /target clear
-			/keypress back hold
-			/delay 5
-			/keypress forward
-			/delay ${Math.Rand[50]}
-			/goto :retry
-		}
-		/squelch /stick off	
 	}
 	
-/if (${Debug}) /echo <== run_Thru_Zone -|
+/if (${Debug}) /echo <== EVENT_runThruZone -|
+| /varset Debug 0
 /RETURN
-
-**|
 
 
 
@@ -531,6 +529,7 @@ SUB event_GroupUp(line, groupName)
 	/call IniToArray ${Group_Ini},${groupName}_${Me},GroupMember groupMembers
 	/declare i int local
 	/declare groupSize int local 0
+	
 	|- Invite each person, and make sure they accept
 	/for i 1 to ${groupMembers.Size}
 		/echo Inviting ${groupMembers[${i}]}
@@ -584,6 +583,7 @@ SUB event_Disband
 /RETURN
 
 | Corpse drag |
+| THIS NEEDS TO BE REVAMPED!!! 
 #event Consent "#*# tells you, 'Consent #1#'"
 #event Consent "<#*#> Consent #1#"
 SUB Event_Consent(line, ConsentTarget)
@@ -825,40 +825,65 @@ SUB event_CountBots
 		/echo You must be connected to MQ2EQBC, and, MQ2NetBots, to use this function.
 	} else {
 		/declare i int local
+		
+		/declare InRangeCount int local
+		
+		/declare OutOfRange string local
+		/declare OutOfRangeCount int local
+		
 		/declare OutOfZone string local
-		/declare OutOfRange string local 
+		/declare OutOfZoneCount int local
+		
 		/for i 1 to ${NetBots.Counts}
-		/if (!${SpawnCount[pc ${NetBots.Client[${i}]}]}) {
-			/varset OutOfZone ${OutOfZone}${NetBots.Client[${i}]},
-		} else /if (${SpawnCount[pc ${NetBots.Client[${i}]}]} && !${SpawnCount[pc ${NetBots.Client[${i}]} radius ${FollowBreakDistance}]}) {
-			/varset OutOfRange ${OutOfRange}${NetBots.Client[${i}]},
-		}
+		
+			/if (!${SpawnCount[pc ${NetBots.Client[${i}]}]}) {
+				/varset OutOfZone ${OutOfZone}${NetBots.Client[${i}]},
+				/varcalc OutOfZoneCount ${OutOfZoneCount} + 1
+			} else /if (${SpawnCount[pc ${NetBots.Client[${i}]}]} && !${SpawnCount[pc ${NetBots.Client[${i}]} radius ${FollowBreakDistance}]}) {
+				/varset OutOfRange ${OutOfRange}${NetBots.Client[${i}]},
+				/varcalc OutOfRangeCount ${OutOfRangeCount} + 1
+			} else {
+				/varcalc InRangeCount ${InRangeCount} + 1
+			}
+		
 		/next i
 	}
 	
-	/if (${OutOfZone.Length}) {
-		/varset i 1
-		/echo Clients Out Of Zone:
-		/echo ---------------------------------
-		:next_OutOfZone
-		/echo [${i}] ${OutOfZone.Arg[${i},,]} is in, ${Zone[${NetBots[${OutOfZone.Arg[${i},,]}].Zone}]}.
-		/varcalc i ${i} + 1
-		/if (${OutOfZone.Arg[${i},,].Length}) /goto :next_OutOfZone
-		/echo ---------------------------------
+	/if (${NetBots.Counts} < 2) {
+		/echo ------------------------------------------
+		/echo No other NetBots are connected.
+		/echo ------------------------------------------
+	} else {
+		/echo ------------------------------------------
+		/echo [${NetBots.Counts}] NetBots connected.
+		/echo ------------------------------------------
+	}
+	
+	/if (${InRangeCount} > 1) {
+		/echo [${InRangeCount}] NetBots are present.
+		/echo ------------------------------------------
 	}
 	
 	/if (${OutOfRange.Length}) {
 		/varset i 1
-		/echo Clients Out Of Range:
-		/echo ---------------------------------
+		/echo [${OutOfRangeCount}] NetBots out of range:
 		:next_OutOfRange
-		/echo [${i}] ${OutOfRange.Arg[${i},,]}, ${Int[${Spawn[pc ${OutOfRange.Arg[${i},,]}].Distance}]} units away.
+		/echo ----- ${OutOfRange.Arg[${i},,]}, ${Int[${Spawn[pc ${OutOfRange.Arg[${i},,]}].Distance}]} units away.
 		/varcalc i ${i} + 1
 		/if (${OutOfRange.Arg[${i},,].Length}) /goto :next_OutOfRange
-		/echo ---------------------------------
+		/echo ------------------------------------------
 	}
 	
-	/if (!${OutOfRange.Length} && !${OutOfZone.Length}) /echo ${NetBots.Counts} bots are present.
+	/if (${OutOfZone.Length}) {
+		/varset i 1
+
+		/echo [${OutOfZoneCount}] NetBots out of zone:
+		:next_OutOfZone
+		/echo ----- ${OutOfZone.Arg[${i},,]} is in, ${Zone[${NetBots[${OutOfZone.Arg[${i},,]}].Zone}]}.
+		/varcalc i ${i} + 1
+		/if (${OutOfZone.Arg[${i},,].Length}) /goto :next_OutOfZone
+		/echo ------------------------------------------
+	}
 	
 /if (${Debug}) /echo <== event_CountBots -|
 /RETURN
@@ -1038,29 +1063,33 @@ SUB event_EndMacro
 |----------------------------------------|
 #event MGB "<#1#> MGB"
 #event MGB "#1# tells you, '[MGB]'"
-#event MGB "<#1#> #2# MGB"
-#event MGB "#1# tells you, '#2# [MGB]'"
 SUB event_MGB(Line, ChatSender, SpecifiedBots)
 /if (${Debug}) /echo |- EVENT_MGB ==>
 
-|-----------------------------------Validate ChatSender, and SpecifiedBots.
+|-----------------------------------Validate ChatSender.
 	/if (${ChatSender.Left[1].Compare[ ]}<0) /varset ChatSender ${ChatSender.Right[-2].Left[-1]}
-	/if (${SpawnCount[pc ${ChatSender}]} && ${SpawnCount[pc ${ChatSender} radius ${FollowBreakDistance}]}) {
-	|--------------------------------------------------------Check SpecifiedBots
-		/if (${Select[${Me.CleanName},${SpecifiedBots}]} || ${Select[${Me.Class.ShortName},${SpecifiedBots}]} || ${Select[${Me.Class},${SpecifiedBots}]} || !${Defined[SpecifiedBots]} || ${SpecifiedBots.Equal[all]} || ${SpecifiedBots.Equal[melee]} && ${Select[${Me.Class.ShortName},${MeleeClasses}]} || ${SpecifiedBots.Equal[casters]} && ${Select[${Me.Class.ShortName},${CasterClasses}]} || ${SpecifiedBots.Equal[ranged]} && ${Select[${Me.Class.ShortName},${RangedClasses}]} || ${SpecifiedBots.Equal[Healers]} && ${Select[${Me.Class.ShortName},${PriestClasses}]} || ${SpecifiedBots.Equal[Priests]} && ${Select[${Me.Class.ShortName},${PriestClasses}]}) {
-
-			/if (!${Me.AltAbilityReady[35]}) {
-				/docommand ${ChatToggle} Mass Group Buff is not ready.
-			} else {
-				
-				/if (${Select[${Me.Class},Bard]} && ${MelodyStatus} || ${Twist.Twisting}) {
-					/squelch /twist stop
-					/declare overrideTwist bool outer TRUE
+	
+|-----------------------------------Check that ChatSender is in zone
+	/if (!${SpawnCount[pc ${ChatSender}]}) {
+		/if (${Verbosity}) /docommand ${ChatToggle} We're not in the same zone.
+	} else {
+	
+	|------------------------------------------Check range to ChatSender.
+		/if (!${SpawnCount[pc ${ChatSender} radius ${Math.Calc[${FollowBreakDistance} *3]}]}) {
+			/if (${Verbosity}) /docommand ${ChatToggle} You're too far away.
+		} else {
+		
+		|--------------------------------------------------------Check SpecifiedBots
+			/if (${Select[${Me.CleanName},${SpecifiedBots}]} || ${Select[${Me.Class.ShortName},${SpecifiedBots}]} || ${Select[${Me.Class},${SpecifiedBots}]} || !${Defined[SpecifiedBots]} || ${SpecifiedBots.Equal[all]} || ${SpecifiedBots.Equal[melee]} && ${Select[${Me.Class.ShortName},${MeleeClasses}]} || ${SpecifiedBots.Equal[casters]} && ${Select[${Me.Class.ShortName},${CasterClasses}]} || ${SpecifiedBots.Equal[ranged]} && ${Select[${Me.Class.ShortName},${RangedClasses}]} || ${SpecifiedBots.Equal[Healers]} && ${Select[${Me.Class.ShortName},${PriestClasses}]} || ${SpecifiedBots.Equal[Priests]} && ${Select[${Me.Class.ShortName},${PriestClasses}]}) {
+			
+			|----------------------------------------------------Check AA is ready.
+				/if (!${Me.AltAbilityReady[Mass Group Buff]}) {
+					/docommand ${ChatToggle} Mass Group Buff is not ready.
+				} else {
+					
+				|--------------------------------------------------------------------Cast Mass Group Buff
+					/call e3_Cast ${Me.ID} ${Me.AltAbility[Mass Group Buff].ID} alt
 				}
-				
-				/call e3_Cast ${Me.ID} 35 alt
-				
-				/if (${overrideTwist}) /timed 50 /squelch /twist start
 			}
 		}
 	}
@@ -1073,28 +1102,55 @@ SUB event_MGB(Line, ChatSender, SpecifiedBots)
 |------------------------------------------------------------|
 |- Uses 'Lessons of the Devoted', on all bots who are able.	-|
 |------------------------------------------------------------|
-#event Lessons "<#*#> Lessons"
-#event Lessons "#*# tells the group, 'Lessons'"
-#event Lessons "#*# tells you, 'Lessons'"
-#event Lessons "#*# you tell your party, 'Lessons'"
-SUB event_Lessons
+#event Lessons "<#1#> Lessons"
+#event Lessons "#1# tells the group, 'Lessons'"
+#event Lessons "#1# tells you, 'Lessons'"
+#event Lessons "#1# you tell your party, 'Lessons'"
+SUB event_Lessons(Line, ChatSender, SpecifiedBots)
+| /varset Debug 1
 /if (${Debug}) /echo |- EVENT_Lessons ==>
 
-	/if (!${Me.AltAbilityReady[Lesson of the Devoted]}) {
-		/docommand ${ChatToggle} Lessons of the Devoted is not ready.
+|-----------------------------------Validate ChatSender.
+	/if (${ChatSender.Left[1].Compare[ ]}<0) /varset ChatSender ${ChatSender.Right[-2].Left[-1]}
+	
+|-----------------------------------Check that ChatSender is in zone
+	/if (!${SpawnCount[pc ${ChatSender}]}) {
+		/if (${Verbosity}) /docommand ${ChatToggle} We're not in the same zone.
 	} else {
+	
+	|------------------------------------------Check range to ChatSender.
+		/if (!${SpawnCount[pc ${ChatSender} radius ${Math.Calc[${FollowBreakDistance} *3]}]}) {
+			/if (${Verbosity}) /docommand ${ChatToggle} You're too far away.
+		} else {
 		
-		/if (${Select[${Me.Class},Bard]} && ${MelodyStatus} || ${Twist.Twisting}) {
-			/squelch /twist stop
-			/declare overrideTwist bool outer TRUE
+		|--------------------------------------------------------Check SpecifiedBots
+			/if (${Select[${Me.CleanName},${SpecifiedBots}]} || ${Select[${Me.Class.ShortName},${SpecifiedBots}]} || ${Select[${Me.Class},${SpecifiedBots}]} || !${Defined[SpecifiedBots]} || ${SpecifiedBots.Equal[all]} || ${SpecifiedBots.Equal[melee]} && ${Select[${Me.Class.ShortName},${MeleeClasses}]} || ${SpecifiedBots.Equal[casters]} && ${Select[${Me.Class.ShortName},${CasterClasses}]} || ${SpecifiedBots.Equal[ranged]} && ${Select[${Me.Class.ShortName},${RangedClasses}]} || ${SpecifiedBots.Equal[Healers]} && ${Select[${Me.Class.ShortName},${PriestClasses}]} || ${SpecifiedBots.Equal[Priests]} && ${Select[${Me.Class.ShortName},${PriestClasses}]}) {
+				
+			|----------------------------------------------------Check AA is ready.
+				/if (!${Me.AltAbilityReady[Lesson of the Devoted]}) {
+					/docommand ${ChatToggle} Lessons of the Devoted is not ready.
+				} else {
+	
+				|----------------------------------------------------------If I'm a Bard, pause twist
+					/if (${Twist.Twisting}) {
+						/declare returnTwist bool local TRUE
+						/squelch /twist stop
+						
+				|----------------------------------------------------------If I'm a rogue, stop hiding.
+					} else /if (${Me.Class.ShortName.Equal[ROG]} && ${Me.Invis} && !${Me.AbilityReady[Hide]}) {
+						/doability Hide
+					}
+					
+					/call e3_Cast ${Me.ID} ${Me.AltAbility[Lesson of the Devoted].ID} alt
+		
+					/if (${returnTwist}) /timed 70 /squelch /twist start
+				}
+			}
 		}
-		
-		/call e3_Cast ${Me.ID} "Lesson of the Devoted" alt
-		
-		/if (${overrideTwist}) /timed 50 /squelch /twist start
 	}
 
 /if (${Debug}) /echo <== EVENT_Lessons -|
+| /varset Debug 0
 /RETURN
 
 
@@ -1102,28 +1158,55 @@ SUB event_Lessons
 |----------------------------------------------------------------|
 |- Uses 'Infusion of the Faithful', on all bots who are able.	-|
 |----------------------------------------------------------------|
-#event Infusion "<#*#> Infusions"
-#event Infusion "#*# tells the group, 'Infusions'"
-#event Infusion "#*# tells you, 'Infusions'"
-#event Infusion "#*# you tell your party, 'Infusions'"
-SUB event_Infusion
+#event Infusion "<#1#> Infusions"
+#event Infusion "#1# tells the group, 'Infusions'"
+#event Infusion "#1# tells you, 'Infusions'"
+#event Infusion "#1# you tell your party, 'Infusions'"
+SUB event_Infusion(Line, ChatSender, SpecifiedBots)
+| /varset Debug 1
 /if (${Debug}) /echo |- EVENT_Infusion ==>
 
-	/if (!${Me.AltAbilityReady[Infusion of the Faithful]}) {
-		/docommand ${ChatToggle} Infusion of the Faithful is not ready.
+|-----------------------------------Validate ChatSender.
+	/if (${ChatSender.Left[1].Compare[ ]}<0) /varset ChatSender ${ChatSender.Right[-2].Left[-1]}
+	
+|-----------------------------------Check that ChatSender is in zone
+	/if (!${SpawnCount[pc ${ChatSender}]}) {
+		/if (${Verbosity}) /docommand ${ChatToggle} We're not in the same zone.
 	} else {
+	
+	|------------------------------------------Check range to ChatSender.
+		/if (!${SpawnCount[pc ${ChatSender} radius ${Math.Calc[${FollowBreakDistance} *3]}]}) {
+			/if (${Verbosity}) /docommand ${ChatToggle} You're too far away.
+		} else {
 		
-		/if (${Select[${Me.Class},Bard]} && ${MelodyStatus} || ${Twist.Twisting}) {
-			/squelch /twist stop
-			/declare overrideTwist bool outer TRUE
+		|--------------------------------------------------------Check SpecifiedBots
+			/if (${Select[${Me.CleanName},${SpecifiedBots}]} || ${Select[${Me.Class.ShortName},${SpecifiedBots}]} || ${Select[${Me.Class},${SpecifiedBots}]} || !${Defined[SpecifiedBots]} || ${SpecifiedBots.Equal[all]} || ${SpecifiedBots.Equal[melee]} && ${Select[${Me.Class.ShortName},${MeleeClasses}]} || ${SpecifiedBots.Equal[casters]} && ${Select[${Me.Class.ShortName},${CasterClasses}]} || ${SpecifiedBots.Equal[ranged]} && ${Select[${Me.Class.ShortName},${RangedClasses}]} || ${SpecifiedBots.Equal[Healers]} && ${Select[${Me.Class.ShortName},${PriestClasses}]} || ${SpecifiedBots.Equal[Priests]} && ${Select[${Me.Class.ShortName},${PriestClasses}]}) {
+				
+			|----------------------------------------------------Check AA is ready.
+				/if (!${Me.AltAbilityReady[Infusion of the Faithful]}) {
+					/docommand ${ChatToggle} Infusion of the Faithful is not ready.
+				} else {
+	
+				|----------------------------------------------------------If I'm a Bard, pause twist
+					/if (${Twist.Twisting}) {
+						/declare returnTwist bool local TRUE
+						/squelch /twist stop
+						
+				|----------------------------------------------------------If I'm a rogue, stop hiding.
+					} else /if (${Me.Class.ShortName.Equal[ROG]} && ${Me.Invis} && !${Me.AbilityReady[Hide]}) {
+						/doability Hide
+					}
+					
+					/call e3_Cast ${Me.ID} ${Me.AltAbility[Infusion of the Faithful].ID} alt
+		
+					/if (${returnTwist}) /timed 70 /squelch /twist start
+				}
+			}
 		}
-		
-		/call e3_Cast ${Me.ID} "Infusion of the Faithful" alt
-		
-		/if (${overrideTwist}) /timed 50 /squelch /twist start
 	}
 
 /if (${Debug}) /echo <== EVENT_Infusion -|
+| /varset Debug 0
 /RETURN
 
 
@@ -1131,32 +1214,56 @@ SUB event_Infusion
 |--------------------------------------------------------|
 |- Uses 'Staunch Recovery', on all bots who are able.	-|
 |--------------------------------------------------------|
-#event Staunch "<#*#> Recover"
-#event Staunch "#*# tells the group, 'Recover'"
-#event Staunch "#*# tells you, 'Recover'"
-#event Staunch "#*# you tell your party, 'Recover'"
-SUB event_Staunch(line, SpecifiedBots)
+#event Staunch "<#1#> Recover"
+#event Staunch "<#1#> #2# Recover"
+#event Staunch "#1# tells the group, 'Recover'"
+#event Staunch "#1# tells you, 'Recover'"
+#event Staunch "#1# you tell your party, 'Recover'"
+SUB event_Staunch(Line, ChatSender, SpecifiedBots)
+/varset Debug 1
 /if (${Debug}) /echo |- EVENT_Staunch ==>
 
-|--------------------------------------------------------Check SpecifiedBots
-	/if (${Select[${Me.CleanName},${SpecifiedBots}]} || ${Select[${Me.Class.ShortName},${SpecifiedBots}]} || ${Select[${Me.Class},${SpecifiedBots}]} || !${Defined[SpecifiedBots]} || ${SpecifiedBots.Equal[all]} || ${SpecifiedBots.Equal[melee]} && ${Select[${Me.Class.ShortName},${MeleeClasses}]} || ${SpecifiedBots.Equal[casters]} && ${Select[${Me.Class.ShortName},${CasterClasses}]} || ${SpecifiedBots.Equal[ranged]} && ${Select[${Me.Class.ShortName},${RangedClasses}]} || ${SpecifiedBots.Equal[Healers]} && ${Select[${Me.Class.ShortName},${PriestClasses}]} || ${SpecifiedBots.Equal[Priests]} && ${Select[${Me.Class.ShortName},${PriestClasses}]}) {
+|-----------------------------------Validate ChatSender.
+	/if (${ChatSender.Left[1].Compare[ ]}<0) /varset ChatSender ${ChatSender.Right[-2].Left[-1]}
 	
-		/if (!${Me.AltAbilityReady[Staunch Recovery]}) {
-			/docommand ${ChatToggle} Staunch Recovery is not ready.
+|-----------------------------------Check that ChatSender is in zone
+	/if (!${SpawnCount[pc ${ChatSender}]}) {
+		/if (${Verbosity}) /docommand ${ChatToggle} We're not in the same zone.
+	} else {
+	
+	|------------------------------------------Check range to ChatSender.
+		/if (!${SpawnCount[pc ${ChatSender} radius ${Math.Calc[${FollowBreakDistance} *3]}]}) {
+			/if (${Verbosity}) /docommand ${ChatToggle} You're too far away.
 		} else {
-			
-			/if (${Select[${Me.Class},Bard]} && ${MelodyStatus} || ${Twist.Twisting}) {
-				/squelch /twist stop
-				/declare overrideTwist bool outer TRUE
+		
+		|--------------------------------------------------------Check SpecifiedBots
+			/if (${Select[${Me.CleanName},${SpecifiedBots}]} || ${Select[${Me.Class.ShortName},${SpecifiedBots}]} || ${Select[${Me.Class},${SpecifiedBots}]} || !${Defined[SpecifiedBots]} || ${SpecifiedBots.Equal[all]} || ${SpecifiedBots.Equal[melee]} && ${Select[${Me.Class.ShortName},${MeleeClasses}]} || ${SpecifiedBots.Equal[casters]} && ${Select[${Me.Class.ShortName},${CasterClasses}]} || ${SpecifiedBots.Equal[ranged]} && ${Select[${Me.Class.ShortName},${RangedClasses}]} || ${SpecifiedBots.Equal[Healers]} && ${Select[${Me.Class.ShortName},${PriestClasses}]} || ${SpecifiedBots.Equal[Priests]} && ${Select[${Me.Class.ShortName},${PriestClasses}]}) {
+				
+			|----------------------------------------------------Check AA is ready.
+				/if (!${Me.AltAbilityReady[Staunch Recovery]}) {
+					/docommand ${ChatToggle} Staunch Recovery is not ready.
+				} else {
+	
+				|----------------------------------------------------------If I'm a Bard, pause twist
+					/if (${Twist.Twisting}) {
+						/declare returnTwist bool local TRUE
+						/squelch /twist stop
+						
+				|----------------------------------------------------------If I'm a rogue, stop hiding.
+					} else /if (${Me.Class.ShortName.Equal[ROG]} && ${Me.Invis} && !${Me.AbilityReady[Hide]}) {
+						/doability Hide
+					}
+					
+					/call e3_Cast ${Me.ID} ${Me.AltAbility[Staunch Recovery].ID} alt
+		
+					/if (${returnTwist}) /timed 70 /squelch /twist start
+				}
 			}
-			
-			/call e3_Cast ${Me.ID} "Staunch Recovery" alt
-			
-			/if (${overrideTwist}) /timed 50 /squelch /twist start
 		}
 	}
 	
 /if (${Debug}) /echo <== EVENT_Staunch -|
+/varset Debug 0
 /RETURN
 
 
@@ -1164,25 +1271,51 @@ SUB event_Staunch(line, SpecifiedBots)
 |--------------------------------------------------------|
 |- Uses 'Steadfast Servant', on all bots who are able.	-|
 |--------------------------------------------------------|
-#event Servant "<#*#> Servants"
-#event Servant  "#*# tells the group, 'Servants'"
-#event Servant  "#*# tells you, 'Servants'"
-#event Servant  "#*# you tell your party, 'Servants'"
-SUB event_Servant
+#event Servant "<#1#> Servants"
+#event Servant  "#1# tells the group, 'Servants'"
+#event Servant  "#1# tells you, 'Servants'"
+#event Servant  "#1# you tell your party, 'Servants'"
+SUB event_Servant(Line, ChatSender, SpecifiedBots)
 /if (${Debug}) /echo |- EVENT_Servant ==>
 
-	/if (!${Me.AltAbilityReady[Steadfast Servant]}) {
-		/docommand ${ChatToggle} Steadfast Servant is not ready.
+|-----------------------------------Validate ChatSender.
+	/if (${ChatSender.Left[1].Compare[ ]}<0) /varset ChatSender ${ChatSender.Right[-2].Left[-1]}
+	
+|-----------------------------------Check that ChatSender is in zone
+	/if (!${SpawnCount[pc ${ChatSender}]}) {
+		/if (${Verbosity}) /docommand ${ChatToggle} We're not in the same zone.
 	} else {
+	
+	|------------------------------------------Check range to ChatSender.
+		/if (!${SpawnCount[pc ${ChatSender} radius ${Math.Calc[${FollowBreakDistance} *3]}]}) {
+			/if (${Verbosity}) /docommand ${ChatToggle} You're too far away.
+		} else {
 		
-		/if (${Select[${Me.Class},Bard]} && ${MelodyStatus} || ${Twist.Twisting}) {
-			/squelch /twist stop
-			/declare overrideTwist bool outer TRUE
+		|--------------------------------------------------------Check SpecifiedBots
+			/if (${Select[${Me.CleanName},${SpecifiedBots}]} || ${Select[${Me.Class.ShortName},${SpecifiedBots}]} || ${Select[${Me.Class},${SpecifiedBots}]} || !${Defined[SpecifiedBots]} || ${SpecifiedBots.Equal[all]} || ${SpecifiedBots.Equal[melee]} && ${Select[${Me.Class.ShortName},${MeleeClasses}]} || ${SpecifiedBots.Equal[casters]} && ${Select[${Me.Class.ShortName},${CasterClasses}]} || ${SpecifiedBots.Equal[ranged]} && ${Select[${Me.Class.ShortName},${RangedClasses}]} || ${SpecifiedBots.Equal[Healers]} && ${Select[${Me.Class.ShortName},${PriestClasses}]} || ${SpecifiedBots.Equal[Priests]} && ${Select[${Me.Class.ShortName},${PriestClasses}]}) {
+				
+			|----------------------------------------------------Check AA is ready.
+				/if (!${Me.AltAbilityReady[Steadfast Servant]}) {
+					/docommand ${ChatToggle} Steadfast Servant is not ready.
+				} else {
+	
+				|----------------------------------------------------------If I'm a Bard, pause twist
+					/if (${Twist.Twisting}) {
+						/declare returnTwist bool local TRUE
+						/squelch /twist stop
+						
+				|----------------------------------------------------------If I'm a rogue, stop hiding.
+					} else /if (${Me.Class.ShortName.Equal[ROG]} && ${Me.Invis} && !${Me.AbilityReady[Hide]}) {
+						/doability Hide
+					}
+					
+					/echo /call e3_Cast ${Me.ID} ${Me.AltAbility[Steadfast Servant].ID} alt
+					/call e3_Cast ${Me.ID} ${Me.AltAbility[Steadfast Servant].ID} alt
+		
+					/if (${returnTwist}) /timed 70 /squelch /twist start
+				}
+			}
 		}
-		
-		/call e3_Cast ${Me.ID} "Steadfast Servant" alt
-		
-		/if (${overrideTwist}) /timed 50 /squelch /twist start
 	}
 
 /if (${Debug}) /echo <== EVENT_Servant -|
@@ -1193,26 +1326,51 @@ SUB event_Servant
 |----------------------------------------------------------------|
 |- Uses 'Intensity of the Resolute', on all bots who are able.	-|
 |----------------------------------------------------------------|
-#event Intensity "<#*#> Intensify"
-#event Intensity "<#*#> Use Intensity of the Resolute"
-#event Intensity  "#*# tells the group, 'Intensify'"
-#event Intensity  "#*# tells you, 'Intensify'"
-#event Intensity  "#*# you tell your party, 'Intensify'"
-SUB event_Intensity
+#event Intensity "<#1#> Intensify"
+#event Intensity "<#1#> Use Intensity of the Resolute"
+#event Intensity  "#1# tells the group, 'Intensify'"
+#event Intensity  "#1# tells you, 'Intensify'"
+#event Intensity  "#1# you tell your party, 'Intensify'"
+SUB event_Intensity(Line, ChatSender, SpecifiedBots)
 /if (${Debug}) /echo |- EVENT_Intensity ==>
 
-	/if (!${Me.AltAbilityReady[Intensity of the Resolute]}) {
-		/docommand ${ChatToggle} Intensity of the Resolute is not ready.
+|-----------------------------------Validate ChatSender.
+	/if (${ChatSender.Left[1].Compare[ ]}<0) /varset ChatSender ${ChatSender.Right[-2].Left[-1]}
+	
+|-----------------------------------Check that ChatSender is in zone
+	/if (!${SpawnCount[pc ${ChatSender}]}) {
+		/if (${Verbosity}) /docommand ${ChatToggle} We're not in the same zone.
 	} else {
+	
+	|------------------------------------------Check range to ChatSender.
+		/if (!${SpawnCount[pc ${ChatSender} radius ${Math.Calc[${FollowBreakDistance} *3]}]}) {
+			/if (${Verbosity}) /docommand ${ChatToggle} You're too far away.
+		} else {
 		
-		/if (${Select[${Me.Class},Bard]} && ${MelodyStatus} || ${Twist.Twisting}) {
-			/squelch /twist stop
-			/declare overrideTwist bool outer TRUE
+		|--------------------------------------------------------Check SpecifiedBots
+			/if (${Select[${Me.CleanName},${SpecifiedBots}]} || ${Select[${Me.Class.ShortName},${SpecifiedBots}]} || ${Select[${Me.Class},${SpecifiedBots}]} || !${Defined[SpecifiedBots]} || ${SpecifiedBots.Equal[all]} || ${SpecifiedBots.Equal[melee]} && ${Select[${Me.Class.ShortName},${MeleeClasses}]} || ${SpecifiedBots.Equal[casters]} && ${Select[${Me.Class.ShortName},${CasterClasses}]} || ${SpecifiedBots.Equal[ranged]} && ${Select[${Me.Class.ShortName},${RangedClasses}]} || ${SpecifiedBots.Equal[Healers]} && ${Select[${Me.Class.ShortName},${PriestClasses}]} || ${SpecifiedBots.Equal[Priests]} && ${Select[${Me.Class.ShortName},${PriestClasses}]}) {
+				
+			|----------------------------------------------------Check AA is ready.
+				/if (!${Me.AltAbilityReady[Intensity of the Resolute]}) {
+					/docommand ${ChatToggle} Intensity of the Resolute is not ready.
+				} else {
+	
+				|----------------------------------------------------------If I'm a Bard, pause twist
+					/if (${Twist.Twisting}) {
+						/declare returnTwist bool local TRUE
+						/squelch /twist stop
+
+				|----------------------------------------------------------If I'm a rogue, stop hiding.
+					} else /if (${Me.Class.ShortName.Equal[ROG]} && ${Me.Invis} && !${Me.AbilityReady[Hide]}) {
+						/doability Hide
+					}
+					
+					/call e3_Cast ${Me.ID} ${Me.AltAbility[Intensity of the Resolute].ID} alt
+		
+					/if (${returnTwist}) /timed 70 /squelch /twist start
+				}
+			}
 		}
-		
-		/call e3_Cast ${Me.ID} "Intensity of the Resolute" alt
-		
-		/if (${overrideTwist}) /timed 50 /squelch /twist start
 	}
 
 /if (${Debug}) /echo <== EVENT_Intensity -|
@@ -1223,33 +1381,43 @@ SUB event_Intensity
 |--------------------------------------------------------|
 |- Uses 'Expedient Recovery', on all bots who are able.	-|
 |--------------------------------------------------------|
-#event RecoverCorpses "<#*#> Recover Corpses"
-#event RecoverCorpses "<#*#> Use expedient recovery"
-#event RecoverCorpses  "#*# tells the group, 'Recover Corpses'"
-#event RecoverCorpses  "#*# tells you, 'Recover Corpses'"
-#event RecoverCorpses  "#*# you tell your party, 'Recover Corpses'"
-SUB event_RecoverCorpses
+#event RecoverCorpses "<#1#> Use expedient recovery"
+#event RecoverCorpses "<#1#> Recover Corpses"
+#event RecoverCorpses  "#1# tells the group, 'Recover Corpses'"
+#event RecoverCorpses  "#1# tells you, 'Recover Corpses'"
+#event RecoverCorpses  "#1# you tell your party, 'Recover Corpses'"
+SUB event_RecoverCorpses(Line, ChatSender, SpecifiedBots)
 /if (${Debug}) /echo |- EVENT_RecoverCorpses ==>
-
-	/if (!${Me.AltAbilityReady[Expedient Reovery]}) {
-		/docommand ${ChatToggle} Expedient is not ready.
-	} else {
-		
-		/if (${Select[${Me.Class},Bard]} && ${MelodyStatus} || ${Twist.Twisting}) {
-			/squelch /twist stop
-			/declare overrideTwist bool outer TRUE
-		}
-		
-		/call e3_Cast ${Me.ID} "Expedient Reovery" alt
-		
-		/if (${overrideTwist}) /timed 50 /squelch /twist start
-	}
 	
+|--------------------------------------------------------Check SpecifiedBots
+	/if (${Select[${Me.CleanName},${SpecifiedBots}]} || ${Select[${Me.Class.ShortName},${SpecifiedBots}]} || ${Select[${Me.Class},${SpecifiedBots}]} || !${Defined[SpecifiedBots]} || ${SpecifiedBots.Equal[all]} || ${SpecifiedBots.Equal[melee]} && ${Select[${Me.Class.ShortName},${MeleeClasses}]} || ${SpecifiedBots.Equal[casters]} && ${Select[${Me.Class.ShortName},${CasterClasses}]} || ${SpecifiedBots.Equal[ranged]} && ${Select[${Me.Class.ShortName},${RangedClasses}]} || ${SpecifiedBots.Equal[Healers]} && ${Select[${Me.Class.ShortName},${PriestClasses}]} || ${SpecifiedBots.Equal[Priests]} && ${Select[${Me.Class.ShortName},${PriestClasses}]}) {
+		
+	|----------------------------------------------------Check AA is ready.
+		/if (!${Me.AltAbilityReady[Expedient Reovery]}) {
+			/docommand ${ChatToggle} Expedient Reovery is not ready.
+		} else {
+
+		|----------------------------------------------------------If I'm a Bard, pause twist
+			/if (${Twist.Twisting}) {
+				/declare returnTwist bool local TRUE
+				/squelch /twist stop
+
+		|----------------------------------------------------------If I'm a rogue, stop hiding.
+			} else /if (${Me.Class.ShortName.Equal[ROG]} && ${Me.Invis} && !${Me.AbilityReady[Hide]}) {
+				/doability Hide
+			}
+			
+			/call e3_Cast ${Me.ID} ${Me.AltAbility[Expedient Reovery].ID} alt
+
+			/if (${returnTwist}) /timed 70 /squelch /twist start
+		}
+	}
+
 /if (${Debug}) /echo <== EVENT_RecoverCorpses -|
 /RETURN
 
-
-
+	
+	
 |--------------------------------------------------------|
 |- Uses 'Throne of Heroes', on all bots who are able.	-|
 |--------------------------------------------------------|
@@ -1258,22 +1426,31 @@ SUB event_RecoverCorpses
 #event GateToLobby  "#*# tells the group, 'Gate to lobby'"
 #event GateToLobby  "#*# tells you, 'Gate to lobby'"
 #event GateToLobby  "#*# you tell your party, 'Gate to lobby'"
-
-SUB event_GateToLobby
+SUB event_GateToLobby(Line, ChatSender, SpecifiedBots)
 /if (${Debug}) /echo |- EVENT_GateToLobby ==>
 
-	/if (!${Me.AltAbilityReady[Throne of Heroes]}) {
-		/docommand ${ChatToggle} Throne of Heroes is not ready.
-	} else {
+|--------------------------------------------------------Check SpecifiedBots
+	/if (${Select[${Me.CleanName},${SpecifiedBots}]} || ${Select[${Me.Class.ShortName},${SpecifiedBots}]} || ${Select[${Me.Class},${SpecifiedBots}]} || !${Defined[SpecifiedBots]} || ${SpecifiedBots.Equal[all]} || ${SpecifiedBots.Equal[melee]} && ${Select[${Me.Class.ShortName},${MeleeClasses}]} || ${SpecifiedBots.Equal[casters]} && ${Select[${Me.Class.ShortName},${CasterClasses}]} || ${SpecifiedBots.Equal[ranged]} && ${Select[${Me.Class.ShortName},${RangedClasses}]} || ${SpecifiedBots.Equal[Healers]} && ${Select[${Me.Class.ShortName},${PriestClasses}]} || ${SpecifiedBots.Equal[Priests]} && ${Select[${Me.Class.ShortName},${PriestClasses}]}) {
 		
-		/if (${Select[${Me.Class},Bard]} && ${MelodyStatus} || ${Twist.Twisting}) {
-			/squelch /twist stop
-			/declare overrideTwist bool outer TRUE
+	|----------------------------------------------------Check AA is ready.
+		/if (!${Me.AltAbilityReady[Throne of Heroes]}) {
+			/docommand ${ChatToggle} Throne of Heroes is not ready.
+		} else {
+
+		|----------------------------------------------------------If I'm a Bard, pause twist
+			/if (${Twist.Twisting}) {
+				/declare returnTwist bool local TRUE
+				/squelch /twist stop
+				
+		|----------------------------------------------------------If I'm a rogue, stop hiding.
+			} else /if (${Me.Class.ShortName.Equal[ROG]} && ${Me.Invis} && !${Me.AbilityReady[Hide]}) {
+				/doability Hide
+			}
+			
+			/call e3_Cast ${Me.ID} ${Me.AltAbility[Throne of Heroes].ID} alt
+
+			/if (${returnTwist}) /timed 180 /squelch /twist start
 		}
-		
-		/call e3_Cast ${Me.ID} "Throne of Heroes" alt
-		
-		/if (${overrideTwist}) /timed 200 /squelch /twist start
 	}
 
 /if (${Debug}) /echo <== EVENT_GateToLobby -|
@@ -1289,11 +1466,12 @@ SUB event_GateToLobby
 |------------------------------------------------------------|
 #event GroupPortCommand "<#*#> Port to #1#"
 SUB event_GroupPortCommand(line, Destination)
-/if (${Following}) {
-	/squelch /netfollow off
-	/squelch /stick off
-}
-/if (${Select[${Group.Leader},${Me}]}) /g gport${Destination}
+/if (${Debug}) /echo |- EVENT_GroupPortCommand ==>
+
+	
+	/if (${Select[${Group.Leader},${Me}]}) /g gport${Destination}
+	
+/if (${Debug}) /echo <== EVENT_GroupPortCommand -|
 /RETURN
 
 
@@ -1307,24 +1485,28 @@ SUB event_GroupPortCommand(line, Destination)
 #event medBreak_on "<#1#> Start Meditating#*#"
 #event medBreak_on "<#1#> Meditate on#*#"
 SUB event_medBreak_on(line, ChatSender)
-/if (${Me.Class.CanCast} && ${Me.Class.ShortName.NotEqual[BRD]}) {
-	/if (${SpawnCount[pc ${ChatSender}]}) {
-		|----------------------------------------------------------------------------------------------------------------------Clear old variables
-		/if (${Defined[medBreak]}) /deletevar medBreak
-		/if (${Defined[medBreak_Caller]}) /deletevar medBreak_Caller
-		/if (${Defined[medBreak_Hold]}) /deletevar medBreak_Hold
-		|---------------------------------------------------------------------------------------------------------------------Create new variables
-		/declare medBreak bool outer TRUE
-		/declare medBreak_Caller string outer ${ChatSender}
-		/if (${line.Right[4].Equal[Hold]}) /declare medBreak_Hold bool outer TRUE
-		
-		/if (${Spawn[pc ${ChatSender}].Distance} <= ${FollowBreakDistance}) {
-			/docommand ${ChatToggle} Meditating...
-		} else /if (${Spawn[pc ${ChatSender}].Distance} > ${FollowBreakDistance}) {
-			/docommand ${ChatToggle} I am too far away from you to meditate, right now.  I'll start meditating when you're in range.
+/if (${Debug}) /echo |- EVENT_medBreak_on ==>
+
+	/if (${Me.Class.CanCast} && ${Me.Class.ShortName.NotEqual[BRD]}) {
+		/if (${SpawnCount[pc ${ChatSender}]}) {
+			|----------------------------------------------------------------------------------------------------------------------Clear old variables
+			/if (${Defined[medBreak]}) /deletevar medBreak
+			/if (${Defined[medBreak_Caller]}) /deletevar medBreak_Caller
+			/if (${Defined[medBreak_Hold]}) /deletevar medBreak_Hold
+			|---------------------------------------------------------------------------------------------------------------------Create new variables
+			/declare medBreak bool outer TRUE
+			/declare medBreak_Caller string outer ${ChatSender}
+			/if (${line.Right[4].Equal[Hold]}) /declare medBreak_Hold bool outer TRUE
+			
+			/if (${Spawn[pc ${ChatSender}].Distance} <= ${FollowBreakDistance}) {
+				/docommand ${ChatToggle} Meditating...
+			} else /if (${Spawn[pc ${ChatSender}].Distance} > ${FollowBreakDistance}) {
+				/docommand ${ChatToggle} I am too far away from you to meditate, right now.  I'll start meditating when you're in range.
+			}
 		}
 	}
-}
+	
+/if (${Debug}) /echo <== EVENT_medBreak_on -|
 /RETURN
 
 
@@ -1341,13 +1523,17 @@ SUB event_medBreak_on(line, ChatSender)
 #event medBreak_off "<#*#> Meditate off"
 #event medBreak_off "<#*#> Stop meditating"
 SUB event_medBreak_off
-/if (${medBreak}) {
-	/if (${Verbosity}) /docommand ${ChatToggle} I am no longer meditating.
-	/if (${Me.Sitting}) /stand
-	/if (${Defined[medBreak]}) /deletevar medBreak
-	/if (${Defined[medBreak_Caller]}) /deletevar medBreak_Caller
-	/if (${Defined[medBreak_Hold]}) /deletevar medBreak_Hold
-}
+/if (${Debug}) /echo |- EVENT_medBreak_off ==>
+
+	/if (${medBreak}) {
+		/if (${Verbosity}) /docommand ${ChatToggle} I am no longer meditating.
+		/if (${Me.Sitting}) /stand
+		/if (${Defined[medBreak]}) /deletevar medBreak
+		/if (${Defined[medBreak_Caller]}) /deletevar medBreak_Caller
+		/if (${Defined[medBreak_Hold]}) /deletevar medBreak_Hold
+	}
+	
+/if (${Debug}) /echo <== EVENT_medBreak_off -|
 /RETURN
 
 
@@ -1359,42 +1545,44 @@ SUB event_medBreak_off
 |- Ends MedBreak mode at 99% mana, unless, 'MedBreak hold command is given.		-|
 |--------------------------------------------------------------------------------|
 SUB check_MedBreak
-|--------------------------------------------------------------------------------------------------------------------check Follow / Leash Distance
-	/if (${Following} && ${SpawnCount[pc ${FollowTarget}]} && ${Spawn[pc ${FollowTarget}].Distance} > ${LeashLength}  && !${Me.Moving}) /call check_Follow
+/if (${Debug}) /echo |- check_MedBreak ==>
 
-	/if (!${Me.Moving}) {
-		/if (${Stick.Active}) /squelch /stick off
-		/if (${NetAdvPath.State}) /squelch /netfollow off
+	|--------------------------------------------------------------------------------------------------------------------check Follow / Leash Distance
+		/if (${Following} && ${SpawnCount[pc ${FollowTarget}]} && ${Spawn[pc ${FollowTarget}].Distance} > ${LeashLength}  && !${Me.Moving}) /call check_Follow
+
+		/if (!${Me.Moving}) {
+			/if (${Stick.Active}) /squelch /stick off
+			/if (${NetAdvPath.State}) /squelch /netfollow off
+		}
+
+	|-----------------------------------------------------------------------------------------------------------------------------check Bots in combat
+	/declare i int local
+	/for i 1 to ${NetBots.Counts}
+	/if (${NetBots[${NetBots.Client[${i}]}].Attacking} || ${Me.Combat} || ${Assisting} || ${AdvAssisting}) {
+		/varset combatTimer 15s
+		/docommand ${ChatToggle} [${NetBots.Client[${i}]}] is in combat, ending med break.
+		/if (${Me.Sitting}) /stand
+		/if (${Defined[medBreak]}) /deletevar medBreak
+		/if (${Defined[medBreak_Caller]}) /deletevar medBreak_Caller
+		/if (${Defined[medBreak_Hold]}) /deletevar medBreak_Hold
+		/RETURN
+	}
+	/next i
+	|------------------------------------------------------------------------------------------------------------------------do ***Meditating*** popup
+	/if (!${spamTimer}) {
+		/popup ***Meditating***
+		/varset spamTimer 3s
+	}
+	|------------------------------------------------------------------------------------------------------------------sit down, if we are not sitting
+	/if (!${Me.Sitting} && !${Me.Casting.ID}) /sit
+	|---------------------------------------------------------------------------------------------------------------end MedBreak when we are full mana
+	/if (${Me.PctMana} >= 99 && !${medBreak_Hold}) {
+		/docommand ${ChatToggle} I am at full mana, ending MedBreak.
+		/if (${Me.Sitting}) /stand
+		/if (${Defined[medBreak]}) /deletevar medBreak
+		/if (${Defined[medBreak_Caller]}) /deletevar medBreak_Caller
+		/if (${Defined[medBreak_Hold]}) /deletevar medBreak_Hold
 	}
 
-|-----------------------------------------------------------------------------------------------------------------------------check Bots in combat
-/declare i int local
-/for i 1 to ${NetBots.Counts}
-/if (${NetBots[${NetBots.Client[${i}]}].Attacking} || ${Me.Combat} || ${Assisting} || ${AdvAssisting}) {
-	/varset combatTimer 15s
-	/docommand ${ChatToggle} [${NetBots.Client[${i}]}] is in combat, ending med break.
-	/if (${Me.Sitting}) /stand
-	/if (${Defined[medBreak]}) /deletevar medBreak
-	/if (${Defined[medBreak_Caller]}) /deletevar medBreak_Caller
-	/if (${Defined[medBreak_Hold]}) /deletevar medBreak_Hold
-	/RETURN
-}
-/next i
-|------------------------------------------------------------------------------------------------------------------------do ***Meditating*** popup
-/if (!${spamTimer}) {
-	/popup ***Meditating***
-	/varset spamTimer 3s
-}
-|------------------------------------------------------------------------------------------------------------------sit down, if we are not sitting
-/if (!${Me.Sitting} && !${Me.Casting.ID}) /sit
-|---------------------------------------------------------------------------------------------------------------end MedBreak when we are full mana
-/if (${Me.PctMana} >= 99 && !${medBreak_Hold}) {
-	/docommand ${ChatToggle} I am at full mana, ending MedBreak.
-	/if (${Me.Sitting}) /stand
-	/if (${Defined[medBreak]}) /deletevar medBreak
-	/if (${Defined[medBreak_Caller]}) /deletevar medBreak_Caller
-	/if (${Defined[medBreak_Hold]}) /deletevar medBreak_Hold
-}
+/if (${Debug}) /echo <== check_MedBreak -|
 /RETURN
-
-
