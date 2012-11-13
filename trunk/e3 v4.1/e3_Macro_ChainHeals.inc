@@ -209,17 +209,19 @@ SUB EVENT_add_ChainMember(line, ChatSender)
 	} else {
 	
 	|-----------------------------------------------------------------------------------------------If Chain_Status is BUILDING, and the Chain_Alpha is me.
-		/if (${Chain_Status.Equal[BUILDING]} && ${Chain_Alpha.Equal[${Me.CleanName}]}) {
+		/if (${Chain_Status.Equal[BUILDING]}) {
 			
 		|-------------------------------------------------------------------------------------------If the ChatSender is already part of the HealChain
 			/if (${Select[${ChatSender},${Chain_MemberList}]}) {
-				/if (${Debug}) /echo |- EVENT_add_ChainMember -| [${ChatSender}] is already part of the tank list.
+				/if (${Debug}) /echo |- EVENT_add_ChainMember -| [${ChatSender}] is already part of the heal chain.
 			} else {
 			
 			|--------------------------------------------------------------------------------------Set Chain_MemberList, Chain_Count, and announce new counts to the Chain_Channel.
-				/varset Chain_MemberList ${Chain_MemberList}${ChatSender},
 				/varcalc Chain_Count ${Chain_Count} + 1
-				/docommand /${Chain_ChannelNumber} Added, ${ChatSender} ChainCount: [${Chain_Count}] - MinTiming [${If[${Math.Calc[10/${Chain_Count}]}>${Int[${Math.Calc[10/${Chain_Count}]}]},${Math.Calc[${Int[${Math.Calc[10/${Chain_Count}]}]}+1].Int},${Math.Calc[10/${Chain_Count}].Int}]}s].
+				/if (${Chain_Alpha.Equal[${Me.CleanName}]}) {
+					/varset Chain_MemberList ${Chain_MemberList}${ChatSender},
+					/docommand /${Chain_ChannelNumber} Added, ${ChatSender} ChainCount: [${Chain_Count}] - MinTiming [${If[${Math.Calc[10/${Chain_Count}]}>${Int[${Math.Calc[10/${Chain_Count}]}]},${Math.Calc[${Int[${Math.Calc[10/${Chain_Count}]}]}+1].Int},${Math.Calc[10/${Chain_Count}].Int}]}s].
+				}
 			}
 		}
 	}
@@ -319,7 +321,7 @@ SUB HealChain
 	/call set_ChainTarget
 	
 	/if (${Chain_Target.Equal[NOT_FOUND]}) {
-		/docommand /${Chain_ChannelNumber} No tanks were found! Ending heal chain.
+		/docommand /${Chain_ChannelNumber} No tanks were found!  Ending heal chain.
 	} else {
 		
 	|------------------------------------------------------------------------------Find Next Healer.
@@ -404,7 +406,9 @@ SUB set_NextHealer
 		/if (${Chain_MemberList.Arg[${i},,].Length}) {
 			/goto :find_LastHealer
 		} else {
+			|	|
 			/docommand /${Chain_ChannelNumber} Unable to find [${Chain_LastHealer}] on the Chain_MemberList.  Restarting chain...
+			|	|
 		}
 	} else {
 	

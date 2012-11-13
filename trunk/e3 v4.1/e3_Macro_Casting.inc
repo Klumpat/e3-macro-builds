@@ -23,6 +23,7 @@
 |- @param SubToRun: The name of a custom 'sub' to run while casting.					-|
 |----------------------------------------------------------------------------------------|
 SUB e3_Cast(int targetID, castName, castType, giveUpTimer, SubToRun)
+| /varset Debug 1
 /if (${Debug}) /echo |- e3_Cast ==>
 
 |--------------------------------------------------------------------Check cursor.
@@ -31,7 +32,7 @@ SUB e3_Cast(int targetID, castName, castType, giveUpTimer, SubToRun)
 	} else {
 	
 	|-----------------------------------------------------------------Check invis.
-		/if (${Me.Invis} && !${castInvis}) {
+		/if (${Me.Invis} && !${castInvis} && ${Me.Class.ShortName.NotEqual[ROG]}) {
 			/if (${Debug}) /echo |- e3_Cast -| ERROR: Cannot cast while invisible.
 		} else {
 			
@@ -164,6 +165,7 @@ SUB e3_Cast(int targetID, castName, castType, giveUpTimer, SubToRun)
 	/echo |- e3_Cast -| castReturn=${castReturn}
 	/echo <== e3_Cast -|
 }
+| /varset Debug 0
 /RETURN
 
 
@@ -180,7 +182,6 @@ SUB e3_Cast(int targetID, castName, castType, giveUpTimer, SubToRun)
 |- @param SubToRun: The name of a custom 'sub' to run while casting.			-|
 |--------------------------------------------------------------------------------|
 SUB cast_Spell(int targetID, castName, spellGem, timer giveUpTimer, SubToRun)
-| /varset Debug 1
 /if (${Debug}) /echo |- cast_Spell ==>
 
 |-----------------------------------------------------------------------------Wait for spell to be ready.
@@ -213,7 +214,7 @@ SUB cast_Spell(int targetID, castName, spellGem, timer giveUpTimer, SubToRun)
 		/if (${Following} && ${stopToCast} && !${NetAdvPath.Pause}) /squelch /netfollow pause
 		
 	|--------------------------------------------------------------------------------Pause Twist.
-		/if (${Select[${Me.Class},Bard]} && ${MelodyStatus} || ${Twist.Twisting}) {
+		/if (${Twist.Twisting}) {
 			/declare returnTwist bool local TRUE
 			/squelch /twist stop
 		}
@@ -246,7 +247,6 @@ SUB cast_Spell(int targetID, castName, spellGem, timer giveUpTimer, SubToRun)
 	}
 	
 /if (${Debug}) /echo <== cast_Spell -|
-| /varset Debug 0
 /RETURN	
 
 
@@ -254,7 +254,7 @@ SUB cast_Spell(int targetID, castName, spellGem, timer giveUpTimer, SubToRun)
 |--------------------------------------------------------------------------------|
 |- cast_Item																	-|
 |--------------------------------------------------------------------------------|
-|- Memorizes and casts items if they are available within the allotted time.	-|
+|- Equips and casts items if they are available within the allotted time.		-|
 |--------------------------------------------------------------------------------|
 |- @param targetID: The ID of the spawn you want to cast on.					-|
 |- @param itemName: The name of the item you want to cast.						-|
@@ -271,7 +271,7 @@ SUB cast_Item(int targetID, itemName, itemTimer, SubToRun)
 	/if (${Following} && ${stopToCast} && !${NetAdvPath.Pause}) /squelch /netfollow pause
 	
 |--------------------------------------------------------------------------------Pause Twist.
-	/if (${Select[${Me.Class},Bard]} && ${MelodyStatus} || ${Twist.Twisting}) {
+	/if (${Twist.Twisting}) {
 		/declare returnTwist bool local TRUE
 		/squelch /twist stop
 	}
@@ -281,6 +281,29 @@ SUB cast_Item(int targetID, itemName, itemTimer, SubToRun)
 	
 	:cast_Item
 	/if (${Debug}) /echo |- cast_Item -| Attempting to cast [${itemName}]
+	
+	/if (${FindItem[${itemName}].StackSize} > 1 && ${FindItem[${itemName}].InvSlot} > 30) {
+	
+|-----------------------------------------------------------------------------------Check for a free pack slot.
+		/for i 1 to 8
+		/echo ${InvSlot[pack${i}].Item}
+		/if (${InvSlot[pack${i}].Item.Container}) {
+			/next i
+			
+	|--------------------------------------------If I have no free pack slots, alert the user.
+			/if (${InvSlot[pack8].Item.Container}) {
+				/if (${Debug}) /echo |- cast_Item -| I have run out of inventory space and cannot cast [${itemName}].
+			}
+			
+	|----------------------------------------------------------Else, if I have a free pack slot, exchange items.
+		} else /if (!${InvSlot[pack${i}].Item.Container}) {
+			/varset slotName pack${i}
+		}
+		
+		/call SwapItem "${itemName}" pack${i}
+		/delay 5
+	}
+	
 	/casting "${itemName}" item
 	
 |-------------------------------------------------------------Wait to start casting.
@@ -324,6 +347,15 @@ SUB cast_Item(int targetID, itemName, itemTimer, SubToRun)
 
 
 
+|--------------------------------------------------------------------------------|
+|- cast_AltAbility																-|
+|--------------------------------------------------------------------------------|
+|- Casts Alternate Abilities if they are available within the allotted time.	-|
+|--------------------------------------------------------------------------------|
+|- @param targetID: The ID of the spawn you want to cast on.					-|
+|- @param altName: The name of the Alternate Ability you want to cast.			-|
+|- @param SubToRun: The name of a custom 'sub' to run while casting.			-|
+|--------------------------------------------------------------------------------|
 SUB cast_AltAbility(int targetID, altName, SubToRun)
 /if (${Debug}) /echo |- cast_AltAbility ==>
 
@@ -334,19 +366,20 @@ SUB cast_AltAbility(int targetID, altName, SubToRun)
 	/if (${Following} && ${stopToCast} && !${NetAdvPath.Pause}) /squelch /netfollow pause
 	
 |--------------------------------------------------------------------------------Pause Twist.
-	/if (${Select[${Me.Class},Bard]} && ${MelodyStatus} || ${Twist.Twisting}) {
+	/if (${Twist.Twisting}) {
+		/if (${Debug}) /echo |- cast_AltAbility -| Pausing MQ2Twist...
 		/declare returnTwist bool local TRUE
 		/squelch /twist stop
 	}
 	
 |------------------------------------------------If I've just cast an AA, wait a moment before casting another.
-	/if (${altRecast_Timer}) /delay !${altRecast_Timer}
+	/if (${altRecast_Timer}) /delay 30 !${altRecast_Timer}
 	
-|----------------------------------------------------------------------Attempt to cast the item.
-	/declare giveUpTimer timer local 2s
+|----------------------------------------------------------------------Attempt to cast the AA.
+	/declare giveUpTimer timer local 20
 	
 	:cast_Alt
-	/if (${Debug}) /echo |- cast_AltAbility -| Attempting to cast [${Me.AltAbility[${altName}]}]
+	/if (${Debug}) /echo |- cast_AltAbility -| Attempting to cast [${Me.AltAbility[${altName}].Name}]
 	/alt act ${altName}
 	
 |-------------------------------------------------------------Wait to start casting.
@@ -356,11 +389,17 @@ SUB cast_AltAbility(int targetID, altName, SubToRun)
 	/varset ActionTaken TRUE
 	/if (${Me.Casting.ID}) /call e3_CastingChecks ${If[${SubToRun.NotEqual[NULL]},${SubToRun},]}
 	/varset altRecast_Timer 2s
+|**
+	A recent server side fix has corrected previous issues with a few AltAbility related TLOs, removing the need for macro side AA timers.  I will be removing the following line, and corresponding timer related variables, once I'm confident everything is working correctly.
 	/call CreateTimer alt_Timer_${Me.AltAbility[${altName}].ID} ${Me.AltAbility[${altName}].ReuseTime}s
-
+**|
 |-----------------------------------------------------------------reacquire follow, and return twist.
 	/if (${Following} && !${Assisting} && ${NetAdvPath.State} != 1) /call AquireFollow
-	/if (${returnTwist}) /squelch /twist start	
+	
+	/if (${returnTwist}) {
+		/if (${Debug}) /echo |- cast_AltAbility -| Restarting melody in, [${Math.Calc[${Spell[${Me.AltAbility[${altName}].Name}].CastTime}*10].Int}s].
+		/timed ${Math.Calc[${Spell[${Me.AltAbility[${altName}].Name}].CastTime}*10].Int} /squelch /twist start	
+	}
 	
 /if (${Debug}) /echo <== cast_AltAbility -|
 /RETURN
@@ -374,7 +413,11 @@ SUB useDisc(discToUse)
 }
 		
 	|---If I'm a bard, and singing, stop twisting.  If I'm casting a spell, wait until I'm done.	
-		/if (${Select[${Me.Class},Bard]} && ${MelodyStatus}) /squelch /twist stop
+		/if (${Twist.Twisting}) {
+			/declare returnTwist bool local TRUE
+			/squelch /twist stop
+			/delay 5 !${Me.Casting.ID}
+		}
 		/if ( ${Me.Casting.ID} ) /delay 10s !${Me.Casting.ID}
 		
 	|---------------------------------------------------------------------------------Attempt to make a timer for the discipline I'm about to use.
@@ -388,7 +431,7 @@ SUB useDisc(discToUse)
 		
 		/disc ${discToUse}
 		
-		/if (${Select[${Me.Class},Bard]} && ${MelodyStatus}) /squelch /twist start
+		/if (${returnTwist}) /squelch /twist start
 
 /if (${Debug}) /echo |- useDisc ==>	
 /RETURN
@@ -400,8 +443,8 @@ SUB useDisc(discToUse)
 |------------------------------------|
 |- Checks to preform while casting.	-|
 |------------------------------------|
-SUB e3_CastingChecks(SubToRun)
-/if (${Debug}) /echo |- e3_CastingChecks ==>
+SUB e3_CastingChecks
+ /if (${Debug}) /echo |- e3_CastingChecks ==>
 	
 |----------------------------------------------------------------------Declare variables.
 	/declare currentTarget int local ${Target.ID}
@@ -482,7 +525,7 @@ SUB SwapItem(itemName,slotName)
 		
 		:try_Again
 		
-		/if (${Debug}) /echo |- SwapItem -| Attempting to exchange [${Me.AltAbility[${altName}]}]
+		/if (${Debug}) /echo |- SwapItem -| Attempting to exchange [${itemName}] for [${InvSlot[${slotName}].Item}]
 		/exchange "${itemName}" ${slotName}
 		/delay 20 ${InvSlot[${slotName}].Item.Name.Equal[${itemName}]}
 		/if (${InvSlot[${slotName}].Item.Name.NotEqual[${itemName}]}) {
@@ -564,6 +607,35 @@ SUB Check_LongTermSpell(int SpellTarget, SpellName, CastType, GiveUpTimer, int G
 	
 /if (${Debug}) /echo <== Check_LongTermSpell -|
 /RETURN
+
+
+
+|------------------------------------|
+|- Pauses MQ2Twist while casting.	-|
+|------------------------------------|
+SUB pauseTwist
+/if (${Debug}) /echo |- pauseTwist ==>
+
+	/varset returnTwist 1
+	/squelch /twist stop
+	/delay 5 !${Me.Casting.ID}
+	
+/if (${Debug}) /echo <== pauseTwist -|
+/return
+
+
+
+|------------------------------------|
+|- Unpauses MQ2Twist after casting.	-|
+|------------------------------------|
+SUB unpauseTwist
+/if (${Debug}) /echo |- unpauseTwist ==>
+
+	/varset returnTwist 0
+	/squelch /twist start
+	
+/if (${Debug}) /echo <== unpauseTwist -|
+/return
 
 
 
@@ -765,7 +837,7 @@ SUB Event_Recover
 |----------------------------------------|
 |- Sets castReturn to CAST_RESISTED.	-|
 |----------------------------------------|
-#event Resisted "Your target resisted the #1# spell#*#"
+#EVENT Resisted "Your target resisted the #1# spell#*#"
 SUB Event_Resisted(line,  name)
 /varset castReturn CAST_RESISTED
 /RETURN
@@ -775,7 +847,7 @@ SUB Event_Resisted(line,  name)
 |----------------------------------------|
 |- Sets castReturn to CAST_INTERRUPT.	-|
 |----------------------------------------|
-#event Standing "You must be standing to cast a spell#*#"
+#EVENT Standing "You must be standing to cast a spell#*#"
 SUB Event_Standing
 /stand
 /varset castReturn CAST_INTERRUPT
@@ -786,14 +858,18 @@ SUB Event_Standing
 |------------------------------------|
 |- Sets castReturn to CAST_STUNNED.	-|
 |------------------------------------|
-#event Stunned "You are stunned#*#"
-#event Stunned "You can't cast spells while stunned!#*#"
-#event Stunned "You *CANNOT* cast spells, you have been silenced!#*#"
-SUB Event_Stunned
-/if (${Me.Stunned}) {
-  /delay 3s !${Me.Stunned}
-}
-/varset castReturn CAST_STUNNED
+#EVENT Stunned "You are stunned#*#"
+#EVENT Stunned "You can't cast spells while stunned!#*#"
+#EVENT Stunned "You *CANNOT* cast spells, you have been silenced!#*#"
+SUB EVENT_Stunned
+/if (${Debug}) /echo |- EVENT_Stunned ==>
+
+	/if (${Me.Stunned}) {
+	  /delay 3s !${Me.Stunned}
+	}
+	/varset castReturn CAST_STUNNED
+
+/if (${Debug}) /echo <== EVENT_Stunned -|	
 /RETURN
 
 

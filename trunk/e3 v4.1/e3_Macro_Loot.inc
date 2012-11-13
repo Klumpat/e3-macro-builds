@@ -99,10 +99,7 @@ SUB loot_It(int corpseID)
 		/if (${Spawn[id ${corpseID}].Distance} < 20 && ${Spawn[id ${corpseID}].DistanceZ} < 20) {
 		
 		|-------------------------------------------------------------------------If looter is a bard, pause melody.
-			/if (${Select[${Me.Class},Bard]} && ${MelodyStatus}) {
-				/squelch /twist stop
-				/delay 5 !${Me.Casting.ID}
-			}
+			/if (${Twist.Twisting}) /call pauseTwist
 			
 			/loot
 			
@@ -215,7 +212,7 @@ SUB loot_It(int corpseID)
 			
 		|--------------------------------------------------------------------------------------------------------Click 'Done' and return to group.
 			/if (${Corpse.Open}) /notify LootWnd DoneButton leftmouseup 
-			/if (${Select[${Me.Class},Bard]} && ${MelodyStatus}) /squelch /twist start
+			/if (${returnTwist}) /call unpauseTwist
 		}
 		/if (${Following}) /call AquireFollow
 	}

@@ -34,7 +34,7 @@ Sub WIZ_Main
 	/if (${AutoHarvest} && ${Me.PctMana} < ${HarvestAAPct}) /call e3_Cast ${Me.ID} "Harvest of Druzzil" alt
 
 |------------------------------------------------------------------------------------------------------------------------------------------#5 Banish Pet.
-	/if (${Me.Buff[Improved Familiar].ID} && ${Me.Pet.ID}) /pet get lost
+	/if (${Me.Pet.ID}) /pet get lost
 
 /if (${Debug}) /echo <== WIZ_Main -|	
 /return
@@ -76,9 +76,8 @@ Sub WIZ_Setup
 
 	/if (!${Ini[${Character_Ini},Wizard].Length}) /call MakeWIZ_Ini
 	/call INItoVar ${Character_Ini},Wizard,EvacOnCommand(On/Off) castEvac bool outer
-	/call INItoVar ${Character_Ini},Wizard,Evac(Spell) Evac_Spell string outer
+	/call INItoVar ${Character_Ini},Wizard,Evac(Spell/Gem) Evac_Spell string outer
 	/call INItoVar ${Character_Ini},Wizard,Auto_Harvest(On/Off) AutoHarvest bool outer
-	/call INItoVar ${Character_Ini},Wizard,Auto_Harvest(Pct) HarvestAAPct int outer
 
 /if (${Debug}) /echo <== WIZ_Setup -|
 /return
@@ -93,11 +92,9 @@ Sub WIZ_Setup
 Sub MakeWIZ_Ini
 /if (${Debug}) /echo |- WIZ_Ini ==>
 
-	/if (${Defined[AutoHarvest]}) /deletevar AutoHarvest
 	/call WriteToIni ${Character_Ini},Wizard,EvacOnCommand(On/Off) "*Do you want this character to cast Exodus, or a specified evac spell on command?" 0
-	/call WriteToIni ${Character_Ini},Wizard,Evac(Spell/Gem) "*List an evac spell to use if Exodus is not ready." 0
+	/call WriteToIni ${Character_Ini},Wizard,Evac(Spell/Gem) "*List an evac spell to use if Exodus is not ready, and the gem to mem it to." 0
 	/call WriteToIni ${Character_Ini},Wizard,Auto_Harvest(On/Off) "*Do you want this character to use Harvest of Druzzil automatically?" 0
-	/call WriteToIni ${Character_Ini},Wizard,Auto_Harvest(Pct)
 
 /if (${Debug}) /echo <== WIZ_Ini -|
 /return

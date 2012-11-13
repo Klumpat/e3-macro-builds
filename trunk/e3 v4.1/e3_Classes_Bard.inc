@@ -33,17 +33,7 @@ Sub BRD_Main
 /if (${Debug}) /echo <== BRD_Main -|
 /return
 
-|** Unused at this time. MQ2Twist handles restarting of broken melodies.
-/if (${MelodyStatus} && !${Me.Song[${SongName2}].ID} && !${Me.Song[${SongName3}].ID} && !${Me.Song[${SongName4}].ID}) /varset MelodyBroke TRUE
-/if (${Assisting}) /call Assist_Functions
-/if (${MelodyStatus} && !${Me.Casting.ID} ) {
-	/delay 5s ${Me.Casting.ID}
-	/if (!${Me.Casting.ID}) {
-		/echo /twist ${If[${Song1},${Song1},]} ${If[${Song2},${Song2},]} ${If[${Song3},${Song3},]} ${If[${Song4},${Song4},]} ${If[${Song5},${Song5},]}
-		/twist ${If[${Song1},${Song1},]} ${If[${Song2},${Song2},]} ${If[${Song3},${Song3},]} ${If[${Song4},${Song4},]} ${If[${Song5},${Song5},]}
-	}
-}
-**|
+
 
 |--------------------------------------------------------------------|
 |- Bard's Class specific Assist Loop.								-|
@@ -82,14 +72,7 @@ Sub BRD_Setup
 /if (${Debug}) /echo |- BRD_Setup ==>
 
 	/if (!${Ini[${Character_Ini},${Me.Class}].Length}) /call Make${Me.Class.ShortName}_Ini
-	
-	/if (!${Defined[MelodyStatus]}) /declare MelodyStatus	bool 	global	FALSE
-	/if (!${Defined[Song1]})	/declare	Song1	int global
-	/if (!${Defined[Song2]})	/declare	Song2 	int	global
-	/if (!${Defined[Song3]}) /declare	Song3 	int global
-	/if (!${Defined[Song4]}) /declare	Song4 	int global
-	/if (!${Defined[Song5]}) /declare	Song5 	int global
-	/declare MelodyBroke		bool 	outer 	FALSE
+	/declare returnMelody bool outer 0
 
 /if (${Debug}) /echo <== BRD_Setup -|
 /return
@@ -122,99 +105,120 @@ Sub BRD_Background_Events
 /return
 
 
+#event saveMelody "<#1#> SaveMelody #2# #3#"
+#event saveMelody "<#1#> Save Melody #2# #3#"
+#event saveMelody "[MQ2] SaveMelody #2# #3#"
+#event saveMelody "[MQ2] Save Melody #2# #3#"
+SUB EVENT_saveMelody(line, ChatSender, melodyName, songsToSave)
+| /varset Debug 1
+/if (${Debug}) /echo |- EVENT_saveMelody ==>
 
-|-------------------------------------------------------------------------------------------------------------------------------------Bard Scripts
-#event save_Melody "<#*#> SaveMelody #1# #2#"
-#event save_Melody "[MQ2] SaveMelody #1# #2#"
-#event save_Melody "<#*#> SaveMelody #1# #2# #3#"
-#event save_Melody "[MQ2] SaveMelody #1# #2# #3#"
-#event save_Melody "<#*#> SaveMelody #1# #2# #3# #4#"
-#event save_Melody "[MQ2] SaveMelody #1# #2# #3# #4#"
-#event save_Melody "<#*#> SaveMelody #1# #2# #3# #4# #5#"
-#event save_Melody "[MQ2] SaveMelody #1# #2# #3# #4# #5#"
-#event save_Melody "<#*#> SaveMelody #1# #2# #3# #4# #5# #6#"
-#event save_Melody "[MQ2] SaveMelody #1# #2# #3# #4# #5# #6#"
-#event save_Melody "<#*#> Save Melody #1# #2#"
-#event save_Melody "[MQ2] Save Melody #1# #2#"
-#event save_Melody "<#*#> Save Melody #1# #2# #3#"
-#event save_Melody "[MQ2] Save Melody #1# #2# #3#"
-#event save_Melody "<#*#> Save Melody #1# #2# #3# #4#"
-#event save_Melody "[MQ2] Save Melody #1# #2# #3# #4#"
-#event save_Melody "<#*#> Save Melody #1# #2# #3# #4# #5#"
-#event save_Melody "[MQ2] Save Melody #1# #2# #3# #4# #5#"
-#event save_Melody "<#*#> Save Melody #1# #2# #3# #4# #5# #6#"
-#event save_Melody "[MQ2] Save Melody #1# #2# #3# #4# #5# #6#"
+|-----------------------------------------------------------------------------------------------If no ChatSender is defined, make one.	
+	/if (!${Defined[ChatSender]}) /declare ChatSender string local ${Me.CleanName}
 
-sub event_save_Melody(string line, string NameToSave, int S1, int S2, int S3, int S4, int S5)
-/if (${Me.Class.ShortName.Equal[BRD]}) {
-	/if (${Ini[${Character_Ini},${NameToSave}_Melody].Length}) {
-		/echo setMelody Error: ${NameToSave} is already in use.  Please choose another name and try again.
-	} else /if (!${Ini[${Character_Ini},${NameToSave}_Melody].Length} || ${line.Right[9].Equal[overwrite]}) {
-		/declare i int local
-		/declare x int local
-		/if (${line.Right[9].Equal[overwrite]}) {
-			/echo Clearing ${NameToSave} melody...
-			/for i 1 to 5
-				/ini ${Character_Ini} ${NameToSave}_Melody "Song#${i}" NULL
-			/next i
-		}
-		/echo Saving ${NameToSave} melody...
-		/for i 1 to 5
-		/if (${Defined[S${i}]} && !${Select[${Me.Gem[${S${i}}]},NULL]} && ${S${i}} > 0 && ${S${i}} < 10) {
-			/echo Song#${i}= ${Me.Gem[${S${i}}]},gem${S${i}}
-			/ini ${Character_Ini} ${NameToSave}_Melody "Song#${i}" "${Me.Gem[${S${i}}]},gem${S${i}}"
-		/next i
-		} else /if (${Defined[S${i}]} && ${S${i}} <= 0 || ${Defined[S${i}]} && ${S${i}} >= 10) {
-			/echo setMelody Error: Gem${S${i}} is out of bounds
-			/next i
+|---------------------------------------------------------------------------------------------------------If I'm the ChatSender.
+	/if (${ChatSender.Equal[${Me.CleanName}]}) {
+	
+	|----------------------------------------------------------------------------------------------------Check if the melody already exists, and should not be overwritten.
+		/if (${Ini[${Character_Ini},${melodyName}_Melody].Length} && !${line.Find[-Overwrite]}) {
+			/echo You already have a melody saved as [${melodyName}].  Choose a new name, or, use the -overwrite command to overwrite the existing melody.  Ex.  Save Melody Raid 1 2 3 4 5 -Overwrite
+		} else {
+			
+			/declare i int local
+			
+			/if (${line.Find[-overwrite]}) {
+				/if (${Debug}) /echo |- EVENT_saveMelody -| Overwriting [${melodyName}] melody...
+				/for i 1 to 5
+					/if (${Ini[${Character_Ini},${melodyName}_Melody,Song#${i}].Length}) /call WriteToIni ${Character_Ini},${melodyName}_Melody,Song#${i} *PLACEHOLDER 1
+				/next i
+			}
+			
+			/echo Saving [${melodyName}] melody...
+			
+			/varset i 1
+			
+			:check_nextSong
+			
+		|----------------------------------------------------------------------------------------------------------If the gem number is not recognized
+			/if (!${Int[${songsToSave.Arg[${i}, ]}]} || ${Int[${songsToSave.Arg[${i}, ]}]} < 1 || ${Int[${songsToSave.Arg[${i}, ]}]} > 9) {
+				
+				/if (${songsToSave.Arg[${i}, ].NotEqual[-Overwrite]}) {
+					/echo [${songsToSave.Arg[${i}, ]}] is not a valid gem number.  Please use the following syntax when saving melodies, "Save Melody [NAME] [# # # # #] (-Overwrite)".  Ex.  /echo Save Melody Raid 1 2 3 4 5 -Overwrite
+				}
+			} else {
+				
+				/echo Song#${i}=${Me.Gem[${songsToSave.Arg[${i}, ]}]}/gem${songsToSave.Arg[${i}, ]}
+				/call WriteToIni "${Character_Ini},${melodyName}_Melody,Song#${i}" "${Me.Gem[${songsToSave.Arg[${i}, ]}]}/gem${songsToSave.Arg[${i}, ]}" ${If[${Ini[${Character_Ini},${melodyName}_Melody,Song#${i}].Length},1,0]}
+				
+			}
+			/varcalc i ${i} + 1
+			/if (${songsToSave.Arg[${i}, ].Length}) /goto :check_nextSong
 		}
 	}
-}
-/doevents flush
+
+/if (${Debug}) /echo <== EVENT_saveMelody -|
+| /varset Debug 0
 /return
 
-#event Set_Melody "<#*#> Melody #1#"
-#event Set_Melody "#*# tells you, 'Melody #1#'"
-#event Set_Melody "#*# tells the group, 'Melody #1#'"
 
-sub Event_Set_Melody(string line, string MelodySet)
-/if (${Me.Class.ShortName.Equal[BRD]}) {
-	/declare i int local
-	/declare x int local
-	/if (${Ini[${Character_Ini},${MelodySet}_Melody].Length}) {
-		/for i 1 to 5
-			/varset Song${i} 0
-			/if (${Ini[${Character_Ini},${MelodySet}_Melody,Song#${i}].Length}) {
-				/if (${Me.Gem[${Ini[${Character_Ini},${MelodySet}_Melody,Song#${i}].Arg[1,,]}]}) {
-					/varset Song${i} ${Ini[${Character_Ini},${MelodySet}_Melody,Song#${i}].Arg[2,,]}
-				} else {
-					/varset x 1
-					:retry
-					/memspell ${Ini[${Character_Ini},${MelodySet}_Melody,Song#${i}].Arg[2,,].Right[1]} "${Ini[${Character_Ini},${MelodySet}_Melody,Song#${i}].Arg[1,,]}"
-					/delay 5s ${Me.Gem[${Ini[${Character_Ini},${MelodySet}_Melody,Song#${i}].Arg[1,,]}]}
-					/if (${Window[SpellBookWnd].Open}) {
-						/stand
-						/if (${x} < 5) {
-							/varcalc x ${x} + 1
-							/goto :retry
-						}
-					}
-					/varset Song${i} ${Ini[${Character_Ini},${MelodySet}_Melody,Song#${i}].Arg[2,,].Right[1]}
-				}
+
+#EVENT startMelody "<#*#> Melody #1#"
+#EVENT startMelody "[MQ2] Melody #1#"
+#EVENT startMelody "#*# tells you, 'Melody #1#'"
+#EVENT startMelody "#*# tells the group, 'Melody #1#'"
+SUB EVENT_startMelody(line, melodyName)
+| /varset Debug 1
+/if (${Debug}) /echo |- EVENT_startMelody ==>
+
+	/if (${Me.Class.ShortName.Equal[BRD]}) {
+	
+	|--------------------------------------------------------------------------------If I don't have the melodyName listed in my ini.
+		/if (!${Ini[${Character_Ini},${melodyName}_Melody,Song#1].Length}) {
+		
+		|----------------------------------------------------------------------------If Stop, end, or pause were used, stop the melody.
+			/if (${Select[${melodyName},Stop,End,Pause]}) { 
+				/docommand ${ChatToggle} Ending melody.
+				/twist end
+			} else {
+				/docommand ${ChatToggle} [${melodyName}] is not a known melody.
 			}
-		/next i
-		/varset MelodyStatus TRUE
-		/twist ${If[${Song1},${Song1},]} ${If[${Song2},${Song2},]} ${If[${Song3},${Song3},]} ${If[${Song4},${Song4},]} ${If[${Song5},${Song5},]}
-		/docommand ${ChatToggle} Playing ${MelodySet} melody...
-	} else /if (!${Ini[${Character_Ini},${MelodySet}_Melody].Length} && ${MelodySet.Equal[Stop]} || !${Ini[${Character_Ini},${MelodySet}_Melody].Length} && ${MelodySet.Equal[End]}) {
-		/docommand ${ChatToggle} Ending melody.
-		/twist end
-		/varset MelodyStatus FALSE
-		/for i 1 to 5
-			/varset Song${i} 0
-		/next i
-	} else {
-		/docommand ${ChatToggle} ${MelodySet} is not a known melody.
+			
+		} else {
+			
+			/declare songList string local
+			/declare i int local 1
+			/declare retryTimer 300
+			
+			:check_nextSong
+			/if (${Ini[${Character_Ini},${melodyName}_Melody,Song#${i}].Arg[1,/].NotEqual[PLACEHOLDER]}) {
+			
+			|-------------------------------------------------------------------------------------------------------If the song is not memmed.
+				/if (!${Me.Gem[${Ini[${Character_Ini},${melodyName}_Melody,Song#${i}].Arg[1,/]}]}) {
+					:retry
+					/memspell ${Ini[${Character_Ini},${melodyName}_Melody,Song#${i}].Arg[2,/].Right[1]} "${Ini[${Character_Ini},${melodyName}_Melody,Song#${i}].Arg[1,/]}"
+					/delay 50 ${Me.Gem[${Ini[${Character_Ini},${melodyName}_Melody,Song#${i}].Arg[1,/]}]}
+					/if (!${Me.Gem[${Ini[${Character_Ini},${melodyName}_Melody,Song#${i}].Arg[1,/]}]} && ${retryTimer}) {
+						/goto :retry
+					} else /if (${Window[SpellBookWnd].Open}) {
+						/stand
+					}
+				}
+			
+			|--------------------------------------------------------------------------------------------------Update songList with the corresponding gem#
+				/varset songList ${songList} ${Me.Gem[${Ini[${Character_Ini},${melodyName}_Melody,Song#${i}].Arg[1,/]}]}
+			}
+			
+		|-----------------------------------------------------------------------------------------------------Check for additional Songs.
+			/varcalc i ${i} + 1
+			/if (${Ini[${Character_Ini},${melodyName}_Melody,Song#${i}].Length}) /goto :check_nextSong
+		
+		|-------------------------------------------------------------------------------------------------------------Twist the newly built songList.
+			/docommand ${ChatToggle} Playing [${melodyName}] melody...
+			/twist ${songList}
+			
+		}
 	}
-}
+	
+/if (${Debug}) /echo <== EVENT_startMelody -|
+| /varset Debug 0
 /return
