@@ -5,53 +5,13 @@
 |- Contains setup functions for e3.mac								-|
 |--------------------------------------------------------------------|
 
-|----------------------------------------------------------------------------------------------------------------------Files included with e3.mac.
-#include e3_Macro_AdvFunctions.inc
-#include e3_Macro_Assists.inc
-#include e3_Macro_Background.inc
-#include e3_Macro_Basics.inc
-#include e3_Macro_BegForBuffs.inc
-#include e3_Macro_BuffCheck.inc
-#include e3_Macro_Casting.inc
-#include e3_Macro_ChainHeals.inc
-#include e3_Macro_Combine.inc
-#include e3_Macro_CorpseSummoning.inc
-#include e3_Macro_Forage.inc
-#include e3_Macro_Heals.inc
-#include e3_Macro_Loot.inc
-#include e3_Macro_Pets.inc
-#include e3_Macro_SmoothMoves.inc
-#include e3_Macro_Sell.inc
-#include e3_Macro_Update.inc
-#include e3_Macro_Wait4Rez.inc
-
-|----------------------------------------------------------------------------------------------------------------------------------Class includes.
-#include e3_Classes_Bard.inc
-#include e3_Classes_Beastlord.inc
-#include e3_Classes_Berserker.inc
-#include e3_Classes_Cleric.inc
-#include e3_Classes_Druid.inc
-#include e3_Classes_Enchanter.inc
-#include e3_Classes_Magician.inc
-#include e3_Classes_Monk.inc
-#include e3_Classes_Necromancer.inc
-#include e3_Classes_Paladin.inc
-#include e3_Classes_Ranger.inc
-#include e3_Classes_Rogue.inc
-#include e3_Classes_ShadowKnight.inc
-#include e3_Classes_Shaman.inc
-#include e3_Classes_Warrior.inc
-#include e3_Classes_Wizard.inc
-
-|-----------------------------------------------------------------------------------------------------------------------------------Misc includes.
-#include GoD_Alerts.inc
 
 |----------------------------------------------------------------------------------------------------------------|
 |- Checks plugins, creates inis, imports variables, and calls setup functions associated with other includes.	-|
 |----------------------------------------------------------------------------------------------------------------|
 SUB e3_Setup
 |---------------------------------------------------------------------------------------------------Declare Macro_Ini path\file and check plugins.
-/declare Macro_Ini string outer Macro_Inis\e3_Settings.ini
+/declare Macro_Ini string outer e3\Macro_Inis\e3_Settings.ini
 /call CheckPlugins
 
 /echo Initializing...
@@ -690,15 +650,15 @@ SUB MakeMacro_Ini(Version)
 	/call WriteToIni ${Macro_Ini},Wait4Rez,ItemDelay 3
 
 |----------------------------------------------------------------------------------------------------------------------------------Ini file paths.
-	/noparse /ini Macro_Inis\e3_Settings FilePaths Bot_Ini_Path Bot_Inis\Bot_${Me.CleanName}.ini
-	/noparse /ini Macro_Inis\e3_Settings FilePaths discTimers_Ini_Path Macro_Inis\discTimers.ini
-	/noparse /ini Macro_Inis\e3_Settings FilePaths Group_Ini_Path Macro_Inis\Groups.ini
-	/noparse /ini Macro_Inis\e3_Settings FilePaths Forage_Ini_Path Macro_Inis\Forage.ini
-	/noparse /ini Macro_Inis\e3_Settings FilePaths itemTimers_Ini_Path Macro_Inis\itemTimers.ini
-	/noparse /ini Macro_Inis\e3_Settings FilePaths Loot_Ini_Path Macro_Inis\Loot.ini
-	/noparse /ini Macro_Inis\e3_Settings FilePaths Routes_Ini_Path Macro_Inis\Routes.ini
-	/noparse /ini Macro_Inis\e3_Settings FilePaths SpellAliases_Ini_Path Macro_Inis\SpellAliases.ini
-	/noparse /ini Macro_Inis\e3_Settings FilePaths ZoneSettings_Ini_Path Macro_Inis\ZoneSettings.ini
+	/noparse /ini e3\Macro_Inis\e3_Settings FilePaths Bot_Ini_Path e3\Bot_Inis\Bot_${Me.CleanName}.ini
+	/noparse /ini e3\Macro_Inis\e3_Settings FilePaths discTimers_Ini_Path e3\Macro_Inis\discTimers.ini
+	/noparse /ini e3\Macro_Inis\e3_Settings FilePaths Group_Ini_Path e3\Macro_Inis\Groups.ini
+	/noparse /ini e3\Macro_Inis\e3_Settings FilePaths Forage_Ini_Path e3\Macro_Inis\Forage.ini
+	/noparse /ini e3\Macro_Inis\e3_Settings FilePaths itemTimers_Ini_Path e3\Macro_Inis\itemTimers.ini
+	/noparse /ini e3\Macro_Inis\e3_Settings FilePaths Loot_Ini_Path e3\Macro_Inis\Loot.ini
+	/noparse /ini e3\Macro_Inis\e3_Settings FilePaths Routes_Ini_Path e3\Macro_Inis\Routes.ini
+	/noparse /ini e3\Macro_Inis\e3_Settings FilePaths SpellAliases_Ini_Path e3\Macro_Inis\SpellAliases.ini
+	/noparse /ini e3\Macro_Inis\e3_Settings FilePaths ZoneSettings_Ini_Path e3\Macro_Inis\ZoneSettings.ini
 	
 /if (${Debug}) /echo <== MakeMacro_Ini -|
 /RETURN

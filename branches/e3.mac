@@ -5,7 +5,47 @@
 
 #turbo 20
 
-#include e3_Macro_Setup.inc
+|----------------------------------------------------------------------------------------------------------------------Files included with e3.mac.
+#include e3\Setup.inc
+#include e3\AdvFunctions.inc
+#include e3\Assists.inc
+#include e3\Background.inc
+#include e3\Basics.inc
+#include e3\BegForBuffs.inc
+#include e3\BuffCheck.inc
+#include e3\Casting.inc
+#include e3\ChainHeals.inc
+#include e3\Combine.inc
+#include e3\CorpseSummoning.inc
+#include e3\Forage.inc
+#include e3\Heals.inc
+#include e3\Loot.inc
+#include e3\Pets.inc
+#include e3\SmoothMoves.inc
+#include e3\Sell.inc
+#include e3\Update.inc
+#include e3\Wait4Rez.inc
+
+|----------------------------------------------------------------------------------------------------------------------------------Class includes.
+#include e3\Classes\Bard.inc
+#include e3\Classes\Beastlord.inc
+#include e3\Classes\Berserker.inc
+#include e3\Classes\Cleric.inc
+#include e3\Classes\Druid.inc
+#include e3\Classes\Enchanter.inc
+#include e3\Classes\Magician.inc
+#include e3\Classes\Monk.inc
+#include e3\Classes\Necromancer.inc
+#include e3\Classes\Paladin.inc
+#include e3\Classes\Ranger.inc
+#include e3\Classes\Rogue.inc
+#include e3\Classes\ShadowKnight.inc
+#include e3\Classes\Shaman.inc
+#include e3\Classes\Warrior.inc
+#include e3\Classes\Wizard.inc
+
+|-----------------------------------------------------------------------------------------------------------------------------------Misc includes.
+#include e3\GoD_Alerts.inc
 
 Sub Main
 |-------------------------------------------------------------------------------------------------------------------------------------Macro setup.
