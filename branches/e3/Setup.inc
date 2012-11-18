@@ -476,6 +476,9 @@ SUB Update_Aliases
 	/alias /fburn /bc Full Burn
 		
 |------------------------------------------------------------------------------------------SmoothMoves aliases.
+	| this alias was added in error in version 4.1
+	/squelch /alias /add delete
+
 	/squelch /alias /recroute delete
 	/squelch /alias /recordroute delete
 	/squelch /alias /traceroute delete
@@ -493,7 +496,7 @@ SUB Update_Aliases
 	/squelch /alias /addusedoor delete
 	/squelch /alias /addopenzone delete
 	/squelch /alias /addclickzone delete
-	/squelch /alias /add usezone delete
+	/squelch /alias /addusezone delete
 	/squelch /alias /addclickstone delete
 	/squelch /alias /addusestone delete
 	/squelch /alias /addrunthruzone delete
@@ -521,7 +524,7 @@ SUB Update_Aliases
 	/alias /addusedoor /echo Add Click Door
 	/alias /addopenzone /echo Add Click Zone
 	/alias /addclickzone /echo Add Click Zone
-	/alias /add usezone /echo Add Click Zone
+	/alias /addusezone /echo Add Click Zone
 	/alias /addclickstone /echo Add Click Zone
 	/alias /addusestone /echo Add Click Zone
 	/alias /addrunthruzone /echo Add Run through zone
