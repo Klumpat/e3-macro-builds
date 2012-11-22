@@ -561,6 +561,8 @@ SUB Update_Aliases
 	/squelch /alias /portto delete
 	/squelch /alias /clickit delete
 	
+	/alias /e3 /macro e3.mac
+	/alias /e3all /bcaa //macro e3.mac
 	/alias /consentme /bc Consent ${Me.CleanName}
 	/alias /pingcorpses /bc Ping Corpses
 	/alias /clkyes /bc Click yes
