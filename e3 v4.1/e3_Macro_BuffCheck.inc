@@ -45,14 +45,20 @@ SUB buffSelf
 /if (${Debug}) /echo |- buffSelf ==>
 
 	/declare i int local
+	/declare BuffName string local
 	/for i 1 to ${MyBuffs.Size}
 
 	|------------------------------------------------------------------------------------------------------------------------------------Cast a spell.
 		/if (${MyBuffs[${i}].Arg[2,/].Left[3].Equal[gem]}) {
+			/if (${MyBuffs[${i}].Arg[3,/].Length} > 0) {
+				/varset BuffName ${MyBuffs[${i}].Arg[3,/]}
+			} else {
+				/varset BuffName ${MyBuffs[${i}].Arg[1,/]}
+			}
 			/if (${Me.Book[${MyBuffs[${i}].Arg[1,/]}]}) {
 			
 			|---------------------------------------------------------------------------------------Check buff duration.
-				/if (${Math.Calc[${Me.Buff[${MyBuffs[${i}].Arg[1,/]}].Duration}*6]} < 60 && ${Spell[${MyBuffs[${i}].Arg[1,/]}].Stacks}) {
+				/if (${Math.Calc[${Me.Buff[${BuffName}].Duration}*6]} < 60 && ${Spell[${BuffName}].Stacks}) {
 					/if (${Debug}) /echo |- buffSelf -| Casting Spell: [${Spell[${MyBuffs[${i}].Arg[1,/]}]} -- ${MyBuffs[${i}].Arg[2,/]} -- ${If[${Me.Gem[${Spell[${MyBuffs[${i}]}]}]},25,90]}] on [${Me.ID}]
 					/call e3_Cast ${Me.ID} "${MyBuffs[${i}].Arg[1,/]}" ${MyBuffs[${i}].Arg[2,/]} ${If[${Me.Gem[${Spell[${MyBuffs[${i}]}]}]},25,90]}
 					/RETURN
