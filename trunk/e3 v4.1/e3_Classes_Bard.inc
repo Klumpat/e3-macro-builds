@@ -29,7 +29,7 @@ Sub BRD_Main
 |-----------------------------------------------------------------------------------------------------------------------------------------#3 Auto Forage.	
 	/if (${autoForage}) /call AutoForage
 		/if (${ActionTaken}) /return
-
+	
 /if (${Debug}) /echo <== BRD_Main -|
 /return
 
@@ -69,12 +69,36 @@ Sub BRD_Assist
 |- Imports variables from the [Bard] section of the Character_Ini.	-|
 |------------------------------------------------------------------------|
 Sub BRD_Setup
+/varset Debug 1
 /if (${Debug}) /echo |- BRD_Setup ==>
 
 	/if (!${Ini[${Character_Ini},${Me.Class}].Length}) /call Make${Me.Class.ShortName}_Ini
-	/declare returnMelody bool outer 0
+	/declare returnTwist bool outer 0
+	
+|--------------Convert melody syntax from v4.1 (Song Name,#) to v4.2 (Song Name/gem#)
+	/declare i int local 1
+	/declare e int local
+	
+	:check_IniEntries
+	/if (${Ini[${Character_Ini}].Arg[${i},|].Length}) {
+		/if (${Ini[${Character_Ini}].Arg[${i},|].Find[_Melody]}) {
+			/varset e 1
+			:checkSongs
+			/if (${Ini[${Character_Ini},${Ini[${Character_Ini}].Arg[${i},|]},Song#${e}].Length}) {
+				/if (${Ini[${Character_Ini},${Ini[${Character_Ini}].Arg[${i},|]},Song#${e}].Find[,]}) {
+					/echo |- BRD_Setup -| Invalid melody syntax detected; attempting to auto-correct...
+					/call WriteToIni "${Character_Ini},${Ini[${Character_Ini}].Arg[${i},|]},Song#${e}" "${Ini[${Character_Ini},${Ini[${Character_Ini}].Arg[${i},|]},Song#${e}].Arg[1,,]}/gem${Ini[${Character_Ini},${Ini[${Character_Ini}].Arg[${i},|]},Song#${e}].Arg[2,,]}" 1
+				}
+				/varcalc e ${e} + 1
+				/goto :checkSongs
+			}
+		}
+		/varcalc i ${i} + 1
+		/goto :check_IniEntries
+	}
 
 /if (${Debug}) /echo <== BRD_Setup -|
+/varset Debug 0
 /return
 
 
@@ -187,7 +211,7 @@ SUB EVENT_startMelody(line, melodyName)
 			
 			/declare songList string local
 			/declare i int local 1
-			/declare retryTimer 300
+			/declare retryTimer timer local 300
 			
 			:check_nextSong
 			/if (${Ini[${Character_Ini},${melodyName}_Melody,Song#${i}].Arg[1,/].NotEqual[PLACEHOLDER]}) {
@@ -195,8 +219,10 @@ SUB EVENT_startMelody(line, melodyName)
 			|-------------------------------------------------------------------------------------------------------If the song is not memmed.
 				/if (!${Me.Gem[${Ini[${Character_Ini},${melodyName}_Melody,Song#${i}].Arg[1,/]}]}) {
 					:retry
+					
+					/if (${Debug}) /echo |- EVENT_startMelody -| :memloop
 					/memspell ${Ini[${Character_Ini},${melodyName}_Melody,Song#${i}].Arg[2,/].Right[1]} "${Ini[${Character_Ini},${melodyName}_Melody,Song#${i}].Arg[1,/]}"
-					/delay 50 ${Me.Gem[${Ini[${Character_Ini},${melodyName}_Melody,Song#${i}].Arg[1,/]}]}
+					/delay 90 ${Me.Gem[${Ini[${Character_Ini},${melodyName}_Melody,Song#${i}].Arg[1,/]}]}
 					/if (!${Me.Gem[${Ini[${Character_Ini},${melodyName}_Melody,Song#${i}].Arg[1,/]}]} && ${retryTimer}) {
 						/goto :retry
 					} else /if (${Window[SpellBookWnd].Open}) {

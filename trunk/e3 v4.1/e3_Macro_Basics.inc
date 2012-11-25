@@ -711,12 +711,12 @@ SUB event_FindItems(line, ItemToFind)
 		/for i 1 to 8
 			
 			/varset itemName ${Me.Inventory[pack${i}]}
-			/if (${itemName.Find[${ItemToFind}]}) /docommand ${ChatToggle} Found [${Me.Inventory[pack${i}]}${If[${Me.Inventory[pack${i}].StackSize} > 1,(${Me.Inventory[pack${i}].StackCount}),]}] in backpack slot [${i}].
+			/if (${itemName.Find[${ItemToFind}]}) /docommand ${ChatToggle} Found [${Me.Inventory[pack${i}]}${If[${Me.Inventory[pack${i}].StackSize} > 1 && ${FindItemCount[${ItemToFind}]} > 1,(${Me.Inventory[pack${i}].StackCount}),]}] -> [InvSlot${i}].
 			
 			/if (${Me.Inventory[pack${i}].Container}) {
 				/for e 1 to ${Me.Inventory[pack${i}].Container}
 					/varset itemName ${Me.Inventory[pack${i}].Item[${e}]}
-					/if (${itemName.Find[${ItemToFind}]}) /docommand ${ChatToggle} Found [${Me.Inventory[pack${i}].Item[${e}]}${If[${Me.Inventory[pack${i}].Item[${e}].StackSize} > 1,(${Me.Inventory[pack${i}].Item[${e}].StackCount}),]}] in [${Me.Inventory[pack${i}]}(${i})] bag slot [${e}].
+					/if (${itemName.Find[${ItemToFind}]}) /docommand ${ChatToggle} Found [${Me.Inventory[pack${i}].Item[${e}]}${If[${Me.Inventory[pack${i}].Item[${e}].StackSize} > 1 && ${FindItemCount[${ItemToFind}]} > 1,(${Me.Inventory[pack${i}].Item[${e}].StackCount}),]}] -> [${Me.Inventory[pack${i}]}] -> [InvSlot${i}] -> [PackSlot${e}].
 				/next e
 			}
 			
@@ -729,12 +729,13 @@ SUB event_FindItems(line, ItemToFind)
 		/for i 1 to 26
 			
 			/varset itemName ${Me.Bank[${i}]}
-			/if (${itemName.Find[${ItemToFind}]}) /docommand ${ChatToggle} Found [${Me.Bank[${i}]}${If[${Me.Bank[${i}].StackSize} > 1,(${Me.Bank[${i}].StackCount}),]}] in bank slot [${i}].
+			/if (${itemName.Find[${ItemToFind}]}) /docommand ${ChatToggle} Found [${Me.Bank[${i}]}${If[${Me.Bank[${i}].StackSize} > 1 && ${FindItemCount[${ItemToFind}]} > 1,(${Me.Bank[${i}].StackCount}),]}] -> [BankSlot${i}].
 			
 			/if (${Me.Bank[${i}].Container}) {
 				/for e 1 to ${Me.Bank[${i}].Container}
 					/varset itemName ${Me.Bank[${i}].Item[${e}]}
-					/if (${itemName.Find[${ItemToFind}]}) /docommand ${ChatToggle} Found [${Me.Bank[${i}].Item[${e}]}${If[${Me.Bank[${i}].Item[${e}].StackSize} > 1,(${Me.Bank[${i}].Item[${e}].StackCount}),]}] in my bank. [${Me.Bank[${i}]}(${i})], bag slot [${e}].
+					/if (${itemName.Find[${ItemToFind}]}) /docommand ${ChatToggle} Found [${Me.Bank[${i}].Item[${e}]}${If[${Me.Bank[${i}].Item[${e}].StackSize} > 1 && ${FindItemCount[${ItemToFind}]} > 1,(${Me.Bank[${i}].Item[${e}].StackCount}),]}] -> [${Me.Bank[${i}]}] -> [BankSlot${i}] -> [PackSlot${e}].
+				
 				/next e
 			}
 			
@@ -995,26 +996,6 @@ SUB event_Swap_Items(line, IniEntry)
 #event RaidAccept "#*#invites you to join a raid.#*#"
 SUB event_RaidAccept
 	/raidaccept
-/RETURN
-
-
-
-|------------------------------------------------------------|
-|- Invites ChatSender to raid.								-|
-|------------------------------------------------------------|
-|- Use, /tell 'RaidLeader' Raid invite, or, /gu Raid Invite	-|
-|------------------------------------------------------------|
-#event RaidInvite "#1# tells you, 'gatraid'"
-#event RaidInvite "#1# tells the guild, 'gatraid"
-#event RaidInvite "#1# tells you, 'gat raid'"
-#event RaidInvite "#1# tells the guild, 'gat raid"
-SUB event_RaidInvite(line, InviteTarget)
-/if (${InviteTarget.Left[1].Compare[ ]}<0) /varset InviteTarget ${InviteTarget.Right[-2].Left[-1]}
-/if (${SpawnCount[${InviteTarget}]}) {
-	/if (${Raid.Leader.Name.Equal[${Me.CleanName}]} || ${Me.Name.Equal[Gatean]}) {
-		/raidinvite ${InviteTarget}
-	}
-}
 /RETURN
 
 

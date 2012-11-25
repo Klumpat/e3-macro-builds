@@ -175,9 +175,9 @@ SUB Wait4Rez(functionCall)
 	
 	|-----------------------------------------------------------------------------------------------Pull the corpse.
 		/if (${Target.Distance}>15) /corpse
-		/delay 2s ${Target.Distance}<15
+		/delay 20 ${Target.Distance}<15
 		/loot
-		/delay 2s ${Me.State.Equal[BIND]}
+		/delay 20 ${Me.State.Equal[BIND]}
 		/if (${Me.State.NotEqual[BIND]}) /goto :Looting
 		
 	|-------------------------------------------Wait for all the items on your corpse to appear in your loot window.
@@ -194,7 +194,7 @@ SUB Wait4Rez(functionCall)
 	|-----------------------------------------------------------------------------------------Loot Items one by one.
 		/if (${lootTotal}) {
 			/for i 1 to ${lootTotal}
-			/if (${Me.State.Equal[BIND]}) {
+			/if (${Me.State.Equal[BIND]} && ${Widow[LootWnd].Child[LW_CorpseName].Text.Equal[${Me.CleanName}'s corpse]}) {
 					/delay 1s ${InvSlot[loot${i}].Item.ID}
 					
 				|--------------------------------------------Call rez_loot_Handle, pass the slotNumber to loot from.
