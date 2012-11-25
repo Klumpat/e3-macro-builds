@@ -32,8 +32,8 @@ SUB Update_e3(version)
 	|------------------------------------------------------------------------ Updates for revision 4.1	-|
 		/if (${old_macroEdition} < 4 || ${old_fileRevisions} < 1) {
 			
-			/squelch /alias /clickit delete
-			/squelch /alias /runthruzone delete
+			| /squelch /alias /clickit delete
+			| /squelch /alias /runthruzone delete
 |**			
 	e3 v4.0 beta with all current revisions up to this point.
 

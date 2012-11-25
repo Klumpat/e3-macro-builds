@@ -54,7 +54,7 @@ SUB event_Assist(line, ChatSender, SpecifiedBots)
 						/declare Assist_Moving_Timer timer local 100
 						:movetoAssist_Loop
 						/call Background_Events
-						/if (${Spawn[${FollowTarget}].Distance} > ${LeashLength}) /goto :movetoAssist_Loop
+						/if (${Spawn[${FollowTarget}].Distance} > ${LeashLength} && ${Assist_Moving_Timer}) /goto :movetoAssist_Loop
 					}
 					
 				|--------------------------------------------------------------------------------------Disengage follow.

@@ -79,7 +79,7 @@ SUB e3_Setup
 |-------------------------------------------------------------------------------------------------------------------------Load Macro_Ini settings.
 	/echo Importing Macro Ini settings...
 	/call INItoVar ${Macro_Ini},Settings,DebugMode Debug bool outer
-	/call INItoVar ${Macro_Ini},Settings,ValidateIniEntries validation_On bool outer
+	/call INItoVar ${Macro_Ini},Settings,IniValidation validation_On bool outer
 	/call IniToVar ${Macro_Ini},Settings,ChatChannel ChatToggle string outer
 	/call IniToVar ${Macro_Ini},Settings,Verbosity Verbosity bool outer
 	
@@ -135,6 +135,27 @@ SUB e3_Setup
 		/varset consentTargets ${Me.CleanName}
 	}
 
+|---------------------------------------------------------------------------------Swap back pending exchanges.
+	/if (${Ini[PendingExchanges.ini,${MacroQuest.Server},${Me.CleanName}].Length} && ${Ini[PendingExchanges.ini,${MacroQuest.Server},${Me.CleanName}].NotEqual[NONE]}) {
+		/echo |- e3_Setup -| Completing unfinished swap [${Ini[PendingExchanges.ini,${MacroQuest.Server},${Me.CleanName}].Arg[1,/]}] to [${Ini[PendingExchanges.ini,${MacroQuest.Server},${Me.CleanName}].Arg[2,/]}]
+		
+		/declare swapRetryTimer timer local 50
+		
+		:SwapBackLoop
+		/if (${Debug}) /echo |- e3_Setup -| :SwapBackLoop
+		
+		/call SwapItem "${Ini[PendingExchanges.ini,${MacroQuest.Server},${Me.CleanName}].Arg[1,/]}" ${Ini[PendingExchanges.ini,${MacroQuest.Server},${Me.CleanName}].Arg[2,/]}
+		
+		/if (!${InvSlot[${Ini[PendingExchanges.ini,${MacroQuest.Server},${Me.CleanName},PendingExchange].Arg[2,/]}].Item.Name.Equal[${Ini[PendingExchanges.ini,${MacroQuest.Server},${Me.CleanName}].Arg[1,/]}]}) {
+			/if (${retryTimer}) {
+				/goto :SwapBackLoop
+			} else {
+				/echo I have failed to swap [${Ini[PendingExchanges.ini,${MacroQuest.Server},${Me.CleanName}].Arg[1,/]}] back.
+			}
+		} else {
+			/call WriteToIni PendingExchanges.ini,${MacroQuest.Server},${Me.CleanName} NONE 1
+		} 
+	}
 |-----------------------------------------------------------------------------------------------------------------Check for updates and DebugMode.
 	/echo Checking for updates...
 	/if (!${Select[${e3_Version},${Ini[${Macro_Ini},Settings,e3_Version]}]}) /call Update_e3 ${e3_Version}
@@ -227,7 +248,7 @@ SUB CheckPlugins
 	/if (${NetBots}) {
 		/squelch /netbots on grab=on send=on
 	}
-	
+
 |-------------------------------------------------------------------------------------------------------------------------------Check MQ2Exchange.
 /if (!${Plugin[MQ2Exchange].Name.Length}) {
 	/echo Plugin MQ2Exchange is not loaded, attempting to resolve...
@@ -600,6 +621,7 @@ SUB Update_Aliases
 	/squelch /alias /safez delete
 	/squelch /alias /portto delete
 	/squelch /alias /clickit delete
+	/squelch /alias /runthruzone delete
 	
 	/alias /consentme /bc Consent ${Me.CleanName}
 	/alias /pingcorpses /bc Ping Corpses
@@ -626,6 +648,7 @@ SUB Update_Aliases
 	/alias /raidz /bc Set Raid Zone
 	/alias /safez /bc Set Safe Zone
 	/alias /clickit /bc Click object at ${Me.Loc.Replace[ ,]}
+	/alias /runthruzone /bc Run through zone at ${Me.Loc.Replace[ ,]} ${Me.Heading.Degrees}
 	
 /if (${Debug}) /echo <== Update_Aliases -|
 /RETURN
@@ -657,7 +680,7 @@ SUB MakeMacro_Ini(Version)
 |-----------------------------------------------------------------------------------------------------------------------e3_Macro_Loot.inc entries.
 	/call WriteToIni ${Macro_Ini},AutoLoot,AutoLoot(On/Off) On
 	/call WriteToIni ${Macro_Ini},AutoLoot,Looters Bitz,Shagga,Draaxx
-	/call WriteToIni ${Macro_Ini},AutoLoot,AutoLoot_Alert 3
+	/call WriteToIni ${Macro_Ini},AutoLoot,LinkChannel /say
 	/call WriteToIni ${Macro_Ini},AutoLoot,Seek_Radius 35
 	
 |-------------------------------------------------------------------------------------------------------------------------------------AutoTribute.

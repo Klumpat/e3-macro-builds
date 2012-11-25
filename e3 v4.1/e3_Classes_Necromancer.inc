@@ -44,7 +44,7 @@ Sub NEC_Main
 		/if (${ActionTaken}) /return
 	
 |-----------------------------------------------------------------------------------------------------------------------------------------#7 Remove lich.	
-	/if (${Me.Buff[Ancient: Seduction of Chaos].ID} && ${Me.PctHPs} < 30) /nomodkey /notify BuffWindow Buff${Math.Calc[${Me.Buff[Seduction of Saryrn].ID}-1].Int} leftmouseup
+	/if (${Me.Buff[Ancient: Seduction of Chaos].ID} && ${Me.PctHPs} < 30) /nomodkey /notify BuffWindow Buff${Math.Calc[${Me.Buff[Ancient: Seduction of Chaos].ID}-1].Int} leftmouseup
 
 /if (${Debug}) /echo <== NEC_Main -|	
 /return

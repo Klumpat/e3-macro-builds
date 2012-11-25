@@ -214,10 +214,7 @@ SUB cast_Spell(int targetID, castName, spellGem, timer giveUpTimer, SubToRun)
 		/if (${Following} && ${stopToCast} && !${NetAdvPath.Pause}) /squelch /netfollow pause
 		
 	|--------------------------------------------------------------------------------Pause Twist.
-		/if (${Twist.Twisting}) {
-			/declare returnTwist bool local TRUE
-			/squelch /twist stop
-		}
+		/if (${Twist.Twisting}) /call pauseTwist
 		
 	|---------------------------------------------------------------------------------Cast the spell.	
 		:cast_Spell
@@ -271,41 +268,79 @@ SUB cast_Item(int targetID, itemName, itemTimer, SubToRun)
 	/if (${Following} && ${stopToCast} && !${NetAdvPath.Pause}) /squelch /netfollow pause
 	
 |--------------------------------------------------------------------------------Pause Twist.
-	/if (${Twist.Twisting}) {
-		/declare returnTwist bool local TRUE
-		/squelch /twist stop
-	}
+	/if (${Twist.Twisting}) /call pauseTwist
 	
 |----------------------------------------------------------------------Attempt to cast the item.
 	/declare giveUpTimer timer local 2s
+	/declare slotName string local NOSWAP
+	/declare oldItemName string local
+	/declare swapItemBack bool local FALSE
+	/declare lagMultiplier string local 0
 	
 	:cast_Item
-	/if (${Debug}) /echo |- cast_Item -| Attempting to cast [${itemName}]
+	/if (${Debug}) /echo |- cast_Item -| Attempting to cast [${itemName}].
+
+|------------------------------------------------------------------------------------------------------------If the item must be worn to cast, and is not currently equipped.
+	/if (${FindItem[${itemName}].WornSlot[1]} && ${FindItem[${itemName}].EffectType.Find[worn]} && ${FindItem[${itemName}].InvSlot}>22) {
+		
+		/if (${Debug}) /echo |- cast_Item -| This is a worn item.
+		
+		/varset slotName ${FindItem[${itemName}].WornSlot[1].Name}
+		
+	} else /if (${FindItem[${itemName}].EffectType.Find[inventory]} && ${FindItem[${itemName}].InvSlot}>30) {
 	
-	/if (${FindItem[${itemName}].StackSize} > 1 && ${FindItem[${itemName}].InvSlot} > 30) {
-	
-|-----------------------------------------------------------------------------------Check for a free pack slot.
+		/if (${Debug}) /echo |- cast_Item -| This is clickable from inventory.
+		
+		/declare i int local
+		
 		/for i 1 to 8
-		/echo ${InvSlot[pack${i}].Item}
-		/if (${InvSlot[pack${i}].Item.Container}) {
-			/next i
+		
+		|-------------------------------------------------------------------If the item in pack slot i is not a container.
+			/if (!${InvSlot[pack${i}].Item.Container}) {
+				/varset slotName pack${i}
+				
+		|-----------------------------------------------------------------------If the item in pack slot i is a container.
+			} else {
 			
-	|--------------------------------------------If I have no free pack slots, alert the user.
-			/if (${InvSlot[pack8].Item.Container}) {
-				/if (${Debug}) /echo |- cast_Item -| I have run out of inventory space and cannot cast [${itemName}].
+			|----------------------------------------------------------------If I have no free pack slots, alert the user.
+				/if (${InvSlot[pack8].Item.Container}) {
+					/if (${Debug}) /echo |- cast_Item -| I have run out of inventory space and cannot cast [${itemName}].
+					/goto :skipCast
+				}
 			}
 			
-	|----------------------------------------------------------Else, if I have a free pack slot, exchange items.
-		} else /if (!${InvSlot[pack${i}].Item.Container}) {
-			/varset slotName pack${i}
+		/if (${slotName.Equal[NOSWAP]}) /next i
+		
+	} else {
+		
+		/if (${Debug}) /echo |- cast_Item -| This has multiple equippable slots.
+		
+		/varset slotName ${FindItem[${itemName}].InvSlot.Name}
+	}
+
+	/if (${slotName.NotEqual[NOSWAP]} && ${FindItem[${itemName}].InvSlot} != ${InvSlot[${slotName}]}) {
+		
+		/if (${InvSlot[${slotName}]} < 23) {
+			/varset swapItemBack TRUE
+			/varset oldItemName ${InvSlot[${slotName}].Item.Name}
+			/call WriteToIni PendingExchanges.ini,${MacroQuest.Server},${Me.CleanName} "${oldItemName}/${slotName}" 1
 		}
 		
-		/call SwapItem "${itemName}" pack${i}
-		/delay 5
+		/call SwapItem "${itemName}" ${slotName}
+		
+		/declare pingDelayTimer timer local ${Math.Calc[${MacroQuest.Ping}+5].Int}
+		
+		:swapDelayLoop
+		/if (${Debug}) /echo |- cast_Item -| :swapDelayLoop
+			
+			/call Background_Events
+		
+		/if (${pingDelayTimer}) /goto :swapDelayLoop
+		
 	}
 	
-	/casting "${itemName}" item
-	
+	/cast item "${itemName}"
+
 |-------------------------------------------------------------Wait to start casting.
 	/delay 5 ${Me.Casting.ID}
 	/call Casting_Events
@@ -320,6 +355,38 @@ SUB cast_Item(int targetID, itemName, itemTimer, SubToRun)
 		/varset no_Cast TRUE
 	} else /if (${Select[${castReturn},CAST_CANCELLED]}) {
 		/call interrupt
+	}
+	
+|----------------------------------------------------------------------Swap items back.
+	
+	/if (${swapItemBack} && ${FindItem[${oldItemName}].ID}) {
+		
+		/varset pingDelayTimer ${Math.Calc[${MacroQuest.Ping}+5].Int}
+		
+		:swapbackDelayLoop
+		/if (${Debug}) /echo |- cast_Item -| :swapbackDelayLoop
+			
+			/call Background_Events
+		
+		/if (${pingDelayTimer}) /goto :swapbackDelayLoop
+		
+		
+		/declare retryTimer timer local 30
+		
+		:SwapBackLoop
+		/if (${Debug}) /echo |- cast_Item -| :SwapBackLoop
+		
+		/call SwapItem "${oldItemName}" ${slotName}
+		
+		/if (!${InvSlot[${slotName}].Item.Name.Equal[${oldItemName}]}) {
+			/if (${retryTimer}) {
+				/goto :SwapBackLoop
+			} else {
+				/echo I have failed to swap [${oldItemName}] back, after casting [${itemName}].
+			}
+		} else {
+			/call WriteToIni PendingExchanges.ini,${MacroQuest.Server},${Me.CleanName} NONE 1
+		}
 	}
 	
 |------------------------------------------------------------------If no item timer was given, check the Timers_Ini for one
@@ -341,6 +408,7 @@ SUB cast_Item(int targetID, itemName, itemTimer, SubToRun)
 |-----------------------------------------------------------------reacquire follow, and return twist.
 	/if (${Following} && !${Assisting} && ${NetAdvPath.State} != 1) /call AquireFollow
 	/if (${returnTwist}) /squelch /twist start	
+	:skipCast
 	
 /if (${Debug}) /echo <== cast_Item -|
 /RETURN
@@ -366,11 +434,7 @@ SUB cast_AltAbility(int targetID, altName, SubToRun)
 	/if (${Following} && ${stopToCast} && !${NetAdvPath.Pause}) /squelch /netfollow pause
 	
 |--------------------------------------------------------------------------------Pause Twist.
-	/if (${Twist.Twisting}) {
-		/if (${Debug}) /echo |- cast_AltAbility -| Pausing MQ2Twist...
-		/declare returnTwist bool local TRUE
-		/squelch /twist stop
-	}
+	/if (${Twist.Twisting}) /call pauseTwist
 	
 |------------------------------------------------If I've just cast an AA, wait a moment before casting another.
 	/if (${altRecast_Timer}) /delay 30 !${altRecast_Timer}
@@ -396,10 +460,7 @@ SUB cast_AltAbility(int targetID, altName, SubToRun)
 |-----------------------------------------------------------------reacquire follow, and return twist.
 	/if (${Following} && !${Assisting} && ${NetAdvPath.State} != 1) /call AquireFollow
 	
-	/if (${returnTwist}) {
-		/if (${Debug}) /echo |- cast_AltAbility -| Restarting melody in, [${Math.Calc[${Spell[${Me.AltAbility[${altName}].Name}].CastTime}*10].Int}s].
-		/timed ${Math.Calc[${Spell[${Me.AltAbility[${altName}].Name}].CastTime}*10].Int} /squelch /twist start	
-	}
+	/if (${returnTwist}) /squelch /twist start	
 	
 /if (${Debug}) /echo <== cast_AltAbility -|
 /RETURN
@@ -413,11 +474,7 @@ SUB useDisc(discToUse)
 }
 		
 	|---If I'm a bard, and singing, stop twisting.  If I'm casting a spell, wait until I'm done.	
-		/if (${Twist.Twisting}) {
-			/declare returnTwist bool local TRUE
-			/squelch /twist stop
-			/delay 5 !${Me.Casting.ID}
-		}
+		/if (${Twist.Twisting}) /call pauseTwist
 		/if ( ${Me.Casting.ID} ) /delay 10s !${Me.Casting.ID}
 		
 	|---------------------------------------------------------------------------------Attempt to make a timer for the discipline I'm about to use.
@@ -520,23 +577,26 @@ SUB SwapItem(itemName,slotName)
 	/if (${Cursor.ID}) {
 		/echo ERROR: |- SwapItem -| SwapItem cannot be preformed while there is an item on your cursor.
 	} else {
-	
+
+		/declare startingCount int local ${FindItemCount[${itemName}]}
 		/declare retryTimer timer local 50
 		
 		:try_Again
 		
 		/if (${Debug}) /echo |- SwapItem -| Attempting to exchange [${itemName}] for [${InvSlot[${slotName}].Item}]
 		/exchange "${itemName}" ${slotName}
-		/delay 20 ${InvSlot[${slotName}].Item.Name.Equal[${itemName}]}
+		/delay 30 ${InvSlot[${slotName}].Item.Name.Equal[${itemName}]} && ${FindItemCount[${itemName}]}==${startingCount}
 		/if (${InvSlot[${slotName}].Item.Name.NotEqual[${itemName}]}) {
 			/if (${retryTimer}) {
 				/goto :try_Again
 			} else {
 				/if (${Debug}) /echo ERROR: |- SwapItem -| Failed to swap [${InvSlot[${slotName}].Item.Name}] for [${itemName}].
 			}
-		} else {
-			/if (${Cursor.ID}) /call ClearCursor
 		}
+		
+
+		
+		/if (${Cursor.ID}) /call ClearCursor
 	}
 
 /if (${Debug}) /echo <== SwapItem -|
@@ -618,7 +678,8 @@ SUB pauseTwist
 
 	/varset returnTwist 1
 	/squelch /twist stop
-	/delay 5 !${Me.Casting.ID}
+	/delay 30 !${Me.Casting.ID}
+	/delay 5
 	
 /if (${Debug}) /echo <== pauseTwist -|
 /return
@@ -908,7 +969,8 @@ SUB setup_Casting
 	/declare altRecast_Timer timer outer
 	/declare no_Cast bool outer FALSE
 	/declare bad_Spells string outer PLACEHOLDER
-
+	/declare itemRefreshTime float outer
+	
 	/if (!${Defined[discTimer_Ini]}) /declare discTimer_Ini string local discTimers.ini
 	/if (!${Ini[${discTimer_Ini}].Length}) /call Make_discTimers_Ini
 	/if (!${Ini[${itemTimers_Ini}].Length}) /call Build_Alphabetized_Ini ${itemTimers_Ini}

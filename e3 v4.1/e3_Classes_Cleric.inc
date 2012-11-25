@@ -18,19 +18,14 @@
 Sub CLR_Main
 /if (${Debug}) /echo |- CLR_Main ==>
 
-/if (${DivineArb_Pct} && ${Group}>2 && !${alt_Timer_${Me.AltAbility[Divine Arbitration].ID}} && ${Me.AltAbilityReady[Divine Arbitration]}) /call check_DivineArb
+/if (${DivineArb_Pct} && ${Group}>2 && ${Me.AltAbilityReady[Divine Arbitration]}) /call check_DivineArb
 
 |-----------------------------------------------------------------------------------------------------------------------------------------#1 check_Heals.
 	/if (${Heals}) /call CheckHeals
 		/if (${ActionTaken}) /return
 
 |-------------------------------------------------------------------------------------------------------------------------------------#2 Celestial Regen.
-| <<<<<<< .mine
-	/if (${celestialRegen_Pct} && ${Group}>2 && ${alt_Timer_${Me.AltAbility[Celestial Regeneration].ID}}) /call check_celestialRegen
-| =======
-	/if (${celestialRegen_Pct} && ${Group}>2 && !${Me.AltAbility[Celestial Regeneration].ID}) /call check_celestialRegen
-	
-| >>>>>>> .r22
+	/if (${celestialRegen_Pct} && ${Group}>2 && ${Me.AltAbilityReady[Celestial Regeneration]}) /call check_celestialRegen
 
 |-----------------------------------------------------------------------------------------------------------------------------------#2 check_CombatBuffs.
 	/if (!${idle} && ${PriorityBuffs.Size}) /call checkPriorityBuffs
@@ -142,6 +137,8 @@ Sub MakeCLR_Ini
 Sub CLR_Background_Events
 
 /return
+
+
 
 #event Rez "<#1#> Rez"
 #event Rez "<#1#> Rezz"

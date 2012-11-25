@@ -81,25 +81,31 @@ SUB event_Chat(ChatChannel, ChatSender, ChatText)
 				/if (${ChatText.Find[gport]}) {
 					/if (${Stick.Active}) /squelch /stick off
 					/if (${NetAdvPath.State}) /squelch /netfollow off
-					/delay 3
+					/delay 30 !${Stick.Active} && !${NetAdvPath.State}
 				}
+				
 				/varset ChatText ${Ini[${SpellAliases_Ini},${Me.Class},${ChatText}]}
 				/goto :Retry_Alias
 			}
+			
 		} else {
 			
 			/if (${Select[${ChatText},${restrictedBuffs}]}) {
+				
 				/if (${ChatChannel.Equal[TELL]}) {
 					/reply [${ChatText}] is a restricted spell.
 				} else {
 					/g [${ChatText}] is a restricted spell.
 				}
+				
 			} else {
 		|------------------------------------------------------------------------------If the ChatText was found in my spellbook, or SpellAliases_Ini.
 		
 			|------------------------------------------------------------------Make sure ChatSender is in the same zone.
 				/if (!${SpawnCount[pc ${ChatSender}]}) {
+					
 					/if (${ChatChannel.Equal[TELL]}) /reply We're not in the same zone.
+					
 				} else {
 				
 				|--------------------------------------------------------------------------------------------Check mana.
@@ -113,11 +119,13 @@ SUB event_Chat(ChatChannel, ChatSender, ChatText)
 					
 					|---------------------------------------------------------------------------------------Check range.
 						/if (${Spawn[pc ${ChatSender}].Distance} > ${Spell[${ChatText}].MyRange} && ${Spell[${ChatText}].MyRange}) {
+							
 							/if (${ChatChannel.Equal[TELL]}) {
 								/reply You're out of range.
 							} else {
 								/g You're out of range.
 							}
+						
 						} else {
 						
 						|---------------------------------------------------------------------------------Cast the requested spell, on the ChatSender.
