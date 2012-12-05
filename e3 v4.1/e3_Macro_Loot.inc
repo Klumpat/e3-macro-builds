@@ -19,7 +19,7 @@ SUB Event_YourKill
 /if (${Debug}) /echo |- Event_YourKill ==>
 
 |--------------------------------------------------------------------------------------------------------------------------------If I am a looter.
-	/if (${NinjaLoot_On} && ${Select[${Me.CleanName},${Looters}]}) {
+	/if (${NinjaLoot_On}) {
 	
 	|---------------------------------------------------Check that I'm not invisible, and have free inventory space.
 		/if (!${Me.Invis} && ${Me.FreeInventory}) {
@@ -68,6 +68,7 @@ SUB Event_YourKill
 |- @param corpseID: ID of the corpse you are trying to loot.			-|
 |------------------------------------------------------------------------|
 SUB loot_It(int corpseID)
+/varset Debug 1
 /if (${Debug}) /echo |- loot_It ==>
 
 |-------------------------------------------------------------------Check to see if corpseID belongs to an NPC (NPC corpses have _'s in the name).
@@ -201,12 +202,24 @@ SUB loot_It(int corpseID)
 				
 			|-------------------------------------------------If I've finished looting, and there are still items on the corpse, announce in chat.
 				/if (${Corpse.Items}) {
+					
+					/declare linkList string local 
+					
+					/for i 1 to ${lootTotal}
+					
+						/if (${InvSlot[loot${i}].Item.ID}) /noparse /varset linkList ${LinkDB[${InvSlot[loot${i}].Item.Name}]}
+					
+					/next i
+					
+					/echo ${linkList}
+				|**
 					/notify LootWND LW_BroadcastButton leftmouseup
 					/keypress enter chat
-				
+				**|
 				|--------------------------------------------------------------Add corpseID to looted_Corpses array.
 					:SKIP_LOOT
 					/varset looted_Corpses ${looted_Corpses}${corpseID}-
+					
 				}
 			}
 			
@@ -218,6 +231,7 @@ SUB loot_It(int corpseID)
 	}
 	
 /if (${Debug}) /echo <== loot_It -|
+/varset Debug 0
 /RETURN JUST_LOOTED
 
 
@@ -317,8 +331,8 @@ SUB EVENT_checkLootSetting(line, itemToCheck)
 |---------------
 |- Update Loot Setting
 |-----------------
-#EVENT updateLootSetting "<#3#> Set Loot entry for #1# to #2#"
-#EVENT updateLootSetting "[MQ2] Set Loot entry for #1# to #2#"
+#EVENT updateLootSetting "<#3#> Set Loot entry for #1# #2#"
+#EVENT updateLootSetting "[MQ2] Set Loot entry for #1# #2#"
 SUB EVENT_updateLootSetting(line, itemToCheck, iniSetting, ChatSender)
 /if (${Debug}) /echo |- EVENT_updateLootSetting ==>
 
@@ -351,12 +365,26 @@ SUB setup_Loot
 /if (${Debug}) /echo |- setup_Loot ==>
 
 |-----------------------------------------------------------------------------------------------------------------------Import Macro_Ini settings.
-	/call INItoVar ${Macro_Ini},AutoLoot,AutoLoot(On/Off) NinjaLoot_On bool outer
-	/if (${NinjaLoot_On}) {
-		/call INItoVar ${Macro_Ini},AutoLoot,AutoLoot_Alert Loot_Alert int outer
-		/call INItoVar ${Macro_Ini},AutoLoot,Looters Looters string outer
-		/call INItoVar ${Macro_Ini},AutoLoot,Seek_Radius seek_Radius string outer
+	/call INItoVar "${Macro_Ini},AutoLoot,Looters" Looters string outer
+	
+	/if (${Select[${Me.CleanName},${Looters.Replace[/,,]}]}) {
+		/call INItoVar "${Macro_Ini},Loot,Auto-Loot (On/Off)" ${Auto-Loot} bool outer
+		/call INItoVar "${Macro_Ini},Loot,Loot Link Channel" LinkChannel string outer
+		/call INItoVar "${Macro_Ini},Loot,Corpse Seek Radius" SeekRadius string outer
 
+	|-------------------------------------------------------------------------------------------------------------------------------Check MQ2Exchange.
+		/if (!${Plugin[MQ2LinkDB].Name.Length}) {
+			/echo Plugin MQ2LinkDB is not loaded, attempting to resolve...
+			/plugin MQ2LinkDB noauto
+			/delay 3s ${Plugin[MQ2LinkDB].Name.Length}
+			/if (${Plugin[MQ2Exchange].Name.Length}) {
+				/link /import
+			} else {
+				/echo ***WARNING*** Could not load MQ2LinkDB, item links will only be given in say.
+				/varset LinkChannel PLUGIN-ERROR
+			}
+		}
+		
 	|------------------------------------------------------------------------------------------------------------------------------Setup Loot_Ini.
 		/if (!${Defined[Loot_Ini]}) /declare Loot_Ini string outer loot.ini
 		/if (!${Ini[${Loot_Ini}].Length}) /call Build_Alphabetized_Ini ${Loot_Ini}

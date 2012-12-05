@@ -96,7 +96,7 @@ Sub SHM_Setup
 /if (${Debug}) /echo |- SHM_Setup ==>
 
 	/if (!${Ini[${Character_Ini},Shaman].Length}) /call MakeSHM_Ini
-	/call INItoVar ${Character_Ini},Shaman,AutoCanni(On/Off) AutoCanni bool outer
+	/call INItoVar "${Character_Ini},Shaman,Auto-Canni (On/Off)" AutoCanni bool outer
 
 /if (${Debug}) /echo <== SHM_Setup -|
 /return
@@ -111,7 +111,7 @@ Sub SHM_Setup
 Sub MakeSHM_Ini
 /if (${Debug}) /echo |- SHM_Ini ==>
 
-	/call WriteToIni ${Character_Ini},Shaman,AutoCanni(On/Off)
+	/call WriteToIni "${Character_Ini},Shaman,Auto-Canni (On/Off)"
 	
 /if (${Debug}) /echo <== SHM_Ini -|
 /return

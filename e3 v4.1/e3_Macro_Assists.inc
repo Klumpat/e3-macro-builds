@@ -1172,11 +1172,11 @@ SUB setup_Assists
 	/declare AllowControl bool outer FALSE
 	
 |-----------------------------------------------------------------------------------------------------------------------Import Macro Ini Settings.
-	/call IniToVar ${Macro_Ini},Assists,AssistBreakDistance AssistBreakDistance int outer
-	/call INItoVar ${Macro_Ini},Assists,Allowed_TargetTypes AcceptableTargetTypes string outer
-	/call INItoVar ${Macro_Ini},Assists,AutoAssist(On/Off) auto_AssistOn bool outer
-	/call INItoVar ${Macro_Ini},Assists,AE_Radius AE_Radius int outer
-	/call INItoVar ${Macro_Ini},Assists,EngagePct EngagePct int outer
+	/call IniToVar "${Macro_Ini},Assists,Max Assist Engage Distance" AssistBreakDistance int outer
+	/call INItoVar "${Macro_Ini},Assists,Acceptable Target Types" AcceptableTargetTypes string outer
+	/call INItoVar "${Macro_Ini},Assists,Auto-Assist (On/Off)" auto_AssistOn bool outer
+	/call INItoVar "${Macro_Ini},Assists,Area Effect Radius" AE_Radius int outer
+	/call INItoVar "${Macro_Ini},Assists,Auto-Assist Engage Percent" EngagePct int outer
 	
 	|--------------------------------------------------------------------------------------Validate EngagePct.
 	/if (!${Defined[EngagePct]}) {
@@ -1187,19 +1187,17 @@ SUB setup_Assists
 		/varset EngagePct 98
 	}
 	
-|						|
-	
-
 |-------------------------------------------------------------------------------------------------------------------Import Character Ini Settings.
 
 |------------------------------------------------------------------------------------------------------------------------------------[Assists].
 	/if (${Ini[${Character_Ini},Assists].Length}) {
-		/call IniToVar ${Character_Ini},Assists,AssistType(Melee/Ranged) AssistType string outer
+		/call IniToVar "${Character_Ini},Assists,Assist Type (Melee/Ranged)" AssistType string outer
 		
 		/if (${AssistType.Equal[Melee]}) {
-			/call IniToVar ${Character_Ini},Assists,Melee_StickPoint AssistStickPoint string outer
-			/call IniToVar ${Character_Ini},Assists,Melee_StickDistance AssistStickDistance string outer
+			/call IniToVar "${Character_Ini},Assists,Melee Stick Point" AssistStickPoint string outer
+			/call IniToVar "${Character_Ini},Assists,Melee Stick Distance" AssistStickDistance string outer
 		}
+		
 	|-----------------------------If AssistStickPoint, and AssistStickDistance are defined, turn AssistStick on.
 		/if (${Defined[AssistStickPoint]} && ${Defined[AssistStickDistance]}) {
 			/declare AssistStick_On bool outer TRUE
@@ -1208,312 +1206,831 @@ SUB setup_Assists
 		}
 	}	
 	
-	
-|						|
 |---------------------------------------------------------------------------------------------------------------------------------------[Abilities].
-	/if (${Ini[${Character_Ini},Abilities].Length}) {	
-		/call INItoArray ${Character_Ini},Abilities,Ability# MyAbilities
+	/varcalc Validation_Arg ${Validation_Arg} + 1
+	:Validate_Abilities
+	/varset Validation_Count 0
 	
-	|----------------------------------------Validate abilities in MyAbilities array
+	/if (${Ini[${Character_Ini},Abilities,Ability#1].Length}) /call INItoArray ${Character_Ini},Abilities,Ability# MyAbilities
+
+	/if (!${Ini[${MacroData_Ini},ValidationKey-${MacroQuest.Server},${Me.CleanName}].Length} || ${Ini[${MacroData_Ini},ValidationKey-${MacroQuest.Server},${Me.CleanName}].Arg[${Validation_Arg},-]} != ${Validation_Count}) /varset Validation_On TRUE
+
+	/if (${Validation_On}) {
 		/if (${MyAbilities.Size}) {
+			
 			/for i 1 to ${MyAbilities.Size}
+				
+			|------------------------------------------------------------------------------------------------------------Auto-fix castType.	
 				/if (!${MyAbilities[${i}].Arg[2,/].Length}) {
-					/if (!${Me.Ability[${MyAbilities[${i}]}]}) {
-						/echo ERROR: @[MyAbilities#${i}] - I do not have [${MyAbilities[${i}]}] listed on my abilities tab. Removing it from MyAbilities.
-						/varset MyAbilities[${i}] BAD_ENTRY
-					} else {
+					/echo [Abilities#${i}] - [${MyAbilities[${i}]}] does not have a specified AbilityType.  Attempting to fix...
+					
+					/if (${Me.Ability[${MyAbilities[${i}]}]}) {
 						/varset MyAbilities[${i}] ${MyAbilities[${i}]}/ability
-					}
-				} else /if (${MyAbilities[${i}].Arg[2,/].Equal[ability]}) {
-					/if (!${Me.Ability[${MyAbilities[${i}].Arg[1,/]}]}) {
-						/echo ERROR: @[MyAbilities#${i}] - I do not have [${MyAbilities[${i}].Arg[1,/]}] listed on my abilities tab. Removing it from MyAbilities.
-						/varset MyAbilities[${i}] BAD_ENTRY
-					}
-				}
-				/if (${MyAbilities[${i}].Arg[2,/].Equal[alt]} || ${MyAbilities[${i}].Arg[2,/].Equal[aa]}) {
-					/if (!${Me.AltAbility[${MyAbilities[${i}].Arg[1,/]}].ID}) {
-						/echo ERROR: @[MyAbilities#${i}] - I do not have any ranks spent in [${MyAbilities[${i}]}]. Removing it from MyAbilities.
-						/varset MyAbilities[${i}] BAD_ENTRY
-					}
-				} else /if (${MyAbilities[${i}].Arg[2,/].Equal[disc]} || ${MyAbilities[${i}].Arg[2,/].Equal[discipline]}) {
-					/if (!${Me.CombatAbility[${MyAbilities[${i}].Arg[1,/]}]}) {
-						/echo ERROR: @[MyAbilities#${i}] - I do not have [${MyAbilities[${i}].Arg[1,/]}] on my Combat Abilities page. Removing it from MyAbilities.
-						/varset MyAbilities[${i}] BAD_ENTRY
+						/call WriteToIni "${Character_Ini},Abilities,Ability#${i}" "${MyAbilities[${i}]}" 1
+						/echo [${MyAbilities[${i}].Arg[1,/]}] was found on my abilities page.  Setting [${MyAbilities[${i}].Arg[1,/]}] to [${MyAbilities[${i}].Arg[2,/]}].
+					} else /if (${Me.AltAbility[${MyAbilities[${i}]}]}) {
+						/varset MyAbilities[${i}] ${MyAbilities[${i}]}/alt
+						/call WriteToIni "${Character_Ini},Abilities,Ability#${i}" "${MyAbilities[${i}]}" 1
+						/echo I have ranks spent in [${MyAbilities[${i}].Arg[1,/]}].  Setting [${MyAbilities[${i}].Arg[1,/]}] to [${MyAbilities[${i}].Arg[2,/]}].
+					} else /if (${Me.CombatAbility[${MyAbilities[${i}]}]}) {
+						/varset MyAbilities[${i}] ${MyAbilities[${i}]}/disc
+						/call WriteToIni "${Character_Ini},Abilities,Ability#${i}" "${MyAbilities[${i}]}" 1
+						/echo Found discipline [${MyAbilities[${i}].Arg[1,/]}].  Setting [${MyAbilities[${i}].Arg[1,/]}] to [${MyAbilities[${i}].Arg[2,/]}].			
+					} else {
+						/varset MyAbilities[${i}] ${MyAbilities[${i}]}/BAD_ENTRY
+						/call WriteToIni "${Character_Ini},Abilities,Ability#${i}" "${MyAbilities[${i}]}" 1
+						/echo ERROR: @[Ability#${i}] - Could not find a compatible abilityType for [${MyAbilities[${i}].Arg[1,/]}].  Flagging [Ability#${i}] as a BAD_ENTRY.
 					}
 				}
 				
+			|------------------------------------------------------------------------------------------------------------Validate MyAbilities array.
+				/if (${MyAbilities[${i}].Arg[2,/].Equal[ability]}) {
+					/if (!${Me.Ability[${MyAbilities[${i}].Arg[1,/]}]}) {
+						/varset MyAbilities[${i}] ${MyAbilities[${i}].Arg[1,/]}/BAD_ENTRY
+						/call WriteToIni "${Character_Ini},Abilities,Ability#${i}" "${MyAbilities[${i}]}" 1
+						/echo ERROR: @[Ability#${i}] - I do not have [${MyAbilities[${i}].Arg[1,/]}] on my abilities tab.  Flagging [Ability#${i}] as a BAD_ENTRY.
+					}
+				} else /if (${MyAbilities[${i}].Arg[2,/].Equal[alt]} || ${MyAbilities[${i}].Arg[2,/].Equal[aa]}) {
+					/if (!${Me.AltAbility[${MyAbilities[${i}]}]}) {
+						/varset MyAbilities[${i}] ${MyAbilities[${i}].Arg[1,/]}/BAD_ENTRY
+						/call WriteToIni "${Character_Ini},Abilities,Ability#${i}" "${MyAbilities[${i}]}" 1
+						/echo ERROR: @[Ability#${i}] - I do not have any ranks in [${MyAbilities[${i}].Arg[1,/]}].  Flagging [Ability#${i}] as a BAD_ENTRY.
+					}
+				} else /if (${MyAbilities[${i}].Arg[2,/].Equal[disc]}) {
+					/if (${Me.CombatAbility[${MyAbilities[${i}]}]}) {
+						/varset MyAbilities[${i}] ${MyAbilities[${i}].Arg[1,/]}/BAD_ENTRY
+						/call WriteToIni "${Character_Ini},Abilities,Ability#${i}" "${MyAbilities[${i}]}" 1
+						/echo ERROR: @[Ability#${i}] - I cannot find [${MyAbilities[${i}].Arg[1,/]}] listed in my disciplines window.  Flagging [Ability#${i}] as a BAD_ENTRY.
+					}
+				} else /if (${MyAbilities[${i}].Arg[2,/].Equal[BAD_ENTRY]}) {
+					/echo ERROR: @[Ability#${i}] - There is a problem with the user entry for [${MyAbilities[${i}].Arg[1,/]}] in [${Character_Ini}].  Please review this entry, and restart the macro.
+				} else {
+					/varset MyAbilities[${i}] ${MyAbilities[${i}].Arg[1,/]}/BAD_ENTRY
+					/call WriteToIni "${Character_Ini},Abilities,Ability#${i}" "${MyAbilities[${i}].Arg[1,/]}" 1
+					/echo ERROR: @[Ability#${i}] - Could not find a compatible abilityType for [${MyAbilities[${i}].Arg[1,/]}].  Flagging [Ability#${i}] as a BAD_ENTRY.
+				}
+
 			|------------------------------------------------------------------------------------------If the ability is 'Taunt' create do_Taunt variable.
 				/if (${MyAbilities[${i}].Arg[1,/].Equal[taunt]}) /declare do_Taunt bool outer TRUE
 				
 			/next i
-			
-			/call RemoveArrayElement MyAbilities BAD_ENTRY
 		}
-	}	
-	
-	|-------------------------------------------------------------------------------------------------------------------------------------------[Nukes].
-	/if (${Ini[${Character_Ini},Nukes].Length}) {
-		/call INItoArray ${Character_Ini},Nukes,Nuke# MyNukes
+
+		/call rewrite_ValidationKey ${Validation_Count} ${Validation_Arg}
 		
-	|------------------------------------Validate nukes in MyNukes array
+		/varset Validation_On FALSE
+		/goto :Validate_Abilities
+	}
+
+|-------------------------------------------------------------------------------------------------------------------------------------------Import [Nukes].
+	/varcalc Validation_Arg ${Validation_Arg} + 1
+	:Validate_Nukes
+	/varset Validation_Count 0
+
+	/if (${Ini[${Character_Ini},Nukes,Nuke#1].Length}) /call INItoArray ${Character_Ini},Nukes,Nuke# MyNukes
+
+	/if (!${Ini[${MacroData_Ini},ValidationKey-${MacroQuest.Server},${Me.CleanName}].Length} || ${Ini[${MacroData_Ini},ValidationKey-${MacroQuest.Server},${Me.CleanName}].Arg[${Validation_Arg},-]} != ${Validation_Count}) /varset Validation_On TRUE
+
+|------------------------------------------------------------------------------------------------------------------------------------Validate MyNukes array.
+	/if (${Validation_On}) {
 		/if (${MyNukes.Size}) {
+			
 			/for i 1 to ${MyNukes.Size}
-				/if (${MyNukes[${i}].Arg[2,/].Left[3].Equal[gem]}) {
-					/if (!${Int[${Me.Book[${MyNukes[${i}].Arg[1,/]}]}]}) {
-						/echo ERROR: @[MyNukes#${i}] - I do not have [${MyNukes[${i}]}] in my spellbook. Removing it from MyNukes.
-						/varset MyNukes[${i}] BAD_ENTRY
+				
+			|------------------------------------------------------------------------------------------------------------------------------Missing castType.	
+				/if (!${MyNukes[${i}].Arg[2,/].Length}) {
+					/echo [Nuke#${i}] - [${MyNukes[${i}]}] does not have a specified castType.  Attempting to fix...
+					
+					/if (${Int[${Me.Book[${MyNukes[${i}]}]}]}) {
+						/varset MyNukes[${i}] ${MyNukes[${i}]}/gem${If[${Me.Gem[${MyNukes[${i}]}]},${Me.Gem[${MyNukes[${i}]}]},${DefaultGem}]}
+						/call WriteToIni "${Character_Ini},Nukes,Nuke#${i}" "${MyNukes[${i}]}" 1
+						/echo [${MyNukes[${i}].Arg[1,/]}] was found in my spellbook.  Setting [${MyNukes[${i}].Arg[1,/]}] to [${MyNukes[${i}].Arg[2,/]}].
+					} else /if (${FindItemCount[${MyNukes[${i}]}]}) {
+						/varset MyNukes[${i}] ${MyNukes[${i}]}/item
+						/call WriteToIni "${Character_Ini},Nukes,Nuke#${i}" "${MyNukes[${i}]}" 1
+						/echo [${MyNukes[${i}].Arg[1,/]}] was found in my inventory.  Setting [${MyNukes[${i}].Arg[1,/]}] to [${MyNukes[${i}].Arg[2,/]}].
+					} else /if (${Me.AltAbility[${MyNukes[${i}]}]}) {
+						/varset MyNukes[${i}] ${MyNukes[${i}]}/alt
+						/call WriteToIni "${Character_Ini},Nukes,Nuke#${i}" "${MyNukes[${i}]}" 1
+						/echo I have ranks spent in [${MyNukes[${i}].Arg[1,/]}].  Setting [${MyNukes[${i}].Arg[1,/]}] to [${MyNukes[${i}].Arg[2,/]}].	
+					} else {
+						/varset MyNukes[${i}] ${MyNukes[${i}]}/BAD_ENTRY
+						/call WriteToIni "${Character_Ini},Nukes,Nuke#${i}" "${MyNukes[${i}]}" 1
+						/echo ERROR: @[Nuke#${i}] - Could not find a compatible castType for [${MyNukes[${i}]}].  Flagging [Nuke#${i}] as a BAD_ENTRY.
 					}
-				} else /if (${MyNukes[${i}].Arg[2,/].Equal[item]}) {
-					/if (!${FindItemCount[${MyNukes[${i}].Arg[1,/]}]}) {
-						/echo ERROR: @[MyNukes#${i}] - I do not have [${MyNukes[${i}].Arg[1,/]}] in my inventory. Removing it from MyNukes.
-						/varset MyNukes[${i}] BAD_ENTRY
-					}
-				} else /if (${Select[${MyNukes[${i}].Arg[2,/]},alt,aa]}) {
-					/if (!${Me.AltAbility[${MyNukes[${i}].Arg[1,/]}]}) {
-						/echo ERROR: @[MyNukes#${i}] - I do not have any ranks in [${MyNukes[${i}].Arg[1,/]}]. Removing it from MyNukes.
-						/varset MyNukes[${i}] BAD_ENTRY
+				} else {
+				
+				|--------------------------------------------------------------------------------------------------------------------------Invalid castType.
+					/if (${Int[${MyNukes[${i}].Arg[2,/]}]}) {
+						/echo [Nuke#${i}] - [${MyNukes[${i}]}] has an invalid castType.  Attempting to fix...
+						
+						/if (${Int[${Me.Book[${MyNukes[${i}].Arg[1,/]}]}]}) {
+							/varset MyNukes[${i}] ${MyNukes[${i}].Arg[1,/]}/gem${If[${Me.Gem[${MyNukes[${i}]}]},${Me.Gem[${MyNukes[${i}]}]},${DefaultGem}]}/${MyNukes[${i}].Arg[2,/]}${If[${MyNukes[${i}].Arg[3,/].Length},/${MyNukes[${i}].Arg[3,/]},]}
+							/call WriteToIni "${Character_Ini},Nukes,Nuke#${i}" "${MyNukes[${i}]}" 1
+							/echo [Nuke#${i}] has been changed to [${MyNukes[${i}]}].  Please review this entry, and restart the macro if needed.
+						} else /if (${FindItemCount[${MyNukes[${i}].Arg[1,/]}]}) {
+							/varset MyNukes[${i}] ${MyNukes[${i}]}/item/${MyNukes[${i}].Arg[2,/]}
+							/call WriteToIni "${Character_Ini},Nukes,Nuke#${i}" "${MyNukes[${i}]}" 1
+							/echo [Nuke#${i}] has been changed to [${MyNukes[${i}]}].  Please review this entry, and restart the macro if needed.
+						} else /if (${Me.AltAbility[${MyNukes[${i}]}]}) {
+							/varset MyNukes[${i}] ${MyNukes[${i}]}/alt/${MyNukes[${i}].Arg[2,/]}
+							/call WriteToIni "${Character_Ini},Nukes,Nuke#${i}" "${MyNukes[${i}]}" 1
+							/echo [Nuke#${i}] has been changed to [${MyNukes[${i}]}].  Please review this entry, and restart the macro if needed.
+						} else {
+							/varset MyNukes[${i}] ${MyNukes[${i}]}/BAD_ENTRY
+							/call WriteToIni "${Character_Ini},Nukes,Nuke#${i}" "${MyNukes[${i}]}" 1
+							/echo ERROR: @[Nuke#${i}] - Could not find a compatible castType for [${MyNukes[${i}]}].  Flagging [Nuke#${i}] as a BAD_ENTRY.
+						}
+					} else /if (${MyNukes[${i}].Arg[2,/].Find[gem]}) {
+						/if (!${Int[${Me.Book[${MyNukes[${i}].Arg[1,/]}]}]}) {
+							/varset MyNukes[${i}] ${MyNukes[${i}].Arg[1,/]}/BAD_ENTRY
+							/call WriteToIni "${Character_Ini},Nukes,Nuke#${i}" "${MyNukes[${i}]}" 1
+							/echo ERROR: @[Nuke#${i}] - [${MyNukes[${i}].Arg[1,/]}] was not found in my spellbook.  Flagging [Nuke#${i}] as a BAD_ENTRY.
+						}
+					} else /if (${MyNukes[${i}].Arg[2,/].Equal[item]}) {
+						/if (!${FindItemCount[${MyNukes[${i}].Arg[1,/]}]}) {
+							/varset MyNukes[${i}] ${MyNukes[${i}].Arg[1,/]}/BAD_ENTRY
+							/call WriteToIni "${Character_Ini},Nukes,Nuke#${i}" "${MyNukes[${i}]}" 1
+							/echo ERROR: @[Nuke#${i}] - I do not have [${MyNukes[${i}].Arg[1,/]}] in my inventory.  Flagging [Nuke#${i}] as a BAD_ENTRY.
+						}
+					} else /if (${MyNukes[${i}].Arg[2,/].Equal[alt]} || ${MyNukes[${i}].Arg[2,/].Equal[aa]}) {
+						/if (!${Me.AltAbility[${MyNukes[${i}].Arg[1,/]}]}) {
+							/varset MyNukes[${i}] ${MyNukes[${i}].Arg[1,/]}/BAD_ENTRY
+							/call WriteToIni "${Character_Ini},Nukes,Nuke#${i}" "${MyNukes[${i}]}" 1
+							/echo ERROR: @[Nuke#${i}] - I do not have any ranks in [${MyNukes[${i}].Arg[1,/]}].  Flagging [Nuke#${i}] as a BAD_ENTRY.
+						}
+					} else /if (${MyNukes[${i}].Arg[2,/].Equal[BAD_ENTRY]}) {
+						/echo ERROR: @[Nuke#${i}] - There is a problem with the user entry for [${MyNukes[${i}].Arg[1,/]}] in [${Character_Ini}].  Please review this entry, and restart the macro.
+					} else {
+						/varset MyNukes[${i}] ${MyNukes[${i}].Arg[1,/]}/BAD_ENTRY
+						/call WriteToIni "${Character_Ini},Nukes,Nuke#${i}" "${MyNukes[${i}]}" 1
+						/echo ERROR: @[Nuke#${i}] - [${MyNukes[${i}].Arg[2,/]}] is not an acceptable castType.  Flagging [Nuke#${i}] as a BAD_ENTRY.
 					}
 				}
+				
 			/next i
-			
-			/call RemoveArrayElement MyNukes BAD_ENTRY
-		
-		|--------------------------------------Declare nuking variables
-			/if (${MyNukes.Size}) {
-				/declare do_Nukes bool outer TRUE
-				/declare NukeTimer timer outer 0
-			}
 		}
+
+		/call rewrite_ValidationKey ${Validation_Count} ${Validation_Arg}
+		
+		/varset Validation_On FALSE
+		/goto :Validate_Nukes
 	}
 	
-|---------------------------------------------------------------------------------------------------------------------------------------------[DoTs].
-	/if (${Ini[${Character_Ini},DoTs].Length}) {
-		/call INItoArray ${Character_Ini},DoTs,DoT_OnAssist# Assist_DoTs
-		
-	|------------------------------------Validate DoTs in Assist_DoTs array
+|--------------------------------------Declare nuking variables
+	/if (${Defined[MyNukes]}) {
+		/declare do_Nukes bool outer TRUE
+		/declare NukeTimer timer outer 0
+	}
+	
+|-------------------------------------------------------------------------------------------------------------------------------------------[Assist_DoTs].
+	/varcalc Validation_Arg ${Validation_Arg} + 1
+	:Validate_AssistDoTs
+	/varset Validation_Count 0
+
+	/if (${Ini[${Character_Ini},DoTs,DoT on Assist#1].Length}) /call INItoArray "${Character_Ini},DoTs,DoT on Assist#" Assist_DoTs
+
+	/if (!${Ini[${MacroData_Ini},ValidationKey-${MacroQuest.Server},${Me.CleanName}].Length} || ${Ini[${MacroData_Ini},ValidationKey-${MacroQuest.Server},${Me.CleanName}].Arg[${Validation_Arg},-]} != ${Validation_Count}) /varset Validation_On TRUE
+
+	/if (${Validation_On}) {
 		/if (${Assist_DoTs.Size}) {
+			
 			/for i 1 to ${Assist_DoTs.Size}
-				/if (${Assist_DoTs[${i}].Arg[2,/].Left[3].Equal[gem]}) {
-					/if (!${Int[${Me.Book[${Assist_DoTs[${i}].Arg[1,/]}]}]}) {
-						/echo ERROR: @[Assist_DoTs#${i}] - I do not have [${Assist_DoTs[${i}]}] in my spellbook. Removing it from Assist_DoTs.
-						/varset Assist_DoTs[${i}] BAD_ENTRY
+				
+			|------------------------------------------------------------------------------------------------------------------------------Missing castType.	
+				/if (!${Assist_DoTs[${i}].Arg[2,/].Length}) {
+					/echo [DoT on Assist#${i}] - [${Assist_DoTs[${i}]}] does not have a specified castType.  Attempting to fix...
+					
+					/if (${Int[${Me.Book[${Assist_DoTs[${i}]}]}]}) {
+						/varset Assist_DoTs[${i}] ${Assist_DoTs[${i}]}/gem${If[${Me.Gem[${Assist_DoTs[${i}]}]},${Me.Gem[${Assist_DoTs[${i}]}]},${DefaultGem}]}
+						/call WriteToIni "${Character_Ini},DoTs,DoT on Assist#${i}" "${Assist_DoTs[${i}]}" 1
+						/echo [${Assist_DoTs[${i}].Arg[1,/]}] was found in my spellbook.  Setting [${Assist_DoTs[${i}].Arg[1,/]}] to [${Assist_DoTs[${i}].Arg[2,/]}].
+					} else /if (${FindItemCount[${Assist_DoTs[${i}]}]}) {
+						/varset Assist_DoTs[${i}] ${Assist_DoTs[${i}]}/item
+						/call WriteToIni "${Character_Ini},DoTs,DoT on Assist#${i}" "${Assist_DoTs[${i}]}" 1
+						/echo [${Assist_DoTs[${i}].Arg[1,/]}] was found in my inventory.  Setting [${Assist_DoTs[${i}].Arg[1,/]}] to [${Assist_DoTs[${i}].Arg[2,/]}]
+					} else /if (${Me.AltAbility[${Assist_DoTs[${i}]}]}) {
+						/varset Assist_DoTs[${i}] ${Assist_DoTs[${i}]}/alt
+						/call WriteToIni "${Character_Ini},DoTs,DoT on Assist#${i}" "${Assist_DoTs[${i}]}" 1
+						/echo I have ranks spent in [${Assist_DoTs[${i}].Arg[1,/]}].  Setting [${Assist_DoTs[${i}].Arg[1,/]}] to [${Assist_DoTs[${i}].Arg[2,/]}]	
+					} else {
+						/varset Assist_DoTs[${i}] ${Assist_DoTs[${i}]}/BAD_ENTRY
+						/call WriteToIni "${Character_Ini},DoTs,DoT on Assist#${i}" "${Assist_DoTs[${i}]}" 1
+						/echo ERROR: @[DoT on Assist#${i}] - Could not find a compatible castType for [${Assist_DoTs[${i}]}].  Flagging [DoT on Assist#${i}] as a BAD_ENTRY.
 					}
-				} else /if (${Assist_DoTs[${i}].Arg[2,/].Equal[item]}) {
-					/if (!${FindItemCount[${Assist_DoTs[${i}].Arg[1,/]}]}) {
-						/echo ERROR: @[Assist_DoTs#${i}] - I do not have [${Assist_DoTs[${i}].Arg[1,/]}] in my inventory. Removing it from Assist_DoTs.
-						/varset Assist_DoTs[${i}] BAD_ENTRY
-					}
-				} else /if (${Select[${Assist_DoTs[${i}].Arg[2,/]},alt,aa]}) {
-					/if (!${Me.AltAbility[${Assist_DoTs[${i}].Arg[1,/]}]}) {
-						/echo ERROR: @[Assist_DoTs#${i}] - I do not have any ranks in [${Assist_DoTs[${i}].Arg[1,/]}]. Removing it from Assist_DoTs.
-						/varset Assist_DoTs[${i}] BAD_ENTRY
+				} else {
+		
+				|--------------------------------------------------------------------------------------------------------------------------Invalid castType.
+					/if (${Int[${Assist_DoTs[${i}].Arg[2,/]}]}) {
+						/echo [DoT on Assist#${i}] - [${Assist_DoTs[${i}]}] has an invalid castType.  Attempting to fix...
+						
+						/if (${Int[${Me.Book[${Assist_DoTs[${i}].Arg[1,/]}]}]}) {
+							/varset Assist_DoTs[${i}] ${Assist_DoTs[${i}].Arg[1,/]}/gem${If[${Me.Gem[${Assist_DoTs[${i}]}]},${Me.Gem[${Assist_DoTs[${i}]}]},${DefaultGem}]}/${Assist_DoTs[${i}].Arg[2,/]}
+							/call WriteToIni "${Character_Ini},DoTs,DoT on Assist#${i}" "${Assist_DoTs[${i}]}" 1
+							/echo [DoT on Assist#${i}] has been changed to [${Assist_DoTs[${i}]}].  Please review this entry, and restart the macro if needed.
+						} else /if (${FindItemCount[${Assist_DoTs[${i}].Arg[1,/]}]}) {
+							/varset Assist_DoTs[${i}] ${Assist_DoTs[${i}]}/item/${Assist_DoTs[${i}].Arg[2,/]}
+							/call WriteToIni "${Character_Ini},DoTs,DoT on Assist#${i}" "${Assist_DoTs[${i}]}" 1
+							/echo [DoT on Assist#${i}] has been changed to [${Assist_DoTs[${i}]}].  Please review this entry, and restart the macro if needed.
+						} else /if (${Me.AltAbility[${Assist_DoTs[${i}]}]}) {
+							/varset Assist_DoTs[${i}] ${Assist_DoTs[${i}]}/alt/${Assist_DoTs[${i}].Arg[2,/]}
+							/call WriteToIni "${Character_Ini},DoTs,DoT on Assist#${i}" "${Assist_DoTs[${i}]}" 1
+							/echo [DoT on Assist#${i}] has been changed to [${Assist_DoTs[${i}]}].  Please review this entry, and restart the macro if needed.
+						} else {
+							/varset Assist_DoTs[${i}] ${Assist_DoTs[${i}]}/BAD_ENTRY
+							/call WriteToIni "${Character_Ini},DoTs,DoT on Assist#${i}" "${Assist_DoTs[${i}]}" 1
+							/echo ERROR: @[DoT on Assist#${i}] - Could not find a compatible castType for [${Assist_DoTs[${i}]}].  Flagging [DoT on Assist#${i}] as a BAD_ENTRY.
+						}
+					} else /if (${Assist_DoTs[${i}].Arg[2,/].Find[gem]}) {
+						/if (!${Int[${Me.Book[${Assist_DoTs[${i}].Arg[1,/]}]}]}) {
+							/varset Assist_DoTs[${i}] ${Assist_DoTs[${i}].Arg[1,/]}/BAD_ENTRY
+							/call WriteToIni "${Character_Ini},DoTs,DoT on Assist#${i}" "${Assist_DoTs[${i}]}" 1
+							/echo ERROR: @[DoT on Assist#${i}] - [${Assist_DoTs[${i}].Arg[1,/]}] was not found in my spellbook.  Flagging [DoT on Assist#${i}] as a BAD_ENTRY.
+						}
+					} else /if (${Assist_DoTs[${i}].Arg[2,/].Equal[item]}) {
+						/if (!${FindItemCount[${Assist_DoTs[${i}].Arg[1,/]}]}) {
+							/varset Assist_DoTs[${i}] ${Assist_DoTs[${i}].Arg[1,/]}/BAD_ENTRY
+							/call WriteToIni "${Character_Ini},DoTs,DoT on Assist#${i}" "${Assist_DoTs[${i}]}" 1
+							/echo ERROR: @[DoT on Assist#${i}] - I do not have [${Assist_DoTs[${i}].Arg[1,/]}] in my inventory.  Flagging [DoT on Assist#${i}] as a BAD_ENTRY.
+						}
+					} else /if (${Assist_DoTs[${i}].Arg[2,/].Equal[alt]} || ${Assist_DoTs[${i}].Arg[2,/].Equal[aa]}) {
+						/if (!${Me.AltAbility[${Assist_DoTs[${i}].Arg[1,/]}]}) {
+							/varset Assist_DoTs[${i}] ${Assist_DoTs[${i}].Arg[1,/]}/BAD_ENTRY
+							/call WriteToIni "${Character_Ini},DoTs,DoT on Assist#${i}" "${Assist_DoTs[${i}]}" 1
+							/echo ERROR: @[DoT on Assist#${i}] - I do not have any ranks in [${Assist_DoTs[${i}].Arg[1,/]}].  Flagging [DoT on Assist#${i}] as a BAD_ENTRY.
+						}
+					} else /if (${Assist_DoTs[${i}].Arg[2,/].Equal[BAD_ENTRY]}) {
+						/echo ERROR: @[DoT on Assist#${i}] - There is a problem with the user entry for [${Assist_DoTs[${i}].Arg[1,/]}] in [${Character_Ini}].  Please review this entry, and restart the macro.
+					} else {
+						/varset Assist_DoTs[${i}] ${Assist_DoTs[${i}].Arg[1,/]}/BAD_ENTRY
+						/call WriteToIni "${Character_Ini},DoTs,DoT on Assist#${i}" "${Assist_DoTs[${i}]}" 1
+						/echo ERROR: @[DoT on Assist#${i}] - [${Assist_DoTs[${i}].Arg[2,/]}] is not an acceptable castType.  Flagging [DoT on Assist#${i}] as a BAD_ENTRY.
 					}
 				}
+				
 			/next i
-			
-			/call RemoveArrayElement Assist_DoTs BAD_ENTRY
-			
-			/if (${Assist_DoTs.Size}) /declare do_AssistDoTs bool outer TRUE
 		}
 
+		/call rewrite_ValidationKey ${Validation_Count} ${Validation_Arg}
 		
-		/call INItoArray ${Character_Ini},DoTs,DoT_OnCommand# Command_DoTs
-		
-	|------------------------------------Validate DoTs in Command_DoTs array
+		/varset Validation_On FALSE
+		/goto :Validate_AssistDoTs
+	}
+	/if (${Defined[Assist_DoTs]}) /declare do_AssistDoTs bool outer TRUE
+
+|-------------------------------------------------------------------------------------------------------------------------------------------[Command_DoTs].
+	/varcalc Validation_Arg ${Validation_Arg} + 1
+	:Validate_CommandDoTs
+	/varset Validation_Count 0
+
+	/if (${Ini[${Character_Ini},DoTs,DoT on Command#1].Length}) /call INItoArray "${Character_Ini},DoTs,DoT on Command#" Command_DoTs
+
+	/if (!${Ini[${MacroData_Ini},ValidationKey-${MacroQuest.Server},${Me.CleanName}].Length} || ${Ini[${MacroData_Ini},ValidationKey-${MacroQuest.Server},${Me.CleanName}].Arg[${Validation_Arg},-]} != ${Validation_Count}) /varset Validation_On TRUE
+
+	/if (${Validation_On}) {
 		/if (${Command_DoTs.Size}) {
+			
 			/for i 1 to ${Command_DoTs.Size}
-				/if (${Command_DoTs[${i}].Arg[2,/].Left[3].Equal[gem]}) {
-					/if (!${Int[${Me.Book[${Command_DoTs[${i}].Arg[1,/]}]}]}) {
-						/echo ERROR: @[Command_DoTs#${i}] - I do not have [${Command_DoTs[${i}]}] in my spellbook. Removing it from Command_DoTs.
-						/varset Command_DoTs[${i}] BAD_ENTRY
+				
+			|------------------------------------------------------------------------------------------------------------------------------Missing castType.	
+				/if (!${Command_DoTs[${i}].Arg[2,/].Length}) {
+					/echo [DoT on Command#${i}] - [${Command_DoTs[${i}]}] does not have a specified castType.  Attempting to fix...
+					
+					/if (${Int[${Me.Book[${Command_DoTs[${i}]}]}]}) {
+						/varset Command_DoTs[${i}] ${Command_DoTs[${i}]}/gem${If[${Me.Gem[${Command_DoTs[${i}]}]},${Me.Gem[${Command_DoTs[${i}]}]},${DefaultGem}]}
+						/call WriteToIni "${Character_Ini},DoTs,DoT on Command#${i}" "${Command_DoTs[${i}]}" 1
+						/echo [${Command_DoTs[${i}].Arg[1,/]}] was found in my spellbook.  Setting [${Command_DoTs[${i}].Arg[1,/]}] to [${Command_DoTs[${i}].Arg[2,/]}].
+					} else /if (${FindItemCount[${Command_DoTs[${i}]}]}) {
+						/varset Command_DoTs[${i}] ${Command_DoTs[${i}]}/item
+						/call WriteToIni "${Character_Ini},DoTs,DoT on Command#${i}" "${Command_DoTs[${i}]}" 1
+						/echo [${Command_DoTs[${i}].Arg[1,/]}] was found in my inventory.  Setting [${Command_DoTs[${i}].Arg[1,/]}] to [${Command_DoTs[${i}].Arg[2,/]}]
+					} else /if (${Me.AltAbility[${Command_DoTs[${i}]}]}) {
+						/varset Command_DoTs[${i}] ${Command_DoTs[${i}]}/alt
+						/call WriteToIni "${Character_Ini},DoTs,DoT on Command#${i}" "${Command_DoTs[${i}]}" 1
+						/echo I have ranks spent in [${Command_DoTs[${i}].Arg[1,/]}].  Setting [${Command_DoTs[${i}].Arg[1,/]}] to [${Command_DoTs[${i}].Arg[2,/]}]	
+					} else {
+						/varset Command_DoTs[${i}] ${Command_DoTs[${i}]}/BAD_ENTRY
+						/call WriteToIni "${Character_Ini},DoTs,DoT on Command#${i}" "${Command_DoTs[${i}]}" 1
+						/echo ERROR: @[DoT on Command#${i}] - Could not find a compatible castType for [${Command_DoTs[${i}]}].  Flagging [DoT on Command#${i}] as a BAD_ENTRY.
 					}
-				} else /if (${Command_DoTs[${i}].Arg[2,/].Equal[item]}) {
-					/if (!${FindItemCount[${Command_DoTs[${i}].Arg[1,/]}]}) {
-						/echo ERROR: @[Command_DoTs#${i}] - I do not have [${Command_DoTs[${i}].Arg[1,/]}] in my inventory. Removing it from Command_DoTs.
-						/varset Command_DoTs[${i}] BAD_ENTRY
-					}
-				} else /if (${Select[${Command_DoTs[${i}].Arg[2,/]},alt,aa]}) {
-					/if (!${Me.AltAbility[${Command_DoTs[${i}].Arg[1,/]}]}) {
-						/echo ERROR: @[Command_DoTs#${i}] - I do not have any ranks in [${Command_DoTs[${i}].Arg[1,/]}]. Removing it from Command_DoTs.
-						/varset Command_DoTs[${i}] BAD_ENTRY
-					}
-				}
-			/next i
-			
-			/call RemoveArrayElement Command_DoTs BAD_ENTRY
-			
-			/if (${Command_DoTs.Size}) /declare do_CommandDoTs bool outer TRUE
-		}
-	}
-	
-|-----------------------------------------------------------------------------------------------------------------------------------------[Debuffs].
-	/if (${Ini[${Character_Ini},Debuffs].Length}) {
-		/call INItoArray ${Character_Ini},Debuffs,Debuff_OnAssist# Assist_Debuffs
-	
-		|------------------------------------Validate DoTs in Assist_Debuffs array
-		/if (${Assist_Debuffs.Size}) {
-			/for i 1 to ${Assist_Debuffs.Size}
-				/if (${Assist_Debuffs[${i}].Arg[2,/].Left[3].Equal[gem]}) {
-					/if (!${Int[${Me.Book[${Assist_Debuffs[${i}].Arg[1,/]}]}]}) {
-						/echo ERROR: @[Assist_Debuffs#${i}] - I do not have [${Assist_Debuffs[${i}]}] in my spellbook. Removing it from Assist_Debuffs.
-						/varset Assist_Debuffs[${i}] BAD_ENTRY
-					}
-				} else /if (${Assist_Debuffs[${i}].Arg[2,/].Equal[item]}) {
-					/if (!${FindItemCount[${Assist_Debuffs[${i}].Arg[1,/]}]}) {
-						/echo ERROR: @[Assist_Debuffs#${i}] - I do not have [${Assist_Debuffs[${i}].Arg[1,/]}] in my inventory. Removing it from Assist_Debuffs.
-						/varset Assist_Debuffs[${i}] BAD_ENTRY
-					}
-				} else /if (${Select[${Assist_Debuffs[${i}].Arg[2,/]},alt,aa]}) {
-					/if (!${Me.AltAbility[${Assist_Debuffs[${i}].Arg[1,/]}]}) {
-						/echo ERROR: @[Assist_Debuffs#${i}] - I do not have any ranks in [${Assist_Debuffs[${i}].Arg[1,/]}]. Removing it from Assist_Debuffs.
-						/varset Assist_Debuffs[${i}] BAD_ENTRY
-					}
-				}
-			/next i
-			
-			/call RemoveArrayElement Assist_Debuffs BAD_ENTRY
-			
-			/if (${Assist_Debuffs.Size}) /declare do_AssistDebuffs bool outer TRUE
-		}
+				} else {
 		
-		/call INItoArray ${Character_Ini},Debuffs,Debuff_OnCommand# Command_Debuffs
-		
-	|------------------------------------Validate DoTs in Command_Debuffs array
-		/if (${Command_Debuffs.Size}) {
-			/for i 1 to ${Command_Debuffs.Size}
-				/if (${Command_Debuffs[${i}].Arg[2,/].Left[3].Equal[gem]}) {
-					/if (!${Int[${Me.Book[${Command_Debuffs[${i}].Arg[1,/]}]}]}) {
-						/echo ERROR: @[Command_Debuffs#${i}] - I do not have [${Command_Debuffs[${i}]}] in my spellbook. Removing it from Command_Debuffs.
-						/varset Command_Debuffs[${i}] BAD_ENTRY
-					}
-				} else /if (${Command_Debuffs[${i}].Arg[2,/].Equal[item]}) {
-					/if (!${FindItemCount[${Command_Debuffs[${i}].Arg[1,/]}]}) {
-						/echo ERROR: @[Command_Debuffs#${i}] - I do not have [${Command_Debuffs[${i}].Arg[1,/]}] in my inventory. Removing it from Command_Debuffs.
-						/varset Command_Debuffs[${i}] BAD_ENTRY
-					}
-				} else /if (${Select[${Command_Debuffs[${i}].Arg[2,/]},alt,aa]}) {
-					/if (!${Me.AltAbility[${Command_Debuffs[${i}].Arg[1,/]}]}) {
-						/echo ERROR: @[Command_Debuffs#${i}] - I do not have any ranks in [${Command_Debuffs[${i}].Arg[1,/]}]. Removing it from Command_Debuffs.
-						/varset Command_Debuffs[${i}] BAD_ENTRY
+				|--------------------------------------------------------------------------------------------------------------------------Invalid castType.
+					/if (${Int[${Command_DoTs[${i}].Arg[2,/]}]}) {
+						/echo [DoT on Command#${i}] - [${Command_DoTs[${i}]}] has an invalid castType.  Attempting to fix...
+						
+						/if (${Int[${Me.Book[${Command_DoTs[${i}].Arg[1,/]}]}]}) {
+							/varset Command_DoTs[${i}] ${Command_DoTs[${i}].Arg[1,/]}/gem${If[${Me.Gem[${Command_DoTs[${i}]}]},${Me.Gem[${Command_DoTs[${i}]}]},${DefaultGem}]}/${Command_DoTs[${i}].Arg[2,/]}
+							/call WriteToIni "${Character_Ini},DoTs,DoT on Command#${i}" "${Command_DoTs[${i}]}" 1
+							/echo [DoT on Command#${i}] has been changed to [${Command_DoTs[${i}]}].  Please review this entry, and restart the macro if needed.
+						} else /if (${FindItemCount[${Command_DoTs[${i}].Arg[1,/]}]}) {
+							/varset Command_DoTs[${i}] ${Command_DoTs[${i}]}/item/${Command_DoTs[${i}].Arg[2,/]}
+							/call WriteToIni "${Character_Ini},DoTs,DoT on Command#${i}" "${Command_DoTs[${i}]}" 1
+							/echo [DoT on Command#${i}] has been changed to [${Command_DoTs[${i}]}].  Please review this entry, and restart the macro if needed.
+						} else /if (${Me.AltAbility[${Command_DoTs[${i}]}]}) {
+							/varset Command_DoTs[${i}] ${Command_DoTs[${i}]}/alt/${Command_DoTs[${i}].Arg[2,/]}
+							/call WriteToIni "${Character_Ini},DoTs,DoT on Command#${i}" "${Command_DoTs[${i}]}" 1
+							/echo [DoT on Command#${i}] has been changed to [${Command_DoTs[${i}]}].  Please review this entry, and restart the macro if needed.
+						} else {
+							/varset Command_DoTs[${i}] ${Command_DoTs[${i}]}/BAD_ENTRY
+							/call WriteToIni "${Character_Ini},DoTs,DoT on Command#${i}" "${Command_DoTs[${i}]}" 1
+							/echo ERROR: @[DoT on Command#${i}] - Could not find a compatible castType for [${Command_DoTs[${i}]}].  Flagging [DoT on Command#${i}] as a BAD_ENTRY.
+						}
+					} else /if (${Command_DoTs[${i}].Arg[2,/].Find[gem]}) {
+						/if (!${Int[${Me.Book[${Command_DoTs[${i}].Arg[1,/]}]}]}) {
+							/varset Command_DoTs[${i}] ${Command_DoTs[${i}].Arg[1,/]}/BAD_ENTRY
+							/call WriteToIni "${Character_Ini},DoTs,DoT on Command#${i}" "${Command_DoTs[${i}]}" 1
+							/echo ERROR: @[DoT on Command#${i}] - [${Command_DoTs[${i}].Arg[1,/]}] was not found in my spellbook.  Flagging [DoT on Command#${i}] as a BAD_ENTRY.
+						}
+					} else /if (${Command_DoTs[${i}].Arg[2,/].Equal[item]}) {
+						/if (!${FindItemCount[${Command_DoTs[${i}].Arg[1,/]}]}) {
+							/varset Command_DoTs[${i}] ${Command_DoTs[${i}].Arg[1,/]}/BAD_ENTRY
+							/call WriteToIni "${Character_Ini},DoTs,DoT on Command#${i}" "${Command_DoTs[${i}]}" 1
+							/echo ERROR: @[DoT on Command#${i}] - I do not have [${Command_DoTs[${i}].Arg[1,/]}] in my inventory.  Flagging [DoT on Command#${i}] as a BAD_ENTRY.
+						}
+					} else /if (${Command_DoTs[${i}].Arg[2,/].Equal[alt]} || ${Command_DoTs[${i}].Arg[2,/].Equal[aa]}) {
+						/if (!${Me.AltAbility[${Command_DoTs[${i}].Arg[1,/]}]}) {
+							/varset Command_DoTs[${i}] ${Command_DoTs[${i}].Arg[1,/]}/BAD_ENTRY
+							/call WriteToIni "${Character_Ini},DoTs,DoT on Command#${i}" "${Command_DoTs[${i}]}" 1
+							/echo ERROR: @[DoT on Command#${i}] - I do not have any ranks in [${Command_DoTs[${i}].Arg[1,/]}].  Flagging [DoT on Command#${i}] as a BAD_ENTRY.
+						}
+					} else /if (${Command_DoTs[${i}].Arg[2,/].Equal[BAD_ENTRY]}) {
+						/echo ERROR: @[DoT on Command#${i}] - There is a problem with the user entry for [${Command_DoTs[${i}].Arg[1,/]}] in [${Character_Ini}].  Please review this entry, and restart the macro.
+					} else {
+						/varset Command_DoTs[${i}] ${Command_DoTs[${i}].Arg[1,/]}/BAD_ENTRY
+						/call WriteToIni "${Character_Ini},DoTs,DoT on Command#${i}" "${Command_DoTs[${i}]}" 1
+						/echo ERROR: @[DoT on Command#${i}] - [${Command_DoTs[${i}].Arg[2,/]}] is not an acceptable castType.  Flagging [DoT on Command#${i}] as a BAD_ENTRY.
 					}
 				}
+				
 			/next i
-			
-			/call RemoveArrayElement Command_Debuffs BAD_ENTRY
-			
-			/if (${Command_Debuffs.Size}) /declare do_CommandDebuffs bool outer TRUE
 		}
-	}
 
-	|--------------------------------------------------------------------------------------------------------------------------------------------[Rain].
-	/if (${Ini[${Character_Ini},Rain,Rain#1].Length}) {
-		/call INItoArray ${Character_Ini},Rain,Rain# Rain_Spells
+		/call rewrite_ValidationKey ${Validation_Count} ${Validation_Arg}
 		
-	|---------------------------------------------------------------Validate Rain_Spells array.
+		/varset Validation_On FALSE
+		/goto :Validate_CommandDoTs
+	}
+	/if (${Defined[Command_DoTs]}) /declare do_CommandDoTs bool outer TRUE
+	
+|-------------------------------------------------------------------------------------------------------------------------------------------[Assist_Debuffs].
+	/varcalc Validation_Arg ${Validation_Arg} + 1
+	:Validate_AssistDebuffs
+	/varset Validation_Count 0
+
+	/if (${Ini[${Character_Ini},Debuffs,Debuff on Assist#1].Length}) /call INItoArray "${Character_Ini},Debuffs,Debuff on Assist#" Assist_Debuffs
+
+	/if (!${Ini[${MacroData_Ini},ValidationKey-${MacroQuest.Server},${Me.CleanName}].Length} || ${Ini[${MacroData_Ini},ValidationKey-${MacroQuest.Server},${Me.CleanName}].Arg[${Validation_Arg},-]} != ${Validation_Count}) /varset Validation_On TRUE
+
+	/if (${Validation_On}) {
+		/if (${Assist_Debuffs.Size}) {
+			
+			/for i 1 to ${Assist_Debuffs.Size}
+				
+			|------------------------------------------------------------------------------------------------------------------------------Missing castType.	
+				/if (!${Assist_Debuffs[${i}].Arg[2,/].Length}) {
+					/echo [Debuff on Assist#${i}] - [${Assist_Debuffs[${i}]}] does not have a specified castType.  Attempting to fix...
+					
+					/if (${Int[${Me.Book[${Assist_Debuffs[${i}]}]}]}) {
+						/varset Assist_Debuffs[${i}] ${Assist_Debuffs[${i}]}/gem${If[${Me.Gem[${Assist_Debuffs[${i}]}]},${Me.Gem[${Assist_Debuffs[${i}]}]},${DefaultGem}]}
+						/call WriteToIni "${Character_Ini},Debuffs,Debuff on Assist#${i}" "${Assist_Debuffs[${i}]}" 1
+						/echo [${Assist_Debuffs[${i}].Arg[1,/]}] was found in my spellbook.  Setting [${Assist_Debuffs[${i}].Arg[1,/]}] to [${Assist_Debuffs[${i}].Arg[2,/]}].
+					} else /if (${FindItemCount[${Assist_Debuffs[${i}]}]}) {
+						/varset Assist_Debuffs[${i}] ${Assist_Debuffs[${i}]}/item
+						/call WriteToIni "${Character_Ini},Debuffs,Debuff on Assist#${i}" "${Assist_Debuffs[${i}]}" 1
+						/echo [${Assist_Debuffs[${i}].Arg[1,/]}] was found in my inventory.  Setting [${Assist_Debuffs[${i}].Arg[1,/]}] to [${Assist_Debuffs[${i}].Arg[2,/]}]
+					} else /if (${Me.AltAbility[${Assist_Debuffs[${i}]}]}) {
+						/varset Assist_Debuffs[${i}] ${Assist_Debuffs[${i}]}/alt
+						/call WriteToIni "${Character_Ini},Debuffs,Debuff on Assist#${i}" "${Assist_Debuffs[${i}]}" 1
+						/echo I have ranks spent in [${Assist_Debuffs[${i}].Arg[1,/]}].  Setting [${Assist_Debuffs[${i}].Arg[1,/]}] to [${Assist_Debuffs[${i}].Arg[2,/]}]	
+					} else {
+						/varset Assist_Debuffs[${i}] ${Assist_Debuffs[${i}]}/BAD_ENTRY
+						/call WriteToIni "${Character_Ini},Debuffs,Debuff on Assist#${i}" "${Assist_Debuffs[${i}]}" 1
+						/echo ERROR: @[Debuff on Assist#${i}] - Could not find a compatible castType for [${Assist_Debuffs[${i}]}].  Flagging [Debuff on Assist#${i}] as a BAD_ENTRY.
+					}
+				} else {
+		
+				|--------------------------------------------------------------------------------------------------------------------------Invalid castType.
+					/if (${Int[${Assist_Debuffs[${i}].Arg[2,/]}]}) {
+						/echo [Debuff on Assist#${i}] - [${Assist_Debuffs[${i}]}] has an invalid castType.  Attempting to fix...
+						
+						/if (${Int[${Me.Book[${Assist_Debuffs[${i}].Arg[1,/]}]}]}) {
+							/varset Assist_Debuffs[${i}] ${Assist_Debuffs[${i}].Arg[1,/]}/gem${If[${Me.Gem[${Assist_Debuffs[${i}]}]},${Me.Gem[${Assist_Debuffs[${i}]}]},${DefaultGem}]}/${Assist_Debuffs[${i}].Arg[2,/]}
+							/call WriteToIni "${Character_Ini},Debuffs,Debuff on Assist#${i}" "${Assist_Debuffs[${i}]}" 1
+							/echo [Debuff on Assist#${i}] has been changed to [${Assist_Debuffs[${i}]}].  Please review this entry, and restart the macro if needed.
+						} else /if (${FindItemCount[${Assist_Debuffs[${i}].Arg[1,/]}]}) {
+							/varset Assist_Debuffs[${i}] ${Assist_Debuffs[${i}]}/item/${Assist_Debuffs[${i}].Arg[2,/]}
+							/call WriteToIni "${Character_Ini},Debuffs,Debuff on Assist#${i}" "${Assist_Debuffs[${i}]}" 1
+							/echo [Debuff on Assist#${i}] has been changed to [${Assist_Debuffs[${i}]}].  Please review this entry, and restart the macro if needed.
+						} else /if (${Me.AltAbility[${Assist_Debuffs[${i}]}]}) {
+							/varset Assist_Debuffs[${i}] ${Assist_Debuffs[${i}]}/alt/${Assist_Debuffs[${i}].Arg[2,/]}
+							/call WriteToIni "${Character_Ini},Debuffs,Debuff on Assist#${i}" "${Assist_Debuffs[${i}]}" 1
+							/echo [Debuff on Assist#${i}] has been changed to [${Assist_Debuffs[${i}]}].  Please review this entry, and restart the macro if needed.
+						} else {
+							/varset Assist_Debuffs[${i}] ${Assist_Debuffs[${i}]}/BAD_ENTRY
+							/call WriteToIni "${Character_Ini},Debuffs,Debuff on Assist#${i}" "${Assist_Debuffs[${i}]}" 1
+							/echo ERROR: @[Debuff on Assist#${i}] - Could not find a compatible castType for [${Assist_Debuffs[${i}]}].  Flagging [Debuff on Assist#${i}] as a BAD_ENTRY.
+						}
+					} else /if (${Assist_Debuffs[${i}].Arg[2,/].Find[gem]}) {
+						/if (!${Int[${Me.Book[${Assist_Debuffs[${i}].Arg[1,/]}]}]}) {
+							/varset Assist_Debuffs[${i}] ${Assist_Debuffs[${i}].Arg[1,/]}/BAD_ENTRY
+							/call WriteToIni "${Character_Ini},Debuffs,Debuff on Assist#${i}" "${Assist_Debuffs[${i}]}" 1
+							/echo ERROR: @[Debuff on Assist#${i}] - [${Assist_Debuffs[${i}].Arg[1,/]}] was not found in my spellbook.  Flagging [Debuff on Assist#${i}] as a BAD_ENTRY.
+						}
+					} else /if (${Assist_Debuffs[${i}].Arg[2,/].Equal[item]}) {
+						/if (!${FindItemCount[${Assist_Debuffs[${i}].Arg[1,/]}]}) {
+							/varset Assist_Debuffs[${i}] ${Assist_Debuffs[${i}].Arg[1,/]}/BAD_ENTRY
+							/call WriteToIni "${Character_Ini},Debuffs,Debuff on Assist#${i}" "${Assist_Debuffs[${i}]}" 1
+							/echo ERROR: @[Debuff on Assist#${i}] - I do not have [${Assist_Debuffs[${i}].Arg[1,/]}] in my inventory.  Flagging [Debuff on Assist#${i}] as a BAD_ENTRY.
+						}
+					} else /if (${Assist_Debuffs[${i}].Arg[2,/].Equal[alt]} || ${Assist_Debuffs[${i}].Arg[2,/].Equal[aa]}) {
+						/if (!${Me.AltAbility[${Assist_Debuffs[${i}].Arg[1,/]}]}) {
+							/varset Assist_Debuffs[${i}] ${Assist_Debuffs[${i}].Arg[1,/]}/BAD_ENTRY
+							/call WriteToIni "${Character_Ini},Debuffs,Debuff on Assist#${i}" "${Assist_Debuffs[${i}]}" 1
+							/echo ERROR: @[Debuff on Assist#${i}] - I do not have any ranks in [${Assist_Debuffs[${i}].Arg[1,/]}].  Flagging [Debuff on Assist#${i}] as a BAD_ENTRY.
+						}
+					} else /if (${Assist_Debuffs[${i}].Arg[2,/].Equal[BAD_ENTRY]}) {
+						/echo ERROR: @[Debuff on Assist#${i}] - There is a problem with the user entry for [${Assist_Debuffs[${i}].Arg[1,/]}] in [${Character_Ini}].  Please review this entry, and restart the macro.
+					} else {
+						/varset Assist_Debuffs[${i}] ${Assist_Debuffs[${i}].Arg[1,/]}/BAD_ENTRY
+						/call WriteToIni "${Character_Ini},Debuffs,Debuff on Assist#${i}" "${Assist_Debuffs[${i}]}" 1
+						/echo ERROR: @[Debuff on Assist#${i}] - [${Assist_Debuffs[${i}].Arg[2,/]}] is not an acceptable castType.  Flagging [Debuff on Assist#${i}] as a BAD_ENTRY.
+					}
+				}
+				
+			/next i
+		}
+
+		/call rewrite_ValidationKey ${Validation_Count} ${Validation_Arg}
+		
+		/varset Validation_On FALSE
+		/goto :Validate_AssistDebuffs
+	}
+	/if (${Defined[Assist_Debuffs]}) /declare do_AssistDebuffs bool outer TRUE
+	
+|-------------------------------------------------------------------------------------------------------------------------------------------[Command_Debuffs].
+	/varcalc Validation_Arg ${Validation_Arg} + 1
+	:Validate_CommandDebuffs
+	/varset Validation_Count 0
+
+	/if (${Ini[${Character_Ini},Debuffs,Debuff on Command#1].Length}) /call INItoArray "${Character_Ini},Debuffs,Debuff on Command#" Command_Debuffs
+
+	/if (!${Ini[${MacroData_Ini},ValidationKey-${MacroQuest.Server},${Me.CleanName}].Length} || ${Ini[${MacroData_Ini},ValidationKey-${MacroQuest.Server},${Me.CleanName}].Arg[${Validation_Arg},-]} != ${Validation_Count}) /varset Validation_On TRUE
+
+	/if (${Validation_On}) {
+		/if (${Command_Debuffs.Size}) {
+			
+			/for i 1 to ${Command_Debuffs.Size}
+				
+			|------------------------------------------------------------------------------------------------------------------------------Missing castType.	
+				/if (!${Command_Debuffs[${i}].Arg[2,/].Length}) {
+					/echo [Debuff on Command#${i}] - [${Command_Debuffs[${i}]}] does not have a specified castType.  Attempting to fix...
+					
+					/if (${Int[${Me.Book[${Command_Debuffs[${i}]}]}]}) {
+						/varset Command_Debuffs[${i}] ${Command_Debuffs[${i}]}/gem${If[${Me.Gem[${Command_Debuffs[${i}]}]},${Me.Gem[${Command_Debuffs[${i}]}]},${DefaultGem}]}
+						/call WriteToIni "${Character_Ini},Debuffs,Debuff on Command#${i}" "${Command_Debuffs[${i}]}" 1
+						/echo [${Command_Debuffs[${i}].Arg[1,/]}] was found in my spellbook.  Setting [${Command_Debuffs[${i}].Arg[1,/]}] to [${Command_Debuffs[${i}].Arg[2,/]}].
+					} else /if (${FindItemCount[${Command_Debuffs[${i}]}]}) {
+						/varset Command_Debuffs[${i}] ${Command_Debuffs[${i}]}/item
+						/call WriteToIni "${Character_Ini},Debuffs,Debuff on Command#${i}" "${Command_Debuffs[${i}]}" 1
+						/echo [${Command_Debuffs[${i}].Arg[1,/]}] was found in my inventory.  Setting [${Command_Debuffs[${i}].Arg[1,/]}] to [${Command_Debuffs[${i}].Arg[2,/]}]
+					} else /if (${Me.AltAbility[${Command_Debuffs[${i}]}]}) {
+						/varset Command_Debuffs[${i}] ${Command_Debuffs[${i}]}/alt
+						/call WriteToIni "${Character_Ini},Debuffs,Debuff on Command#${i}" "${Command_Debuffs[${i}]}" 1
+						/echo I have ranks spent in [${Command_Debuffs[${i}].Arg[1,/]}].  Setting [${Command_Debuffs[${i}].Arg[1,/]}] to [${Command_Debuffs[${i}].Arg[2,/]}]	
+					} else {
+						/varset Command_Debuffs[${i}] ${Command_Debuffs[${i}]}/BAD_ENTRY
+						/call WriteToIni "${Character_Ini},Debuffs,Debuff on Command#${i}" "${Command_Debuffs[${i}]}" 1
+						/echo ERROR: @[Debuff on Command#${i}] - Could not find a compatible castType for [${Command_Debuffs[${i}]}].  Flagging [Debuff on Command#${i}] as a BAD_ENTRY.
+					}
+				} else {
+		
+				|--------------------------------------------------------------------------------------------------------------------------Invalid castType.
+					/if (${Int[${Command_Debuffs[${i}].Arg[2,/]}]}) {
+						/echo [Debuff on Command#${i}] - [${Command_Debuffs[${i}]}] has an invalid castType.  Attempting to fix...
+						
+						/if (${Int[${Me.Book[${Command_Debuffs[${i}].Arg[1,/]}]}]}) {
+							/varset Command_Debuffs[${i}] ${Command_Debuffs[${i}].Arg[1,/]}/gem${If[${Me.Gem[${Command_Debuffs[${i}]}]},${Me.Gem[${Command_Debuffs[${i}]}]},${DefaultGem}]}/${Command_Debuffs[${i}].Arg[2,/]}
+							/call WriteToIni "${Character_Ini},Debuffs,Debuff on Command#${i}" "${Command_Debuffs[${i}]}" 1
+							/echo [Debuff on Command#${i}] has been changed to [${Command_Debuffs[${i}]}].  Please review this entry, and restart the macro if needed.
+						} else /if (${FindItemCount[${Command_Debuffs[${i}].Arg[1,/]}]}) {
+							/varset Command_Debuffs[${i}] ${Command_Debuffs[${i}]}/item/${Command_Debuffs[${i}].Arg[2,/]}
+							/call WriteToIni "${Character_Ini},Debuffs,Debuff on Command#${i}" "${Command_Debuffs[${i}]}" 1
+							/echo [Debuff on Command#${i}] has been changed to [${Command_Debuffs[${i}]}].  Please review this entry, and restart the macro if needed.
+						} else /if (${Me.AltAbility[${Command_Debuffs[${i}]}]}) {
+							/varset Command_Debuffs[${i}] ${Command_Debuffs[${i}]}/alt/${Command_Debuffs[${i}].Arg[2,/]}
+							/call WriteToIni "${Character_Ini},Debuffs,Debuff on Command#${i}" "${Command_Debuffs[${i}]}" 1
+							/echo [Debuff on Command#${i}] has been changed to [${Command_Debuffs[${i}]}].  Please review this entry, and restart the macro if needed.
+						} else {
+							/varset Command_Debuffs[${i}] ${Command_Debuffs[${i}]}/BAD_ENTRY
+							/call WriteToIni "${Character_Ini},Debuffs,Debuff on Command#${i}" "${Command_Debuffs[${i}]}" 1
+							/echo ERROR: @[Debuff on Command#${i}] - Could not find a compatible castType for [${Command_Debuffs[${i}]}].  Flagging [Debuff on Command#${i}] as a BAD_ENTRY.
+						}
+					} else /if (${Command_Debuffs[${i}].Arg[2,/].Find[gem]}) {
+						/if (!${Int[${Me.Book[${Command_Debuffs[${i}].Arg[1,/]}]}]}) {
+							/varset Command_Debuffs[${i}] ${Command_Debuffs[${i}].Arg[1,/]}/BAD_ENTRY
+							/call WriteToIni "${Character_Ini},Debuffs,Debuff on Command#${i}" "${Command_Debuffs[${i}]}" 1
+							/echo ERROR: @[Debuff on Command#${i}] - [${Command_Debuffs[${i}].Arg[1,/]}] was not found in my spellbook.  Flagging [Debuff on Command#${i}] as a BAD_ENTRY.
+						}
+					} else /if (${Command_Debuffs[${i}].Arg[2,/].Equal[item]}) {
+						/if (!${FindItemCount[${Command_Debuffs[${i}].Arg[1,/]}]}) {
+							/varset Command_Debuffs[${i}] ${Command_Debuffs[${i}].Arg[1,/]}/BAD_ENTRY
+							/call WriteToIni "${Character_Ini},Debuffs,Debuff on Command#${i}" "${Command_Debuffs[${i}]}" 1
+							/echo ERROR: @[Debuff on Command#${i}] - I do not have [${Command_Debuffs[${i}].Arg[1,/]}] in my inventory.  Flagging [Debuff on Command#${i}] as a BAD_ENTRY.
+						}
+					} else /if (${Command_Debuffs[${i}].Arg[2,/].Equal[alt]} || ${Command_Debuffs[${i}].Arg[2,/].Equal[aa]}) {
+						/if (!${Me.AltAbility[${Command_Debuffs[${i}].Arg[1,/]}]}) {
+							/varset Command_Debuffs[${i}] ${Command_Debuffs[${i}].Arg[1,/]}/BAD_ENTRY
+							/call WriteToIni "${Character_Ini},Debuffs,Debuff on Command#${i}" "${Command_Debuffs[${i}]}" 1
+							/echo ERROR: @[Debuff on Command#${i}] - I do not have any ranks in [${Command_Debuffs[${i}].Arg[1,/]}].  Flagging [Debuff on Command#${i}] as a BAD_ENTRY.
+						}
+					} else /if (${Command_Debuffs[${i}].Arg[2,/].Equal[BAD_ENTRY]}) {
+						/echo ERROR: @[Debuff on Command#${i}] - There is a problem with the user entry for [${Command_Debuffs[${i}].Arg[1,/]}] in [${Character_Ini}].  Please review this entry, and restart the macro.
+					} else {
+						/varset Command_Debuffs[${i}] ${Command_Debuffs[${i}].Arg[1,/]}/BAD_ENTRY
+						/call WriteToIni "${Character_Ini},Debuffs,Debuff on Command#${i}" "${Command_Debuffs[${i}]}" 1
+						/echo ERROR: @[Debuff on Command#${i}] - [${Command_Debuffs[${i}].Arg[2,/]}] is not an acceptable castType.  Flagging [Debuff on Command#${i}] as a BAD_ENTRY.
+					}
+				}
+				
+			/next i
+		}
+
+		/call rewrite_ValidationKey ${Validation_Count} ${Validation_Arg}
+		
+		/varset Validation_On FALSE
+		/goto :Validate_CommandDebuffs
+	}
+	/if (${Defined[Command_Debuffs]}) /declare do_CommandDebuffs bool outer TRUE
+	
+|--------------------------------------------------------------------------------------------------------------------------------------------[Rain].
+	/varcalc Validation_Arg ${Validation_Arg} + 1
+	:Validate_Rain
+	/varset Validation_Count 0
+	
+	/if (${Ini[${Character_Ini},Rain,Rain#1].Length}) /call INItoArray ${Character_Ini},Rain,Rain# Rain_Spells
+		
+	/if (!${Ini[${MacroData_Ini},ValidationKey-${MacroQuest.Server},${Me.CleanName}].Length} || ${Ini[${MacroData_Ini},ValidationKey-${MacroQuest.Server},${Me.CleanName}].Arg[${Validation_Arg},-]} != ${Validation_Count}) /varset Validation_On TRUE
+
+	/if (${Validation_On}) {
 		/if (${Rain_Spells.Size}) {
+			
 			/for i 1 to ${Rain_Spells.Size}
-				/if (${Rain_Spells[${i}].Arg[2,/].Left[3].Equal[gem]}) {
-					/if (!${Int[${Me.Book[${Rain_Spells[${i}].Arg[1,/]}]}]}) {
-						/echo ERROR: @[Rain_Spells#${i}] - I do not have [${Rain_Spells[${i}]}] in my spellbook. Removing it from Rain_Spells.
-						/varset Rain_Spells[${i}] BAD_ENTRY
+
+			|------------------------------------------------------------------------------------------------------------------------------Missing castType.	
+				/if (!${Rain_Spells[${i}].Arg[2,/].Length}) {
+					/echo [Rain#${i}] - [${Rain_Spells[${i}]}] does not have a specified castType.  Attempting to fix...
+					
+					/if (${Int[${Me.Book[${Rain_Spells[${i}]}]}]}) {
+						/varset Rain_Spells[${i}] ${Rain_Spells[${i}]}/gem${If[${Me.Gem[${Rain_Spells[${i}]}]},${Me.Gem[${Rain_Spells[${i}]}]},${DefaultGem}]}
+						/call WriteToIni "${Character_Ini},Rain,Rain#${i}" "${Rain_Spells[${i}]}" 1
+						/echo [${Rain_Spells[${i}].Arg[1,/]}] was found in my spellbook.  Setting [${Rain_Spells[${i}].Arg[1,/]}] to [${Rain_Spells[${i}].Arg[2,/]}].
+					} else /if (${FindItemCount[${Rain_Spells[${i}]}]}) {
+						/varset Rain_Spells[${i}] ${Rain_Spells[${i}]}/item
+						/call WriteToIni "${Character_Ini},Rain,Rain#${i}" "${Rain_Spells[${i}]}" 1
+						/echo [${Rain_Spells[${i}].Arg[1,/]}] was found in my inventory.  Setting [${Rain_Spells[${i}].Arg[1,/]}] to [${Rain_Spells[${i}].Arg[2,/]}]
+					} else /if (${Me.AltAbility[${Rain_Spells[${i}]}]}) {
+						/varset Rain_Spells[${i}] ${Rain_Spells[${i}]}/alt
+						/call WriteToIni "${Character_Ini},Rain,Rain#${i}" "${Rain_Spells[${i}]}" 1
+						/echo I have ranks spent in [${Rain_Spells[${i}].Arg[1,/]}].  Setting [${Rain_Spells[${i}].Arg[1,/]}] to [${Rain_Spells[${i}].Arg[2,/]}]	
+					} else {
+						/varset Rain_Spells[${i}] ${Rain_Spells[${i}]}/BAD_ENTRY
+						/call WriteToIni "${Character_Ini},Rain,Rain#${i}" "${Rain_Spells[${i}]}" 1
+						/echo ERROR: @[Rain#${i}] - Could not find a compatible castType for [${Rain_Spells[${i}]}].  Flagging [Rain#${i}] as a BAD_ENTRY.
 					}
-				} else /if (${Rain_Spells[${i}].Arg[2,/].Equal[item]}) {
-					/if (!${FindItemCount[${Rain_Spells[${i}].Arg[1,/]}]}) {
-						/echo ERROR: @[Rain_Spells#${i}] - I do not have [${Rain_Spells[${i}].Arg[1,/]}] in my inventory. Removing it from Rain_Spells.
-						/varset Rain_Spells[${i}] BAD_ENTRY
-					}
-				} else /if (${Select[${Rain_Spells[${i}].Arg[2,/]},alt,aa]}) {
-					/if (!${Me.AltAbility[${Rain_Spells[${i}].Arg[1,/]}]}) {
-						/echo ERROR: @[Rain_Spells#${i}] - I do not have any ranks in [${Rain_Spells[${i}].Arg[1,/]}]. Removing it from Rain_Spells.
-						/varset Rain_Spells[${i}] BAD_ENTRY
+				} else {
+					
+				|--------------------------------------------------------------------------------------------------------------------------Invalid castType.
+					/if (${Int[${Rain_Spells[${i}].Arg[2,/]}]}) {
+						/echo [Rain#${i}] - [${Rain_Spells[${i}]}] has an invalid castType.  Attempting to fix...
+						
+						/if (${Int[${Me.Book[${Rain_Spells[${i}].Arg[1,/]}]}]}) {
+							/varset Rain_Spells[${i}] ${Rain_Spells[${i}].Arg[1,/]}/gem${If[${Me.Gem[${Rain_Spells[${i}]}]},${Me.Gem[${Rain_Spells[${i}]}]},${DefaultGem}]}/${Rain_Spells[${i}].Arg[2,/]}
+							/call WriteToIni "${Character_Ini},Rain,Rain#${i}" "${Rain_Spells[${i}]}" 1
+							/echo [Rain#${i}] has been changed to [${Rain_Spells[${i}]}].  Please review this entry, and restart the macro if needed.
+						} else /if (${FindItemCount[${Rain_Spells[${i}].Arg[1,/]}]}) {
+							/varset Rain_Spells[${i}] ${Rain_Spells[${i}]}/item/${Rain_Spells[${i}].Arg[2,/]}
+							/call WriteToIni "${Character_Ini},Rain,Rain#${i}" "${Rain_Spells[${i}]}" 1
+							/echo [Rain#${i}] has been changed to [${Rain_Spells[${i}]}].  Please review this entry, and restart the macro if needed.
+						} else /if (${Me.AltAbility[${Rain_Spells[${i}]}]}) {
+							/varset Rain_Spells[${i}] ${Rain_Spells[${i}]}/alt/${Rain_Spells[${i}].Arg[2,/]}
+							/call WriteToIni "${Character_Ini},Rain,Rain#${i}" "${Rain_Spells[${i}]}" 1
+							/echo [Rain#${i}] has been changed to [${Rain_Spells[${i}]}].  Please review this entry, and restart the macro if needed.
+						} else {
+							/varset Rain_Spells[${i}] ${Rain_Spells[${i}]}/BAD_ENTRY
+							/call WriteToIni "${Character_Ini},Rain,Rain#${i}" "${Rain_Spells[${i}]}" 1
+							/echo ERROR: @[Rain#${i}] - Could not find a compatible castType for [${Rain_Spells[${i}]}].  Flagging [Rain#${i}] as a BAD_ENTRY.
+						}
+					} else /if (${Rain_Spells[${i}].Arg[2,/].Find[gem]}) {
+						/if (!${Int[${Me.Book[${Rain_Spells[${i}].Arg[1,/]}]}]}) {
+							/varset Rain_Spells[${i}] ${Rain_Spells[${i}].Arg[1,/]}/BAD_ENTRY
+							/call WriteToIni "${Character_Ini},Rain,Rain#${i}" "${Rain_Spells[${i}]}" 1
+							/echo ERROR: @[Rain#${i}] - [${Rain_Spells[${i}].Arg[1,/]}] was not found in my spellbook.  Flagging [Rain#${i}] as a BAD_ENTRY.
+						}
+					} else /if (${Rain_Spells[${i}].Arg[2,/].Equal[item]}) {
+						/if (!${FindItemCount[${Rain_Spells[${i}].Arg[1,/]}]}) {
+							/varset Rain_Spells[${i}] ${Rain_Spells[${i}].Arg[1,/]}/BAD_ENTRY
+							/call WriteToIni "${Character_Ini},Rain,Rain#${i}" "${Rain_Spells[${i}]}" 1
+							/echo ERROR: @[Rain#${i}] - I do not have [${Rain_Spells[${i}].Arg[1,/]}] in my inventory.  Flagging [Rain#${i}] as a BAD_ENTRY.
+						}
+					} else /if (${Rain_Spells[${i}].Arg[2,/].Equal[alt]} || ${Rain_Spells[${i}].Arg[2,/].Equal[aa]}) {
+						/if (!${Me.AltAbility[${Rain_Spells[${i}].Arg[1,/]}]}) {
+							/varset Rain_Spells[${i}] ${Rain_Spells[${i}].Arg[1,/]}/BAD_ENTRY
+							/call WriteToIni "${Character_Ini},Rain,Rain#${i}" "${Rain_Spells[${i}]}" 1
+							/echo ERROR: @[Rain#${i}] - I do not have any ranks in [${Rain_Spells[${i}].Arg[1,/]}].  Flagging [Rain#${i}] as a BAD_ENTRY.
+						}
+					} else /if (${Rain_Spells[${i}].Arg[2,/].Equal[BAD_ENTRY]}) {
+						/echo ERROR: @[Rain#${i}] - There is a problem with the user entry for [${Rain_Spells[${i}].Arg[1,/]}] in [${Character_Ini}].  Please review this entry, and restart the macro.
+					} else {
+						/varset Rain_Spells[${i}] ${Rain_Spells[${i}].Arg[1,/]}/BAD_ENTRY
+						/call WriteToIni "${Character_Ini},Rain,Rain#${i}" "${Rain_Spells[${i}]}" 1
+						/echo ERROR: @[Rain#${i}] - [${Rain_Spells[${i}].Arg[2,/]}] is not an acceptable castType.  Flagging [Rain#${i}] as a BAD_ENTRY.
 					}
 				}
 			/next i
-			
-			/call RemoveArrayElement Rain_Spells BAD_ENTRY
-			
-			/if (${Rain_Spells.Size}) {
-				/declare do_Rain bool outer FALSE
-				/declare RainCounter int outer 1
-			}
 		}
+		
+		/call rewrite_ValidationKey ${Validation_Count} ${Validation_Arg}
+		
+		/varset Validation_On FALSE
+		/goto :Validate_Rain
+	}
+	/if (${Defined[Rain_Spells]}) {
+		/declare do_Rain bool outer FALSE
+		/declare RainCounter int outer 1
 	}
 	
-	|--------------------------------------------------------------------------------------------------------------------------------------------[Burn].
-	/if (${Ini[${Character_Ini},Burn].Length}) {
-		
-	|----------------------------------------------------------------------Quick Burns
-		/call IniToArray ${Character_Ini},Burn,QuickBurn# QuickBurns
+|--------------------------------------------------------------------------------------------------------------------------------------------[QuickBurns].
+	/varcalc Validation_Arg ${Validation_Arg} + 1
+	:Validate_QuickBurns
+	/varset Validation_Count 0
+	
+	/if (${Ini[${Character_Ini},Burn,Quick Burn#1].Length}) /call IniToArray "${Character_Ini},Burn,Quick Burn#" QuickBurns
+
+	/if (!${Ini[${MacroData_Ini},ValidationKey-${MacroQuest.Server},${Me.CleanName}].Length} || ${Ini[${MacroData_Ini},ValidationKey-${MacroQuest.Server},${Me.CleanName}].Arg[${Validation_Arg},-]} != ${Validation_Count}) /varset Validation_On TRUE
+
+	/if (${Validation_On}) {
 		/if (${QuickBurns.Size}) {
+		
 			/for i 1 to ${QuickBurns.Size}
-				/if (${QuickBurns[${i}].Arg[2,/].Left[3].Equal[gem]}) {
+				
+				/if (!${QuickBurns[${i}].Arg[2,/].Length}) {
+					/echo [Quick Burn#${i}] - [${QuickBurns[${i}]}] does not have a specified castType.  Attempting to fix...
+					
+					/if (${Int[${Me.Book[${QuickBurns[${i}]}]}]}) {
+						/varset QuickBurns[${i}] ${QuickBurns[${i}]}/gem${If[${Me.Gem[${QuickBurns[${i}]}]},${Me.Gem[${QuickBurns[${i}]}]},${DefaultGem}]}
+						/call WriteToIni "${Character_Ini},Burn,Quick Burn#${i}" "${QuickBurns[${i}]}" 1
+						/echo [${QuickBurns[${i}].Arg[1,/]}] was found in my spellbook.  Setting [${QuickBurns[${i}].Arg[1,/]}] to [${QuickBurns[${i}].Arg[2,/]}].
+					} else /if (${FindItemCount[${QuickBurns[${i}]}]}) {
+						/varset QuickBurns[${i}] ${QuickBurns[${i}]}/item
+						/call WriteToIni "${Character_Ini},Burn,Quick Burn#${i}" "${QuickBurns[${i}]}" 1
+						/echo [${QuickBurns[${i}].Arg[1,/]}] was found in my inventory.  Setting [${QuickBurns[${i}].Arg[1,/]}] to [${QuickBurns[${i}].Arg[2,/]}]
+					} else /if (${Me.AltAbility[${QuickBurns[${i}]}]}) {
+						/varset QuickBurns[${i}] ${QuickBurns[${i}]}/alt
+						/call WriteToIni "${Character_Ini},Burn,Quick Burn#${i}" "${QuickBurns[${i}]}" 1
+						/echo I have ranks spent in [${QuickBurns[${i}].Arg[1,/]}].  Setting [${QuickBurns[${i}].Arg[1,/]}] to [${QuickBurns[${i}].Arg[2,/]}]	
+					} else /if (${Me.CombatAbility[${QuickBurns[${i}]}]}) {
+						/varset QuickBurns[${i}] ${QuickBurns[${i}]}/disc
+						/call WriteToIni "${Character_Ini},Burn,Quick Burn#${i}" "${QuickBurns[${i}]}" 1
+						/echo I found [${QuickBurns[${i}].Arg[1,/]}] in my disciplines window.  Setting [${QuickBurns[${i}].Arg[1,/]}] to [${QuickBurns[${i}].Arg[2,/]}]	
+					} else {
+						/varset QuickBurns[${i}] ${QuickBurns[${i}]}/BAD_ENTRY
+						/call WriteToIni "${Character_Ini},Burn,Quick Burn#${i}" "${QuickBurns[${i}]}" 1
+						/echo ERROR: @[Quick Burn#${i}] - Could not find a compatible castType for [${QuickBurns[${i}]}].  Flagging [Quick Burn#${i}] as a BAD_ENTRY.
+					}
+				}
+			
+			|--------------------------------------------------------------------------------------------------------------------------Invalid castType.
+				/if (${QuickBurns[${i}].Arg[2,/].Find[gem]}) {
 					/if (!${Int[${Me.Book[${QuickBurns[${i}].Arg[1,/]}]}]}) {
-						/echo ERROR: @[QuickBurns#${i}] - I do not have [${QuickBurns[${i}]}] in my spellbook. Removing it from QuickBurns.
-						/varset QuickBurns[${i}] BAD_ENTRY
+						/varset QuickBurns[${i}] ${QuickBurns[${i}].Arg[1,/]}/BAD_ENTRY
+						/call WriteToIni "${Character_Ini},Burn,Quick Burn#${i}" "${QuickBurns[${i}]}" 1
+						/echo ERROR: @[Quick Burn#${i}] - [${QuickBurns[${i}].Arg[1,/]}] was not found in my spellbook.  Flagging [Quick Burn#${i}] as a BAD_ENTRY.
 					}
 				} else /if (${QuickBurns[${i}].Arg[2,/].Equal[item]}) {
 					/if (!${FindItemCount[${QuickBurns[${i}].Arg[1,/]}]}) {
-						/echo ERROR: @[QuickBurns#${i}] - I do not have [${QuickBurns[${i}].Arg[1,/]}] in my inventory. Removing it from QuickBurns.
-						/varset QuickBurns[${i}] BAD_ENTRY
+						/varset QuickBurns[${i}] ${QuickBurns[${i}].Arg[1,/]}/BAD_ENTRY
+						/call WriteToIni "${Character_Ini},Burn,Quick Burn#${i}" "${QuickBurns[${i}]}" 1
+						/echo ERROR: @[Quick Burn#${i}] - I do not have [${QuickBurns[${i}].Arg[1,/]}] in my inventory.  Flagging [Quick Burn#${i}] as a BAD_ENTRY.
 					}
 				} else /if (${QuickBurns[${i}].Arg[2,/].Equal[alt]} || ${QuickBurns[${i}].Arg[2,/].Equal[aa]}) {
 					/if (!${Me.AltAbility[${QuickBurns[${i}].Arg[1,/]}]}) {
-						/echo ERROR: @[QuickBurns#${i}] - I do not have any ranks in [${QuickBurns[${i}].Arg[1,/]}]. Removing it from QuickBurns.
-						/varset QuickBurns[${i}] BAD_ENTRY
+						/varset QuickBurns[${i}] ${QuickBurns[${i}].Arg[1,/]}/BAD_ENTRY
+						/call WriteToIni "${Character_Ini},Burn,Quick Burn#${i}" "${QuickBurns[${i}]}" 1
+						/echo ERROR: @[Quick Burn#${i}] - I do not have any ranks in [${QuickBurns[${i}].Arg[1,/]}].  Flagging [Quick Burn#${i}] as a BAD_ENTRY.
 					}
-				} else /if (${QuickBurns[${i}].Arg[2,/].Equal[disc]} || ${QuickBurns[${i}].Arg[2,/].Equal[discipline]}) {
+				} else /if (${QuickBurns[${i}].Arg[2,/].Equal[disc]}) {
 					/if (!${Me.CombatAbility[${QuickBurns[${i}].Arg[1,/]}]}) {
-						/echo ERROR: @[QuickBurns#${i}] - I do not have [${QuickBurns[${i}].Arg[1,/]}] listed on my Combat Abilities page. Removing it from QuickBurns.
-						/varset QuickBurns[${i}] BAD_ENTRY
+						/varset QuickBurns[${i}] ${QuickBurns[${i}].Arg[1,/]}/BAD_ENTRY
+						/call WriteToIni "${Character_Ini},Burn,Quick Burn#${i}" "${QuickBurns[${i}]}" 1
+						/echo ERROR: @[Quick Burn#${i}] - I do not have [${QuickBurns[${i}].Arg[1,/]}] listed in my disciplines window.  Flagging [Quick Burn#${i}] as a BAD_ENTRY.
 					}
+				} else /if (${QuickBurns[${i}].Arg[2,/].Equal[BAD_ENTRY]}) {
+					/echo ERROR: @[Quick Burn#${i}] - There is a problem with the user entry for [${QuickBurns[${i}].Arg[1,/]}] in [${Character_Ini}].  Please review this entry, and restart the macro.
+				} else {
+					/varset QuickBurns[${i}] ${QuickBurns[${i}].Arg[1,/]}/BAD_ENTRY
+					/call WriteToIni "${Character_Ini},Burn,Quick Burn#${i}" "${QuickBurns[${i}]}" 1
+					/echo ERROR: @[Quick Burn#${i}] - [${QuickBurns[${i}].Arg[2,/]}] is not an acceptable castType.  Flagging [Quick Burn#${i}] as a BAD_ENTRY.
 				}
 			/next i
-			
-			/call RemoveArrayElement QuickBurns BAD_ENTRY
-			
-			/if (${Defined[QuickBurns]}) {
-				/declare use_QBurn bool outer FALSE
-				/declare QBurn_Counter int outer 1
-			}
 		}
 		
-	|-----------------------------------------------------------------------Full Burns
-		/call IniToArray ${Character_Ini},Burn,FullBurn# FullBurns
-			/if (${FullBurns.Size}) {
+		/call rewrite_ValidationKey ${Validation_Count} ${Validation_Arg}
+		
+		/varset Validation_On FALSE
+		/goto :Validate_QuickBurns
+	}
+	/if (${Defined[QuickBurns]}) {
+		/declare use_QBurn bool outer FALSE
+		/declare QBurn_Counter int outer 1
+	}
+
+|--------------------------------------------------------------------------------------------------------------------------------------------[FullBurns].
+	/varcalc Validation_Arg ${Validation_Arg} + 1
+	:Validate_FullBurns
+	/varset Validation_Count 0
+	
+	/if (${Ini[${Character_Ini},Burn,Full Burn#1].Length}) /call IniToArray "${Character_Ini},Burn,Full Burn#" FullBurns
+
+	/if (!${Ini[${MacroData_Ini},ValidationKey-${MacroQuest.Server},${Me.CleanName}].Length} || ${Ini[${MacroData_Ini},ValidationKey-${MacroQuest.Server},${Me.CleanName}].Arg[${Validation_Arg},-]} != ${Validation_Count}) /varset Validation_On TRUE
+
+	/if (${Validation_On}) {
+		/if (${FullBurns.Size}) {
+		
 			/for i 1 to ${FullBurns.Size}
-				/if (${FullBurns[${i}].Arg[2,/].Left[3].Equal[gem]}) {
+				
+				/if (!${FullBurns[${i}].Arg[2,/].Length}) {
+					/echo [Full Burn#${i}] - [${FullBurns[${i}]}] does not have a specified castType.  Attempting to fix...
+					
+					/if (${Int[${Me.Book[${FullBurns[${i}]}]}]}) {
+						/varset FullBurns[${i}] ${FullBurns[${i}]}/gem${If[${Me.Gem[${FullBurns[${i}]}]},${Me.Gem[${FullBurns[${i}]}]},${DefaultGem}]}
+						/call WriteToIni "${Character_Ini},Burn,Full Burn#${i}" "${FullBurns[${i}]}" 1
+						/echo [${FullBurns[${i}].Arg[1,/]}] was found in my spellbook.  Setting [${FullBurns[${i}].Arg[1,/]}] to [${FullBurns[${i}].Arg[2,/]}].
+					} else /if (${FindItemCount[${FullBurns[${i}]}]}) {
+						/varset FullBurns[${i}] ${FullBurns[${i}]}/item
+						/call WriteToIni "${Character_Ini},Burn,Full Burn#${i}" "${FullBurns[${i}]}" 1
+						/echo [${FullBurns[${i}].Arg[1,/]}] was found in my inventory.  Setting [${FullBurns[${i}].Arg[1,/]}] to [${FullBurns[${i}].Arg[2,/]}]
+					} else /if (${Me.AltAbility[${FullBurns[${i}]}]}) {
+						/varset FullBurns[${i}] ${FullBurns[${i}]}/alt
+						/call WriteToIni "${Character_Ini},Burn,Full Burn#${i}" "${FullBurns[${i}]}" 1
+						/echo I have ranks spent in [${FullBurns[${i}].Arg[1,/]}].  Setting [${FullBurns[${i}].Arg[1,/]}] to [${FullBurns[${i}].Arg[2,/]}]	
+					} else /if (${Me.CombatAbility[${FullBurns[${i}]}]}) {
+						/varset FullBurns[${i}] ${FullBurns[${i}]}/disc
+						/call WriteToIni "${Character_Ini},Burn,Full Burn#${i}" "${FullBurns[${i}]}" 1
+						/echo I found [${FullBurns[${i}].Arg[1,/]}] in my disciplines window.  Setting [${FullBurns[${i}].Arg[1,/]}] to [${FullBurns[${i}].Arg[2,/]}]	
+					} else {
+						/varset FullBurns[${i}] ${FullBurns[${i}]}/BAD_ENTRY
+						/call WriteToIni "${Character_Ini},Burn,Full Burn#${i}" "${FullBurns[${i}]}" 1
+						/echo ERROR: @[Full Burn#${i}] - Could not find a compatible castType for [${FullBurns[${i}]}].  Flagging [Full Burn#${i}] as a BAD_ENTRY.
+					}
+				}
+			
+			|--------------------------------------------------------------------------------------------------------------------------Invalid castType.
+				/if (${FullBurns[${i}].Arg[2,/].Find[gem]}) {
 					/if (!${Int[${Me.Book[${FullBurns[${i}].Arg[1,/]}]}]}) {
-						/echo ERROR: @[FullBurns#${i}] - I do not have [${FullBurns[${i}]}] in my spellbook. Removing it from FullBurns.
-						/varset FullBurns[${i}] BAD_ENTRY
+						/varset FullBurns[${i}] ${FullBurns[${i}].Arg[1,/]}/BAD_ENTRY
+						/call WriteToIni "${Character_Ini},Burn,Full Burn#${i}" "${FullBurns[${i}]}" 1
+						/echo ERROR: @[Full Burn#${i}] - [${FullBurns[${i}].Arg[1,/]}] was not found in my spellbook.  Flagging [Full Burn#${i}] as a BAD_ENTRY.
 					}
 				} else /if (${FullBurns[${i}].Arg[2,/].Equal[item]}) {
 					/if (!${FindItemCount[${FullBurns[${i}].Arg[1,/]}]}) {
-						/echo ERROR: @[FullBurns#${i}] - I do not have [${FullBurns[${i}].Arg[1,/]}] in my inventory. Removing it from FullBurns.
-						/varset FullBurns[${i}] BAD_ENTRY
+						/varset FullBurns[${i}] ${FullBurns[${i}].Arg[1,/]}/BAD_ENTRY
+						/call WriteToIni "${Character_Ini},Burn,Full Burn#${i}" "${FullBurns[${i}]}" 1
+						/echo ERROR: @[Full Burn#${i}] - I do not have [${FullBurns[${i}].Arg[1,/]}] in my inventory.  Flagging [Full Burn#${i}] as a BAD_ENTRY.
 					}
 				} else /if (${FullBurns[${i}].Arg[2,/].Equal[alt]} || ${FullBurns[${i}].Arg[2,/].Equal[aa]}) {
 					/if (!${Me.AltAbility[${FullBurns[${i}].Arg[1,/]}]}) {
-						/echo ERROR: @[FullBurns#${i}] - I do not have any ranks in [${FullBurns[${i}].Arg[1,/]}]. Removing it from FullBurns.
-						/varset FullBurns[${i}] BAD_ENTRY
+						/varset FullBurns[${i}] ${FullBurns[${i}].Arg[1,/]}/BAD_ENTRY
+						/call WriteToIni "${Character_Ini},Burn,Full Burn#${i}" "${FullBurns[${i}]}" 1
+						/echo ERROR: @[Full Burn#${i}] - I do not have any ranks in [${FullBurns[${i}].Arg[1,/]}].  Flagging [Full Burn#${i}] as a BAD_ENTRY.
 					}
-				} else /if (${FullBurns[${i}].Arg[2,/].Equal[disc]} || ${FullBurns[${i}].Arg[2,/].Equal[discipline]}) {
+				} else /if (${FullBurns[${i}].Arg[2,/].Equal[disc]}) {
 					/if (!${Me.CombatAbility[${FullBurns[${i}].Arg[1,/]}]}) {
-						/echo ERROR: @[FullBurns#${i}] - I do not have [${FullBurns[${i}].Arg[1,/]}] listed on my Combat Abilities page. Removing it from FullBurns.
-						/varset FullBurns[${i}] BAD_ENTRY
+						/varset FullBurns[${i}] ${FullBurns[${i}].Arg[1,/]}/BAD_ENTRY
+						/call WriteToIni "${Character_Ini},Burn,Full Burn#${i}" "${FullBurns[${i}]}" 1
+						/echo ERROR: @[Full Burn#${i}] - I do not have [${FullBurns[${i}].Arg[1,/]}] listed in my disciplines window.  Flagging [Full Burn#${i}] as a BAD_ENTRY.
 					}
+				} else /if (${FullBurns[${i}].Arg[2,/].Equal[BAD_ENTRY]}) {
+					/echo ERROR: @[Full Burn#${i}] - There is a problem with the user entry for [${FullBurns[${i}].Arg[1,/]}] in [${Character_Ini}].  Please review this entry, and restart the macro.
+				} else {
+					/varset FullBurns[${i}] ${FullBurns[${i}].Arg[1,/]}/BAD_ENTRY
+					/call WriteToIni "${Character_Ini},Burn,Full Burn#${i}" "${FullBurns[${i}]}" 1
+					/echo ERROR: @[Full Burn#${i}] - [${FullBurns[${i}].Arg[2,/]}] is not an acceptable castType.  Flagging [Full Burn#${i}] as a BAD_ENTRY.
 				}
 			/next i
-			
-			/call RemoveArrayElement FullBurns BAD_ENTRY
-			
-			/if (${Defined[FullBurn]}) {
-				/declare use_FBurn bool outer FALSE
-				/declare FBurn_Counter int outer 1
-			}
 		}
+
+		/call rewrite_ValidationKey ${Validation_Count} ${Validation_Arg}
+		
+		/varset Validation_On FALSE
+		/goto :Validate_FullBurns
+	}
+	/if (${Defined[FullBurn]}) {
+		/declare use_FBurn bool outer FALSE
+		/declare FBurn_Counter int outer 1
 	}
 	
-	/if (${Defined[AssistType]} || ${MyAbilities.Size} || ${MyNukes.Size} || ${Assist_DoTs.Size} || ${Command_DoTs.Size} || ${Assist_Debuffs.Size} || ${Command_Debuffs.Size} || ${Rain_Spells.Size} || ${QuickBurns.Size} || ${FullBurns.Size}) /declare AssistsOn bool outer TRUE
+	/if (${Defined[AssistType]} || ${Defined[MyAbilities]} || ${Defined[MyNukes]} || ${Defined[Assist_DoTs]} || ${Defined[Command_DoTs]} || ${Defined[Assist_Debuffs]} || ${Defined[Command_Debuffs]} || ${Defined[Rain_Spells]} || ${Defined[QuickBurns]} || ${Defined[FullBurns]}) /declare AssistsOn bool outer TRUE
 
 /if (${Debug}) /echo <== setup_Assists -|
 /RETURN

@@ -86,7 +86,7 @@ Sub SHD_Setup
 	/if (!${Ini[${Character_Ini},${Me.Class}].Length}) /call Make${Me.Class.ShortName}_Ini
 
 	/if (${Ini[${Character_Ini},${Me.Class},LifeTap(Spell/Gem/Pct)].Length}) {
-		/call INItoVar "${Character_Ini},${Me.Class},LifeTap(Spell/Gem/Pct)" UNDEFINED string local
+		/call INItoVar "${Character_Ini},${Me.Class},LifeTap (Spell/Gem/Pct)" UNDEFINED string local
 		/declare LifeTapSpell string outer ${Macro.Return.Arg[1,/]}
 		/declare LifeTapPct int outer ${Macro.Return.Arg[3,/]}
 		/declare LifeTapGem int outer ${Macro.Return.Arg[2,/]}
@@ -105,7 +105,7 @@ Sub SHD_Setup
 Sub MakeSHD_Ini
 /if (${Debug}) /echo |- SHD_Ini ==>
 
-	/call WriteToIni "${Character_Ini},${Me.Class},LifeTap(Spell/Gem/Pct)" "*Lifetap spell to cast, gem to mem it to, and percent to cast it at."
+	/call WriteToIni "${Character_Ini},${Me.Class},Life Tap (Spell/Gem/Pct)" "*Lifetap spell to cast, gem to mem it to, and percent to cast it at."
 	
 /if (${Debug}) /echo <== SHD_Ini -|
 /return

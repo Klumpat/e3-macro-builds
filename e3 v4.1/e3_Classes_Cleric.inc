@@ -103,9 +103,9 @@ Sub CLR_Setup
 /if (${Debug}) /echo |- CLR_Setup ==>
 
 	/if (!${Ini[${Character_Ini},Cleric].Length}) /call MakeCLR_Ini
-	/call INItoVar ${Character_Ini},Cleric,Auto_Yaulp(On/Off) AutoYaulp bool outer
-	/call INItoVar ${Character_Ini},Cleric,DivineArbitration_Pct DivineArb_Pct int outer
-	/call INItoVar ${Character_Ini},Cleric,CelestialRegeneration_Pct celestialRegen_Pct int outer
+	/call INItoVar "${Character_Ini},Cleric,Auto-Yaulp (On/Off)" AutoYaulp bool outer
+	/call INItoVar "${Character_Ini},Cleric,Divine Arbitration (Pct)" DivineArb_Pct int outer
+	/call INItoVar "${Character_Ini},Cleric,Celestial Regeneration (Pct)" celestialRegen_Pct int outer
 
 /if (${Debug}) /echo <== CLR_Setup -|
 /return
@@ -120,9 +120,9 @@ Sub CLR_Setup
 Sub MakeCLR_Ini
 /if (${Debug}) /echo |- CLR_Ini ==>
 
-	/call WriteToIni ${Character_Ini},Cleric,Auto_Yaulp(On/Off) On 0
-	/call WriteToIni ${Character_Ini},Cleric,DivineArbitration_Pct 30 0
-	/call WriteToIni ${Character_Ini},Cleric,CelestialRegeneration_Pct 65 0
+	/call WriteToIni "${Character_Ini},Cleric,Auto-Yaulp (On/Off)" On 0
+	/call WriteToIni "${Character_Ini},Cleric,Divine Arbitration (Pct)" 30 0
+	/call WriteToIni "${Character_Ini},Cleric,Celestial Regeneration (Pct)" 65 0
 	
 /if (${Debug}) /echo <== CLR_Ini -|
 /return

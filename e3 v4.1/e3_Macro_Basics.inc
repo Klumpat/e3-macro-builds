@@ -304,10 +304,11 @@ SUB event_Follow(Line, ChatSender, SpecifiedBots, SpawnToFollow)
 				/varset FollowTarget ${Spawn[pc ${SpawnToFollow}].CleanName}
 			
 			|----------------------------------------------------If FollowTarget is outside of the FollowBreakDistance.
+			
 				/if (${Spawn[${FollowTarget}].Distance} > ${FollowBreakDistance} || !${Spawn[${FollowTarget}].LineOfSight}) {
 					/if (${Verbosity}) /docommand ${ChatToggle} ${FollowTarget} I can't find you, ${FollowTarget}.  I'll start following when I do.
 				} else {
-				
+					
 				|--------------------------------------------------------------------------------------Start Following.
 					/if (${Verbosity}) /docommand ${ChatToggle} Following ${FollowTarget}
 					/call AquireFollow

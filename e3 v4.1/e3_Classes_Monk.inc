@@ -82,7 +82,7 @@ Sub MNK_Setup
 Sub MakeMNK_Ini
 /if (${Debug}) /echo |- MNK_Ini ==>
 
-	/call WriteToIni "${Character_Ini},${Me.Class},Auto_Forage(On/Off)" "*Do you want this character to automatically forage?"
+	/call WriteToIni "${Character_Ini},${Me.Class},Auto-Forage (On/Off)" "*Do you want this character to automatically forage?"
 	
 /if (${Debug}) /echo <== MNK_Ini -|	
 /return

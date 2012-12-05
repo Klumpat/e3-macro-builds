@@ -13,20 +13,6 @@
 
 
 
-|--------------------------------|
-|- Setup BegForBuff variables.	-|
-|--------------------------------|
-SUB setup_BegForBuffs
-/if (${Debug}) /echo |- setup_BegForBuffs ==>
-
-	/if (!${Ini[${SpellAliases_Ini}].Length}) /call MakeSpellAliases_Ini
-	/call IniToVar ${Macro_Ini},Buffs,Restricted_BuffRequests restrictedBuffs string outer
-	
-/if (${Debug}) /echo <== setup_BegForBuffs -|
-/RETURN
-
-
-
 |------------------------------------------------------------------------|
 |- Request spells by name or alias.										-|
 |------------------------------------------------------------------------|
@@ -35,7 +21,6 @@ SUB setup_BegForBuffs
 |- @param ChatText: The message that was sent.							-|
 |------------------------------------------------------------------------|
 SUB event_Chat(ChatChannel, ChatSender, ChatText)
-| /varset Debug 1
 /if (${Debug}) /echo |- Event_Chat ==>
 
 |-----------------------------------------------------------------------------------------------------------------------Clean-up ChatSenders name.
@@ -90,7 +75,7 @@ SUB event_Chat(ChatChannel, ChatSender, ChatText)
 			
 		} else {
 			
-			/if (${Select[${ChatText},${restrictedBuffs}]}) {
+			/if (${Select[${ChatText},${restrictedBuffs.Replace[/,,]}]}) {
 				
 				/if (${ChatChannel.Equal[TELL]}) {
 					/reply [${ChatText}] is a restricted spell.
@@ -136,7 +121,6 @@ SUB event_Chat(ChatChannel, ChatSender, ChatText)
 								/g  ${Spell[${ChatText}]} inc...
 							}
 							
-							
 							/call e3_Cast ${Spawn[pc ${ChatSender}].ID} "${Spell[${ChatText}]}" Gem${DefaultGem} ${Math.Calc[${Spell[${ChatText}].RecastTime}+30]}s
 							/if (${Target.ID}) /squelch /target clear
 						}
@@ -147,5 +131,18 @@ SUB event_Chat(ChatChannel, ChatSender, ChatText)
 	}
 	
 /if (${Debug}) /echo <== Event_Chat -|
-| /varset Debug 0
+/RETURN
+
+
+
+|--------------------------------|
+|- Setup BegForBuff variables.	-|
+|--------------------------------|
+SUB setup_BegForBuffs
+/if (${Debug}) /echo |- setup_BegForBuffs ==>
+
+	/if (!${Ini[${SpellAliases_Ini}].Length}) /call MakeSpellAliases_Ini
+	/if (${Ini[${Macro_Ini},Buffs,Restricted Buffs].Length}) /call IniToVar "${Macro_Ini},Buffs,Restricted Buffs" restrictedBuffs string outer
+	
+/if (${Debug}) /echo <== setup_BegForBuffs -|
 /RETURN

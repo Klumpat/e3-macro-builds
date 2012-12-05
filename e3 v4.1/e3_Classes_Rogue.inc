@@ -72,7 +72,7 @@ Sub ROG_Setup
 
 	/if (!${Ini[${Character_Ini},${Me.Class}].Length}) /call Make${Me.Class.ShortName}_Ini
 
-	/call INItoVar ${Character_Ini},Rogue,Auto_Hide(On/Off) AutoHide bool outer
+	/call INItoVar "${Character_Ini},Rogue,Auto-Hide (On/Off)" AutoHide bool outer
 	
 |---------------------------------------------------------------------------------Check MyAbilities for an Assassin's Strike type disc.
 	/if (${MyAbilities.Size}) {
@@ -109,8 +109,8 @@ Sub ROG_Setup
 Sub MakeROG_Ini
 /if (${Debug}) /echo |- ROG_Ini ==>
 
-	/call WriteToIni "${Character_Ini},${Me.Class},Auto_Hide(On/Off)" "Do you want this character to automatically sneak / hide whenever you're not in combat?" 0
-	/call WriteToIni "${Character_Ini},${Me.Class},Auto_Forage(On/Off)" "*Do you want this character to automatically forage?" 0
+	/call WriteToIni "${Character_Ini},${Me.Class},Auto-Hide (On/Off)" "Do you want this character to automatically sneak / hide whenever you're not in combat?" 0
+	/call WriteToIni "${Character_Ini},${Me.Class},Auto-Forage (On/Off)" "*Do you want this character to automatically forage?" 0
 	
 /if (${Debug}) /echo <== ROG_Ini -|
 /return

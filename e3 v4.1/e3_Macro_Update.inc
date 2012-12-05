@@ -6,6 +6,13 @@
 |- Contains information and functions to update an older version of e3.mac.	-|
 |----------------------------------------------------------------------------|
 
+|** THIS FILE HAS BEEN DEPRICATED ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
 
 
 |------------------------------------------------------------------------------------------------------------|
@@ -14,6 +21,8 @@
 |- @param version: e3_Version listed in e3.mac																-|
 |------------------------------------------------------------------------------------------------------------|
 SUB Update_e3(version)
+
+
 /call IniToVar ${Macro_Ini},Settings,e3_Version UNDEFINED string local
 /declare old_macroEdition int local ${Int[${Macro.Return.Arg[1,.]}]}
 /declare old_fileRevisions int local ${Int[${Macro.Return.Arg[2,.]}]}
@@ -57,7 +66,7 @@ Still to come,
 CH Chain
 
 Ranged attack options for rangers / zerkers etc
-**|
+
 		}
 	|----------------------------------------------------------------------------------------------------|
 

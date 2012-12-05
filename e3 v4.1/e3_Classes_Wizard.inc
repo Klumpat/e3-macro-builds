@@ -75,9 +75,9 @@ Sub WIZ_Setup
 /if (${Debug}) /echo |- WIZ_Setup ==>
 
 	/if (!${Ini[${Character_Ini},Wizard].Length}) /call MakeWIZ_Ini
-	/call INItoVar ${Character_Ini},Wizard,EvacOnCommand(On/Off) castEvac bool outer
-	/call INItoVar ${Character_Ini},Wizard,Evac(Spell/Gem) Evac_Spell string outer
-	/call INItoVar ${Character_Ini},Wizard,Auto_Harvest(On/Off) AutoHarvest bool outer
+	/call INItoVar "${Character_Ini},Wizard,Evac on Command (On/Off)" castEvac bool outer
+	/call INItoVar "${Character_Ini},Wizard,Evac (Spell/Gem)" Evac_Spell string outer
+	/call INItoVar "${Character_Ini},Wizard,Auto-Harvest (On/Off)" AutoHarvest bool outer
 
 /if (${Debug}) /echo <== WIZ_Setup -|
 /return
@@ -92,9 +92,9 @@ Sub WIZ_Setup
 Sub MakeWIZ_Ini
 /if (${Debug}) /echo |- WIZ_Ini ==>
 
-	/call WriteToIni ${Character_Ini},Wizard,EvacOnCommand(On/Off) "*Do you want this character to cast Exodus, or a specified evac spell on command?" 0
-	/call WriteToIni ${Character_Ini},Wizard,Evac(Spell/Gem) "*List an evac spell to use if Exodus is not ready, and the gem to mem it to." 0
-	/call WriteToIni ${Character_Ini},Wizard,Auto_Harvest(On/Off) "*Do you want this character to use Harvest of Druzzil automatically?" 0
+	/call WriteToIni "${Character_Ini},Wizard,Evac on Command (On/Off)" "*Do you want this character to cast Exodus, or a specified evac spell on command?" 0
+	/call WriteToIni "${Character_Ini},Wizard,Evac (Spell/Gem)" "*List an evac spell to use if Exodus is not ready, and the gem to mem it to." 0
+	/call WriteToIni "${Character_Ini},Wizard,Auto-Harvest (On/Off)" "*Do you want this character to use Harvest of Druzzil automatically?" 0
 
 /if (${Debug}) /echo <== WIZ_Ini -|
 /return

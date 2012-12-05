@@ -111,7 +111,7 @@ Sub BRD_Setup
 Sub MakeBRD_Ini
 /if (${Debug}) /echo |- BRD_Ini ==>
 
-	/call WriteToIni ${Character_Ini},Bard,AutoForage(On/Off) "*Do you want this character to automatically forage?" 0
+	/call WriteToIni "${Character_Ini},Bard,Auto-Forage On/Off)" "*Do you want this character to automatically forage?" 0
 
 /if (${Debug}) /echo <== BRD_Ini -|
 /return

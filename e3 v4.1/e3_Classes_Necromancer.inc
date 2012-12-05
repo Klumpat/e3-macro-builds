@@ -98,8 +98,8 @@ Sub NEC_Setup
 /if (${Debug}) /echo |- NEC_Setup ==>
 
 	/if (!${Ini[${Character_Ini},Necromancer].Length}) /call MakeNEC_Ini
-	/if (${Ini[${Character_Ini},Necromancer,LifeTap(Spell/Gem/Pct)].Length}) {
-		/call INItoVar ${Character_Ini},Necromancer,LifeTap(Spell/Gem/Pct) UNDEFINED string local
+	/if (${Ini[${Character_Ini},Necromancer,LifeTap (Spell/Gem/Pct)].Length}) {
+		/call INItoVar "${Character_Ini},Necromancer,LifeTap (Spell/Gem/Pct)" UNDEFINED string local
 		/declare LifeTapSpell string outer ${Macro.Return.Arg[1,/]}
 		/declare LifeTapPct int outer ${Macro.Return.Arg[2,/]}
 		/declare LifeTapGem int outer ${Macro.Return.Arg[3,/]}
@@ -148,7 +148,7 @@ Sub NEC_Background_Events
 Sub Event_Twitch(string Line, string InFrom, int TwitchNum)
 /if (${InFrom.Left[1].Compare[ ]}<0) /varset InFrom ${InFrom.Right[-2].Left[-1]}
 | This takes On / off and % out of the ini
-/call INItoVar ${Character_Ini},Necromancer,TwitchOthers(On/Off) UNDEFINED string local
+/call INItoVar "${Character_Ini},Necromancer,Twitch Others (On/Off)" UNDEFINED string local
 /if (${Select[${Macro.Return.Arg[1,/]},Off,off,0]}) {
 	/tell ${InFrom} I'm not currently mana dumping others.
 	/return
@@ -195,6 +195,7 @@ Sub Event_Twitch(string Line, string InFrom, int TwitchNum)
 	/next i
 }
 /return
+
 #event ManaDump "<#*#> Mana dump #1#"
 sub event_ManaDump(string line, string DumpClasses)
 /if (${Me.Class.ShortName.Equal[NEC]}) {
@@ -211,6 +212,7 @@ sub event_ManaDump(string line, string DumpClasses)
 	}
 }
 /return
+
 #event End_ManaDump "<#*#> End mana dump"
 sub event_End_ManaDump
 /if (${ManaBattery}) {
@@ -219,6 +221,7 @@ sub event_End_ManaDump
 	/if (${Defined[TwitchClasses]}) /varset TwitchClasses UNDEFINED
 }
 /return
+
 sub TwitchCasters
 /declare CheckClient int local 1
 /declare twitchTarget string local NOTARGET

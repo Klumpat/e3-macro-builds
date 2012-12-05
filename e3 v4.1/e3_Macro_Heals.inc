@@ -217,87 +217,98 @@ SUB setup_Heals
 
 	/if (${Ini[${Character_Ini},Heals].Length}) {
 		
-	|------------------------------------------------------------------------------------------------------MainTank_Heal.
+	|--------------------------------------------------------------------------------Check for Main Tank
 		/call INItoVar ${Character_Ini},Heals,MainTank MainTank string outer
-		/if (${Defined[MainTank]}) {
-			/call INItoVar ${Character_Ini},Heals,MainTank_Heal(Spell/Gem/Pct) MainTank_Heal string outer
-			/if (${Defined[MainTank_Heal]}) {
-				/if (!${Int[${Me.Book[${MainTank_Heal.Arg[1,/]}]}]}) {
-					/echo ERROR: @[MainTank_Heal] - I do not have [${MainTank_Heal.Arg[1,/]}] in my spellbook. Disabling MainTank_Heals.
-					/deletevar MainTank_Heal
-				}
-			}
-			
-		|-------------------------------------------------------------------------------------------------------MTQuick_Heal.
-			/call INItoVar ${Character_Ini},Heals,MainTank_QuickHeal(Spell/Gem/Pct) MTQuick_Heal string outer
-			/if (${Defined[MTQuick_Heal]}) {
-				/if (!${Int[${Me.Book[${MTQuick_Heal.Arg[1,/]}]}]}) {
-					/echo ERROR: @[MainTank_QuickHeal] - I do not have [${MTQuick_Heal.Arg[1,/]}] in my spellbook. Disabling MainTank_QuickHeals.
-					/deletevar MTQuick_Heal
-				}
-			}
-		}	
-		
-	|---------------------------------------------------------------------------------------------------------Patch_Heal.
-		/call INItoArray ${Character_Ini},Heals,PriorityTarget# priorityTargets
-		/call INItoVar ${Character_Ini},Heals,Patch_Heal(Spell/Gem/Pct) Patch_Heal string outer
-		/if (${Defined[Patch_Heal]}) {
-			/if (!${Int[${Me.Book[${Patch_Heal.Arg[1,/]}]}]}) {
-				/echo ERROR: @[Patch_Heal] - I do not have [${Patch_Heal.Arg[1,/]}] in my spellbook. Disabling Patch_Heals.
-				/deletevar Patch_Heal
-			}
-		}
-		
-	|----------------------------------------------------------------------------------------------------------------HoT.
-		/call INItoVar ${Character_Ini},Heals,HoT_Mode(MTOnly/All/Off) HoT_Mode string outer
-		/if (${Defined[HoT_Mode]}) {
-			/call INItoVar ${Character_Ini},Heals,Heal_Over_Time(Spell/Gem/Pct) HoT_Spell string outer
-			/if (!${Select[${HoT_Mode},MTOnly,All,Off]}) {
-				/echo ERROR: @[HoT_Mode] - [${HoT_Mode}] is not a recognized heal over time mode, disabling HoT functions. Please review [${Character_Ini}] and reload e3.
-				/deletevar HoT_Mode
-			} else {
-				/if (${HoT_Mode.Equal[off]}) {
-					/deletevar HoT_Mode
-				} else {
-					/call INItoVar ${Character_Ini},Heals,Pet_Heal(Spell/Gem/Pct) HoT_Spell string outer
-					/if (${Defined[HoT_Spell]}) {
-						/if (!${Int[${Me.Book[${HoT_Spell.Arg[1,/]}]}]}) {
-							/echo ERROR: @[Heal_Over_Time] - I do not have [${HoT_Spell.Arg[1,/]}] in my spellbook. Disabling Heal_Over_Time.
-							/deletevar HoT_Mode
-							/deletevar HoT_Spell
-						}
-					}
-				}
-			}
-		}
-		
-	|----------------------------------------------------------------------------------------------Pet_Heal.
-		/call INItoVar ${Character_Ini},Heals,Pet_Heal(Spell/Gem/Pct) Pet_Heal string outer
-		/if (${Defined[Pet_Heal]}) {
-			/if (!${Int[${Me.Book[${Pet_Heal.Arg[1,/]}]}]}) {
-				/echo ERROR: @[Pet_Heal] - I do not have [${Pet_Heal.Arg[1,/]}] in my spellbook. Disabling Pet_Heals.
-				/deletevar Pet_Heal
-			}
-		}
-		
-		/call IniToVar ${Character_Ini},Heals,Join_HealChain(On/Off) join_HealChain bool outer
-		/if (${join_HealChain}) {
-			
-		|---------------------------------------------------Check for necessary spells.
-			/if (${Me.Class.ShortName.Equal[Clr]} && !${Me.Book[Complete Heal]} || ${Me.Class.ShortName.Equal[Dru]} && !${Me.Book[Karana's Renewal]}) {
-				/echo ERROR: @[Join_HealChain(On/Off)] - I don't have [${If[${Me.Class.ShortName.Equal[Clr]},Complete Heal,Karana's Renewal]}] in my spellbook, disabling HealChain.
-				/deletevar join_HealChain
-			} else {
-				| Add Heal Chain variables here |
-				
-			}
-		}
-		/if (${Defined[MainTank_Heal]} || ${Defined[MTQuick_Heal]} || ${Defined[Patch_Heal]} || ${Defined[HoT_Spell]} || ${Defined[Pet_Heal]} || ${join_HealChain}) {
-			/declare Heals bool outer TRUE
-			/declare recentHeal_Timer timer outer
-			| /call event_CheckGroup
-		}
+	
 	}
 	
 /if (${Debug}) /echo <== setup_Heals -|
 /RETURN
+
+
+
+/if (${Ini[${Character_Ini},Heals].Length}) {
+	
+|------------------------------------------------------------------------------------------------------MainTank_Heal.
+	/call INItoVar ${Character_Ini},Heals,MainTank MainTank string outer
+	
+	/if (${Defined[MainTank]}) {
+		/call INItoVar ${Character_Ini},Heals,MainTank_Heal(Spell/Gem/Pct) MainTank_Heal string outer
+		
+		/if (${Defined[MainTank_Heal]}) {
+			/if (!${Int[${Me.Book[${MainTank_Heal.Arg[1,/]}]}]}) {
+				/echo ERROR: @[MainTank_Heal] - I do not have [${MainTank_Heal.Arg[1,/]}] in my spellbook. Disabling MainTank_Heals.
+				/deletevar MainTank_Heal
+			}
+		}
+		
+	|-------------------------------------------------------------------------------------------------------MTQuick_Heal.
+		/call INItoVar ${Character_Ini},Heals,MainTank_QuickHeal(Spell/Gem/Pct) MTQuick_Heal string outer
+		/if (${Defined[MTQuick_Heal]}) {
+			/if (!${Int[${Me.Book[${MTQuick_Heal.Arg[1,/]}]}]}) {
+				/echo ERROR: @[MainTank_QuickHeal] - I do not have [${MTQuick_Heal.Arg[1,/]}] in my spellbook. Disabling MainTank_QuickHeals.
+				/deletevar MTQuick_Heal
+			}
+		}
+	}	
+	
+|---------------------------------------------------------------------------------------------------------Patch_Heal.
+	/call INItoArray ${Character_Ini},Heals,PriorityTarget# priorityTargets
+	/call INItoVar ${Character_Ini},Heals,Patch_Heal(Spell/Gem/Pct) Patch_Heal string outer
+	/if (${Defined[Patch_Heal]}) {
+		/if (!${Int[${Me.Book[${Patch_Heal.Arg[1,/]}]}]}) {
+			/echo ERROR: @[Patch_Heal] - I do not have [${Patch_Heal.Arg[1,/]}] in my spellbook. Disabling Patch_Heals.
+			/deletevar Patch_Heal
+		}
+	}
+	
+|----------------------------------------------------------------------------------------------------------------HoT.
+	/call INItoVar ${Character_Ini},Heals,HoT_Mode(MTOnly/All/Off) HoT_Mode string outer
+	/if (${Defined[HoT_Mode]}) {
+		/call INItoVar ${Character_Ini},Heals,Heal_Over_Time(Spell/Gem/Pct) HoT_Spell string outer
+		/if (!${Select[${HoT_Mode},MTOnly,All,Off]}) {
+			/echo ERROR: @[HoT_Mode] - [${HoT_Mode}] is not a recognized heal over time mode, disabling HoT functions. Please review [${Character_Ini}] and reload e3.
+			/deletevar HoT_Mode
+		} else {
+			/if (${HoT_Mode.Equal[off]}) {
+				/deletevar HoT_Mode
+			} else {
+				/call INItoVar ${Character_Ini},Heals,Pet_Heal(Spell/Gem/Pct) HoT_Spell string outer
+				/if (${Defined[HoT_Spell]}) {
+					/if (!${Int[${Me.Book[${HoT_Spell.Arg[1,/]}]}]}) {
+						/echo ERROR: @[Heal_Over_Time] - I do not have [${HoT_Spell.Arg[1,/]}] in my spellbook. Disabling Heal_Over_Time.
+						/deletevar HoT_Mode
+						/deletevar HoT_Spell
+					}
+				}
+			}
+		}
+	}
+	
+|----------------------------------------------------------------------------------------------Pet_Heal.
+	/call INItoVar ${Character_Ini},Heals,Pet_Heal(Spell/Gem/Pct) Pet_Heal string outer
+	/if (${Defined[Pet_Heal]}) {
+		/if (!${Int[${Me.Book[${Pet_Heal.Arg[1,/]}]}]}) {
+			/echo ERROR: @[Pet_Heal] - I do not have [${Pet_Heal.Arg[1,/]}] in my spellbook. Disabling Pet_Heals.
+			/deletevar Pet_Heal
+		}
+	}
+	
+	/call IniToVar ${Character_Ini},Heals,Join_HealChain(On/Off) join_HealChain bool outer
+	/if (${join_HealChain}) {
+		
+	|---------------------------------------------------Check for necessary spells.
+		/if (${Me.Class.ShortName.Equal[Clr]} && !${Me.Book[Complete Heal]} || ${Me.Class.ShortName.Equal[Dru]} && !${Me.Book[Karana's Renewal]}) {
+			/echo ERROR: @[Join_HealChain(On/Off)] - I don't have [${If[${Me.Class.ShortName.Equal[Clr]},Complete Heal,Karana's Renewal]}] in my spellbook, disabling HealChain.
+			/deletevar join_HealChain
+		} else {
+			| Add Heal Chain variables here |
+			
+		}
+	}
+	/if (${Defined[MainTank_Heal]} || ${Defined[MTQuick_Heal]} || ${Defined[Patch_Heal]} || ${Defined[HoT_Spell]} || ${Defined[Pet_Heal]} || ${join_HealChain}) {
+		/declare Heals bool outer TRUE
+		/declare recentHeal_Timer timer outer
+		| /call event_CheckGroup
+	}
+}
