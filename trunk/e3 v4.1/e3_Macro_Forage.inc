@@ -65,10 +65,8 @@ SUB handleForagedItem
 SUB setup_AutoForage
 /if (${Debug}) /echo |- setup_Forage ==>
 	
-	/call IniToVar "${Character_Ini},${Me.Class},AutoForage(On/Off)" autoForage bool outer
-	/if (${autoForage}) {
-		/if (!${Ini[${Forage_Ini}].Length}) /call Build_Alphabetized_Ini ${Forage_Ini}
-	}
+	/call IniToVar "${Character_Ini},${Me.Class},Auto-Forage (On/Off)" autoForage bool outer
+	/if (${autoForage} && !${Ini[${Forage_Ini}].Length}) /call Build_Alphabetized_Ini ${Forage_Ini}
 	
 /if (${Debug}) /echo <== setup_Forage -|	
 /RETURN

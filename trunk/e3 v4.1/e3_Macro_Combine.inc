@@ -1,5 +1,7 @@
 #EVENT Combine "[MQ2] Combine"
 #EVENT Combine "<#*#> Combine"
+#EVENT Combine "[MQ2] Auto Combine"
+#EVENT Combine "<#*#> Auto Combine"
 SUB EVENT_Combine
 /if (${Debug}) /echo |- EVENT_Combine ==>
 

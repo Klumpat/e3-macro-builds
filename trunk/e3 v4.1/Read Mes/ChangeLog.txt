@@ -1,5 +1,9 @@
 e3.mac Change Log
 
+-------------------------------------------------------------------------------------------------------------------------
+-- v4.1 - r1 ------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------
+
 *** v4.1 - September 11th, 2012 ***
 + Revamped e3_Settings.ini. Moved many settings into function specific sections, along with adding quite a few new settings to tweak.
 + Revamped Magician Pet Weapons function.  Added code to make this more reliable, may need further work.
@@ -26,3 +30,62 @@ e3.mac Change Log
 + Depricated the [Abilities] section of the Character_Ini.
 + Moved ability toggles into class specific Character_Ini sections, and changed them to On/Off toggles.
 + Moved ConstantIllusion setting to Bot_Inis.  You can now specify different illusions to use on each character.
+
+-------------------------------------------------------------------------------------------------------------------------
+-- v4.1 - r2 ------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------
+
++ Miscellaneous code.google page updates / changes
+
+-------------------------------------------------------------------------------------------------------------------------
+-- v4.1 - r4 ------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------
+
++ Fixed Assist stick  issue 12  relating to Melee_StickPoint.
++ Turned off several debug mode toggles.
+
+
+
+-------------------------------------------------------------------------------------------------------------------------
+-- v4.1 - r30 -----------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------
+					Fixed:
+Vet AAs for bards / rogues
+Rogue casting while invis
+MQ2Exchange and Item casting (Needs testing)
+Sped up smoothmoves switching between waypoints
+Bard Melody saving / recalling
+Casting of vet AAs including throne of hereos
+
+					Changed:
+Numerous AAs have been changed from ID to the spell name.  By switching from ID to ${Me.AltAbility[AA NAME].ID} the spell IDs will be variable, and wont need to be updated with the server. 
+Changed the output of "Find Item" function to more accurately show data
+Changed the output on "count bots" function to give additional information about NetBot totals and locations
+
+					Added:
+Added MacroData_Ini to store data related to macro functions / setup
+Bard melody auto-correct
+Run through zone
+Added a check to see ensure the corpse you are looting is your own, before looting any items in wait4rez
+Add a follow break when using port commands
+
+
+
+-------------------------------------------------------------------------------------------------------------------------
+-- v4.1 - r31 -----------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------
+					Fixed:			
+Fixed a bug that caused chain casting pet buffs with no pet
+					
+					Changed:					
+began work on automatic ini validation based on counts of the imported variables
+started converting ini entries to new style
+removed FilesPaths from e3_Settings.ini
+changed [autoloot] to [loot] in e3_settings.ini
+changed [autotribute] to [tribute] in e3_settings.ini
+Revamped BuffCheck.inc
+Depricated e3_Macro_Update.inc, and it's functions
+
+					Added:
+Auto-Detection for changes to imported ini variables
+Auto-Validation and correction to select imported ini variables (Assists and BuffCheck, currently.

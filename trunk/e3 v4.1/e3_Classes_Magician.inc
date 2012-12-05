@@ -76,7 +76,7 @@ Sub MAG_Setup
 /if (${Debug}) /echo |- MAG_Setup ==>
 
 	/if (!${Ini[${Character_Ini},Magician].Length}) /call MakeMAG_Ini
-	/call INItoArray ${Character_Ini},Magician,Summon_PetItems# petItems
+	/call INItoArray "${Character_Ini},Magician,Summoned Pet Items#" petItems
 	
 /if (${Debug}) /echo <== MAG_etup -|	
 /return
@@ -91,7 +91,7 @@ Sub MAG_Setup
 Sub MakeMAG_Ini
 /if (${Debug}) /echo |- MAG_Ini ==>
 
-	/call WriteToIni ${Character_Ini},Magician,Summon_PetItems#1 "*List any spells / items you want to use to use when issued the 'Distribute pet items' command." 0
+	/call WriteToIni "${Character_Ini},Magician,Summoned Pet Items#1" "*List any spells / items you want to use to use when issued the 'Distribute pet items' command." 0
 	
 /if (${Debug}) /echo <== MAG_Ini -|	
 /return

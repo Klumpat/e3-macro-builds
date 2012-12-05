@@ -323,12 +323,12 @@ SUB cast_Item(int targetID, itemName, itemTimer, SubToRun)
 		/if (${InvSlot[${slotName}]} < 23) {
 			/varset swapItemBack TRUE
 			/varset oldItemName ${InvSlot[${slotName}].Item.Name}
-			/call WriteToIni PendingExchanges.ini,${MacroQuest.Server},${Me.CleanName} "${oldItemName}/${slotName}" 1
+			/call WriteToIni ${MacroData_Ini},PendingExchanges-${MacroQuest.Server},${Me.CleanName} "${oldItemName}/${slotName}" 1
 		}
 		
 		/call SwapItem "${itemName}" ${slotName}
 		
-		/declare pingDelayTimer timer local ${Math.Calc[${MacroQuest.Ping}+5].Int}
+		/declare pingDelayTimer timer local ${Math.Calc[${MacroQuest.Ping}*.5].Int}
 		
 		:swapDelayLoop
 		/if (${Debug}) /echo |- cast_Item -| :swapDelayLoop
@@ -361,7 +361,7 @@ SUB cast_Item(int targetID, itemName, itemTimer, SubToRun)
 	
 	/if (${swapItemBack} && ${FindItem[${oldItemName}].ID}) {
 		
-		/varset pingDelayTimer ${Math.Calc[${MacroQuest.Ping}+5].Int}
+		/varset pingDelayTimer ${Math.Calc[${MacroQuest.Ping} *.5 + 5].Int}
 		
 		:swapbackDelayLoop
 		/if (${Debug}) /echo |- cast_Item -| :swapbackDelayLoop
@@ -385,7 +385,7 @@ SUB cast_Item(int targetID, itemName, itemTimer, SubToRun)
 				/echo I have failed to swap [${oldItemName}] back, after casting [${itemName}].
 			}
 		} else {
-			/call WriteToIni PendingExchanges.ini,${MacroQuest.Server},${Me.CleanName} NONE 1
+			/call WriteToIni ${MacroData_Ini},PendingExchanges-${MacroQuest.Server},${Me.CleanName} NONE 1
 		}
 	}
 	
@@ -520,6 +520,7 @@ SUB e3_CastingChecks
 		/if (${Debug}) /echo |- e3_CastingChecks -| Cast cancelled.
 		/varset castReturn CAST_CANCELLED
 	}
+	
 |-----------------------------------------------------------------------------If I'm following, and have fallen behind, aquire follow.
 	/if (!${Assisting} && ${Following} && ${SpawnCount[pc ${FollowTarget}]} && ${Spawn[${FollowTarget}].Distance} > ${LeashLength} && ${Spawn[${FollowTarget}].Distance} < ${FollowBreakDistance} && !${Me.Moving}) {
 		/if (${Debug}) /echo |- e3_CastingChecks -| AquireFollow interrupt.
@@ -593,9 +594,7 @@ SUB SwapItem(itemName,slotName)
 				/if (${Debug}) /echo ERROR: |- SwapItem -| Failed to swap [${InvSlot[${slotName}].Item.Name}] for [${itemName}].
 			}
 		}
-		
-
-		
+		/delay 5
 		/if (${Cursor.ID}) /call ClearCursor
 	}
 
@@ -975,9 +974,9 @@ SUB setup_Casting
 	/if (!${Ini[${discTimer_Ini}].Length}) /call Make_discTimers_Ini
 	/if (!${Ini[${itemTimers_Ini}].Length}) /call Build_Alphabetized_Ini ${itemTimers_Ini}
 
-	/call IniToVar ${Macro_Ini},Casting,Default_SpellSet Default_SpellSet string outer
-	/call IniToVar ${Macro_Ini},Casting,Default_SpellGem DefaultGem int outer
-	/call IniToVar ${Macro_Ini},Casting,PauseStickToCast stopToCast bool outer
+	/call IniToVar "${Macro_Ini},Casting,Default Spell Set" Default_SpellSet string outer
+	/call IniToVar "${Macro_Ini},Casting,Default Spell Gem" DefaultGem int outer
+	/call IniToVar "${Macro_Ini},Casting,Pause Stick To Cast (On/Off)" stopToCast bool outer
 	
 /if (${Debug}) /echo <== setup_Casting -|
-/RETURN
+/RETURN	

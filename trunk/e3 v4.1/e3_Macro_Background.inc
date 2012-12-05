@@ -217,7 +217,7 @@ SUB check_Active
 		/if (${Debug}) /echo |- check_Active -| Cursor Check ${If[${Defined[cursorItem_Timer]}, -- ${cursorItem_Timer},]}
 		
 	|------------------------------------------------------------------------------Destroy badItems.
-		/if (${Select[${Cursor},${badItems}]} || ${Select[${Cursor.ID},${badItems}]}) {
+		/if (${Select[${Cursor},${badItems}]} || ${Select[${Cursor.ID},${badItems.Replace[/,,]}]}) {
 			/echo Destroying ${Cursor}...
 			/destroy
 		} else {
@@ -792,7 +792,7 @@ SUB check_Reageants
 |--------------------------------|
 |- setup_Background_Services	-|
 |--------------------------------|
-SUB setup_Background_Services
+SUB setup_backgroundServices
 /if (${Debug}) /echo |- setup_Background_Services ==>
 
 |-------------------------------------------------------------------------------------------------------------------------------------check_Active
@@ -812,16 +812,94 @@ SUB setup_Background_Services
 	/declare currentZone int outer 0
 	/declare safeZone bool outer
 	
-|----------------------------------------------------------------------------------------------------------------Import Macro_Ini settings
-	/call IniToVar ${Macro_Ini},Background,AutoDestroy badItems string outer
-	/call IniToVar ${Macro_Ini},Background,AutoInventoryTimer inventoryTimer string outer
-	/call IniToVar ${Macro_Ini},Background,CloseSpellbookTimer spellbookTimer string outer
-	/call IniToVar ${Macro_Ini},Background,IdleTimeOut idleInterval string outer
-
-	/call INItoVar ${Macro_Ini},AutoTribute,AutoTribute(On/Off) autoTribute bool outer
+	/declare i int local
 	
-	/call IniToArray ${Character_Ini},LifeSupport,LifeSupport# lifeSupport
-	/call IniToArray ${Character_Ini},ReageantCheck,Reageant# check_Reageants
+|----------------------------------------------------------------------------------------------------------------Import Macro_Ini settings
+	/if (${Ini[${Macro_Ini},Background,Auto-Destroy].Length}) /call IniToVar "${Macro_Ini},Background,Auto-Destroy" badItems string outer
+	/call IniToVar "${Macro_Ini},Background,Auto-Inventory Timer (Sec)" inventoryTimer string outer
+	/call IniToVar "${Macro_Ini},Background,Close Spellbook Timer (Sec)" spellbookTimer string outer
+	/call IniToVar "${Macro_Ini},Background,Idle Time Out (Min)" idleInterval string outer
+
+	/call INItoVar "${Macro_Ini},Tribute,Auto-Tribute (On/Off)" autoTribute bool outer
+	
+	/varcalc Validation_Arg ${Validation_Arg} + 1
+	:reload_lifeSupport
+	/varset Validation_Count 0
+	
+	/if (${Ini[${Character_Ini},Life Support,Life Support#1].Length}) /call IniToArray "${Character_Ini},Life Support,Life Support#" lifeSupport
+	
+	/if (!${Ini[${MacroData_Ini},ValidationKey-${MacroQuest.Server},${Me.CleanName}].Length} || ${Ini[${MacroData_Ini},ValidationKey-${MacroQuest.Server},${Me.CleanName}].Arg[${Validation_Arg},-]} != ${Validation_Count}) /varset Validation_On TRUE
+
+	/if (${Validation_On}) {
+		/if (${lifeSupport.Size}) {
+			
+			/for i 1 to ${lifeSupport.Size}
+				/if (!${lifeSupport[${i}].Arg[2,/].Length}) {
+					/echo ERROR: @[Life Support#${i}] - You must specify an ability name/cast type/ percent to use it at.  Ex. Life Support#1=Weapon Shield Discipline/disc/35
+				} else {
+				
+				|------------------------------------------------------------------------------------------------------------Auto-fix castType
+					/if (${Int[${lifeSupport[${i}].Arg[2,/]}]}) {
+						/echo [Life Support#${i}] - [${lifeSupport[${i}]}] has an invalid castType.  Attempting to fix...
+						
+						/if (${Int[${Me.Book[${lifeSupport[${i}].Arg[1,/]}]}]}) {
+							/varset lifeSupport[${i}] ${lifeSupport[${i}].Arg[1,/]}/gem${If[${Me.Gem[${lifeSupport[${i}]}]},${Me.Gem[${lifeSupport[${i}]}]},${DefaultGem}]}/${lifeSupport[${i}].Arg[2,/]}${If[${lifeSupport[${i}].Arg[3,/].Length},/${lifeSupport[${i}].Arg[3,/]},]}
+							/call WriteToIni "${Character_Ini},Life Support,Life Support#${i}" "${lifeSupport[${i}]}" 1
+							/echo [Life Support#${i}] has been changed to [${lifeSupport[${i}]}].  Please review this entry, and restart the macro if needed.
+						} else /if (${FindItemCount[${lifeSupport[${i}].Arg[1,/]}]}) {
+							/varset lifeSupport[${i}] ${lifeSupport[${i}].Arg[1,/]}/item/${lifeSupport[${i}].Arg[2,/]}
+							/call WriteToIni "${Character_Ini},Life Support,Life Support#${i}" "${lifeSupport[${i}]}" 1
+							/echo [Life Support#${i}] has been changed to [${lifeSupport[${i}]}].  Please review this entry, and restart the macro if needed.
+						} else /if (${Me.AltAbility[${lifeSupport[${i}]}]}) {
+							/varset lifeSupport[${i}] ${lifeSupport[${i}].Arg[1,/]}/alt/${lifeSupport[${i}].Arg[2,/]}
+							/call WriteToIni "${Character_Ini},Life Support,Life Support#${i}" "${lifeSupport[${i}]}" 1
+							/echo [Life Support#${i}] has been changed to [${lifeSupport[${i}]}].  Please review this entry, and restart the macro if needed.
+						} else /if (${Me.CombatAbility[${lifeSupport[${i}].Arg[1,/]}]}) {
+							/varset lifeSupport[${i}] ${lifeSupport[${i}].Arg[1,/]}/disc/${lifeSupport[${i}].Arg[2,/]}
+							/call WriteToIni "${Character_Ini},Life Support,Life Support#${i}" "${lifeSupport[${i}]}" 1
+							/echo [Life Support#${i}] has been changed to [${lifeSupport[${i}]}].  Please review this entry, and restart the macro if needed.
+						} else {
+							/varset lifeSupport[${i}] ${lifeSupport[${i}].Arg[1,/]}/BAD_ENTRY
+							/call WriteToIni "${Character_Ini},Life Support,Life Support#${i}" "${lifeSupport[${i}]}" 1
+							/echo ERROR: @[Life Support#${i}] - Could not find a compatible castType for [${lifeSupport[${i}]}].  Flagging [Life Support#${i}] as a BAD_ENTRY.
+						}
+					} else /if (${lifeSupport[${i}].Arg[2,/].Find[gem]}) {
+						/if (!${Int[${Me.Book[${lifeSupport[${i}].Arg[1,/]}]}]}) {
+							/varset lifeSupport[${i}] ${lifeSupport[${i}].Arg[1,/]}/BAD_ENTRY
+							/call WriteToIni "${Character_Ini},Life Support,Life Support#${i}" "${lifeSupport[${i}]}" 1
+							/echo ERROR: @[Life Support#${i}] - [${lifeSupport[${i}].Arg[1,/]}] was not found in my spellbook.  Flagging [Life Support#${i}] as a BAD_ENTRY.
+						}
+					} else /if (${Life Support[${i}].Arg[2,/].Equal[item]}) {
+						/if (!${FindItemCount[${Life Support[${i}].Arg[1,/]}]}) {
+							/varset Life Support[${i}] ${Life Support[${i}].Arg[1,/]}/BAD_ENTRY
+							/call WriteToIni "${Character_Ini},Life Support,Life Support#${i}" "${Life Support[${i}]}" 1
+							/echo ERROR: @[Life Support#${i}] - I do not have [${Life Support[${i}].Arg[1,/]}] in my inventory.  Flagging [Life Support#${i}] as a BAD_ENTRY.
+						}
+					} else /if (${Life Support[${i}].Arg[2,/].Equal[alt]} || ${Life Support[${i}].Arg[2,/].Equal[aa]}) {
+						/if (!${Me.AltAbility[${MyNukes[${i}].Arg[1,/]}]}) {
+							/varset Life Support[${i}] ${Life Support[${i}].Arg[1,/]}/BAD_ENTRY
+							/call WriteToIni "${Character_Ini},Life Support,Life Support#${i}" "${Life Support[${i}]}" 1
+							/echo ERROR: @[Life Support#${i}] - I do not have any ranks in [${Life Support[${i}].Arg[1,/]}].  Flagging [Life Support#${i}] as a BAD_ENTRY.
+						}
+					} else /if (${Life Support[${i}].Arg[2,/].Equal[disc]}) {
+						/if (!${Me.CombatAbility[${Life Support[${i}].Arg[1,/]}]}) {
+							/varset Life Support[${i}] ${Life Support[${i}].Arg[1,/]}/BAD_ENTRY
+							/call WriteToIni "${Character_Ini},Life Support,Life Support#${i}" "${Life Support[${i}]}" 1
+							/echo ERROR: @[Life Support#${i}] - I do not have [${Life Support[${i}].Arg[1,/]}] listed in my disciplines window.  Flagging [Life Support#${i}] as a BAD_ENTRY.
+						}
+					}
+				}
+				
+			/next i
+		}
+		
+		/call rewrite_ValidationKey ${Validation_Count} ${Validation_Arg}
+			
+		/varset Validation_On FALSE
+		/goto :reload_lifeSupport
+	}
+
+	/if (${Ini[${Character_Ini},Reageant Check,Reageant#1].Length}) /call IniToArray "${Character_Ini},Reageant Check,Reageant#" check_Reageants
 	
 	
 	/if (!${Ini[${safeZones_Ini}].Length}) /call Build_Alphabetized_Ini ${safeZones_Ini}

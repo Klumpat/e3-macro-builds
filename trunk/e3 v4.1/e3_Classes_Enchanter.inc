@@ -89,13 +89,13 @@ Sub ENC_Setup
 
 	/if (!${Ini[${Character_Ini},Enchanter].Length}) /call MakeENC_Ini
 	/if (${Ini[${Character_Ini},Enchanter,Rune(Spell/Gem)].Length}) {
-		/call INItoVar ${Character_Ini},Enchanter,Rune(Spell/Gem) UNDEFINED string local
+		/call INItoVar "${Character_Ini},Enchanter,Rune (Spell/Gem)" UNDEFINED string local
 		/declare Rune_Spell string outer ${Macro.Return.Arg[1,/]}
 		/declare Rune_Gem string outer ${Macro.Return.Arg[2,/]}
 	}
-	/call INItoVar ${Character_Ini},Enchanter,AutoMez(On/Off) do_AutoMez bool outer
-	/if (${Ini[${Character_Ini},Enchanter,AutoMez(Spell/Gem/MaxLevel)].Length}) {
-		/call INItoVar ${Character_Ini},Enchanter,AutoMez(Spell/Gem/MaxLevel) UNDEFINED string local
+	/call INItoVar "${Character_Ini},Enchanter,Auto-Mez (On/Off)" do_AutoMez bool outer
+	/if (${Ini[${Character_Ini},Enchanter,Auto-Mez (Spell/Gem/MaxLevel)].Length}) {
+		/call INItoVar "${Character_Ini},Enchanter,Auto-Mez (Spell/Gem/MaxLevel)" UNDEFINED string local
 		/declare AutoMez_Spell string outer ${Macro.Return.Arg[1,/]}
 		/declare AutoMez_Gem string outer ${Macro.Return.Arg[2,/]}
 		/declare MaxMezLevel int outer ${Macro.Return.Arg[3,/]}
@@ -115,11 +115,11 @@ Sub ENC_Setup
 Sub MakeENC_Ini
 /if (${Debug}) /echo |- ENC_Ini ==>
 
-	/call WriteToIni ${Character_Ini},Enchanter,AutoMez(On/Off) "*Do you want this character to automatically mez mobs when there are more than 2 in camp?" 0
-	/call WriteToIni ${Character_Ini},Enchanter,AutoMez(Spell/Gem/MaxLevel) "*Mez spell to use, gem to mem it to, and max effective level of the spell." 0
-	/call WriteToIni ${Character_Ini},Enchanter,Rune(Spell/Gem) "*Rune spell to cast for chain rune, and the gem to mem it to." 0
-	/call WriteToIni ${Character_Ini},Enchanter,CastStuns(On/Off) "*Do you want this character to chain cast stun spells on command?" 0
-	/call WriteToIni ${Character_Ini},Enchanter,Stun#1 "*List stun spells to chain cast." 0
+	| /call WriteToIni "${Character_Ini},Enchanter,Auto-Mez (On/Off)" "*Do you want this character to automatically mez mobs when there are more than 2 in camp?" 0
+	| /call WriteToIni "${Character_Ini},Enchanter,Auto-Mez (Spell/Gem/MaxLevel)" "*Mez spell to use, gem to mem it to, and max effective level of the spell." 0
+	/call WriteToIni "${Character_Ini},Enchanter,Rune (Spell/Gem)" "*Rune spell to cast for chain rune, and the gem to mem it to." 0
+	/call WriteToIni "${Character_Ini},Enchanter,Cast Stuns (On/Off)" "*Do you want this character to chain cast stun spells on command?" 0
+	/call WriteToIni "${Character_Ini},Enchanter,Stun#1" "*List stun spells to chain cast." 0
 	
 /if (${Debug}) /echo <== ENC_Ini -|
 /return
@@ -172,7 +172,7 @@ sub event_Rune_Off
 #event Stuns_On "<#*#> Stuns On"
 #event Stuns_Off "<#*#> Stuns Off"
 Sub Event_Stuns_On
-/call INItoVar ${Character_Ini},Enchanter,CastStuns(On/Off) StunsOn bool outer 
+/call INItoVar "${Character_Ini},Enchanter,Cast Stuns (On/Off)" StunsOn bool outer 
 /if (${StunsOn}) {
 	/declare StunZone int local ${Zone.ID}
 	/call INItoArray ${Character_Ini},Enchanter,Stun# Stun_Spells
@@ -214,8 +214,8 @@ Sub StunCheck
 #event AutoMez "<#*#> Mez All"
 sub event_AutoMez
 /if (${Debug}) /echo |- AutoMez -| ==>
-/if (!${Defined[AutoMez_Spell]} && ${Ini[${Character_Ini},Enchanter,AutoMez(Spell/Gem/MaxLevel)].Length}) {
-	/call INItoVar ${Character_Ini},Enchanter,AutoMez(Spell/Gem/MaxLevel) UNDEFINED string local
+/if (!${Defined[AutoMez_Spell]} && ${Ini[${Character_Ini},Enchanter,Auto-Mez (Spell/Gem/MaxLevel)].Length}) {
+	/call INItoVar "${Character_Ini},Enchanter,Auto-Mez (Spell/Gem/MaxLevel)" UNDEFINED string local
 	/declare AutoMez_Spell string outer ${Macro.Return.Arg[1,/]}
 	/declare AutoMez_Gem int outer ${Macro.Return.Arg[2,/]}
 	/declare MaxMezLevel int outer ${Macro.Return.Arg[3,/]}

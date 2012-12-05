@@ -50,23 +50,40 @@
 |- Checks plugins, creates inis, imports variables, and calls setup functions associated with other includes.	-|
 |----------------------------------------------------------------------------------------------------------------|
 SUB e3_Setup
-|---------------------------------------------------------------------------------------------------Declare Macro_Ini path\file and check plugins.
-/declare Macro_Ini string outer Macro_Inis\e3_Settings.ini
-/call CheckPlugins
-
 /echo Initializing...
 
+|---------------------------------------------------------------------------------------------------Declare Macro_Ini path\file and check plugins.
+	/declare Macro_Ini string outer Macro_Inis\e3_Settings.ini
+	/call CheckPlugins
+
 |--------------------------------------------------------------------------------------------------------------------------Create macro variables.
-/declare ActionTaken bool outer
-/declare spamTimer timer outer
+	/declare ActionTaken bool outer
+	/declare spamTimer timer outer
 
-/if (!${Defined[Following]}) /declare Following bool global FALSE
-/if (!${Defined[FollowTarget]}) /declare FollowTarget string global NULL
-/if (!${Defined[Followers]}) /declare Followers string global NULL
-/declare MeleeClasses string outer BRD,BER,BST,MNK,PAL,RNG,ROG,SHD,WAR
-/declare PriestClasses string outer CLR,DRU,SHM
-/declare CasterClasses string outer ENC,MAG,NEC,WIZ
+	/declare Character_Ini string outer Bot_Inis\Bot_${Me.CleanName}.ini
+	/declare discTimer_Ini string outer Macro_Inis\discTimers.ini
+	/declare Group_Ini string outer Macro_Inis\Groups.ini
+	/declare Forage_Ini string outer Macro_Inis\Forage.ini
+	/declare itemTimers_Ini string outer Macro_Inis\itemTimers.ini
+	/declare Loot_Ini string outer Macro_Inis\Loot.ini
+	/declare SmoothMoves_Ini string outer Macro_Inis\Routes.ini
+	/declare SpellAliases_Ini string outer Macro_Inis\SpellAliases.ini
+	/declare safeZones_Ini string outer Macro_Inis\ZoneSettings.ini
+	/declare MacroData_Ini string outer Macro_Inis\e3_MacroData.ini
+	
+	/declare MeleeClasses string outer BRD,BER,BST,MNK,PAL,RNG,ROG,SHD,WAR
+	/declare PriestClasses string outer CLR,DRU,SHM
+	/declare CasterClasses string outer ENC,MAG,NEC,WIZ
 
+	/if (!${Defined[Following]}) /declare Following bool global FALSE
+	/if (!${Defined[FollowTarget]}) /declare FollowTarget string global NULL
+	/if (!${Defined[Followers]}) /declare Followers string global NULL
+	
+|-------------------------------------------------------------------------------------------------Create a count of entries imported from the Character_Ini.
+	/declare Validation_On bool outer FALSE
+	/declare Validation_Count int outer
+	/declare Validation_Arg int outer 0
+	
 |---------Check for Macro_Ini.  If it doesn't exist, run an initial setup to create a Macro_Ini and update aliases.
 	/if (!${Ini[${Macro_Ini}].Length}) {
 		/echo Welcome to e3, running first time setup...
@@ -78,48 +95,38 @@ SUB e3_Setup
 
 |-------------------------------------------------------------------------------------------------------------------------Load Macro_Ini settings.
 	/echo Importing Macro Ini settings...
-	/call INItoVar ${Macro_Ini},Settings,DebugMode Debug bool outer
-	/call INItoVar ${Macro_Ini},Settings,IniValidation validation_On bool outer
-	/call IniToVar ${Macro_Ini},Settings,ChatChannel ChatToggle string outer
-	/call IniToVar ${Macro_Ini},Settings,Verbosity Verbosity bool outer
+	/call INItoVar "${Macro_Ini},General,Debug Mode (On/Off)" Debug bool outer
+	/call IniToVar "${Macro_Ini},General,Macro Output Channel" ChatToggle string outer
+	/call IniToVar "${Macro_Ini},General,Verbosity (On/Off)" Verbosity bool outer
 	
-	/call IniToVar ${Macro_Ini},Follow/MoveTo,FollowBreakDistance FollowBreakDistance int outer
-	/call IniToVar ${Macro_Ini},Follow/MoveTo,MoveToBreakDistance MoveToBreakDistance int outer
-	/call IniToVar ${Macro_Ini},Follow/MoveTo,LeashLength LeashLength int outer
-	
-	/call IniToVar ${Macro_Ini},FilePaths,Bot_Ini_Path Character_Ini string outer
-	/call IniToVar ${Macro_Ini},FilePaths,discTimers_Ini_Path discTimer_Ini string outer	
-	/call IniToVar ${Macro_Ini},FilePaths,Group_Ini_Path Group_Ini string outer
-	/call IniToVar ${Macro_Ini},FilePaths,Forage_Ini_Path Forage_Ini string outer
-	/call IniToVar ${Macro_Ini},FilePaths,itemTimers_Ini_Path itemTimers_Ini string outer	
-	/call IniToVar ${Macro_Ini},FilePaths,Loot_Ini_Path Loot_Ini string outer
-	/call IniToVar ${Macro_Ini},FilePaths,Routes_Ini_Path SmoothMoves_Ini string outer
-	/call IniToVar ${Macro_Ini},FilePaths,SpellAliases_Ini_Path SpellAliases_Ini string outer
-	/call IniToVar ${Macro_Ini},FilePaths,ZoneSettings_Ini_Path safeZones_Ini string outer
-	
+	/call IniToVar "${Macro_Ini},General,Max Command Response Distance" FollowBreakDistance int outer
+	/call IniToVar "${Macro_Ini},General,Max Command Response Distance" MoveToBreakDistance int outer
+	/call IniToVar "${Macro_Ini},General,Leash Length" LeashLength int outer
+
 |---------------------------------------------------------------Check for Bot_Ini. If one doesn't exist, create it.
 	/if (!${Ini[${Character_Ini}].Length}) {
 		/echo Building [${Character_Ini}].  Review this file to adjust ${Me.CleanName}'s settings.
 		/call MakeCharacter_Ini
 	}
-
+	
 |--------------------------------------------------------------------------------------------------------------------------------Call .inc setups.
 	/echo Importing Character Ini settings...
 
+	:rerun_Setup
 	/call setup_Casting
 	
-	/call setup_Background_Services
+	/call setup_backgroundServices
 	
 	/call setup_Assists
-
+	
 	/call ${Me.Class.ShortName}_Setup
 	
 	/call setup_BegForBuffs
 
 	/call setup_Buffs
-
+	|	|
 	/call setup_Heals
-
+	|	|
 	/call setup_Pets
 	
 	/if (${Me.Ability[Forage]}) /call setup_AutoForage
@@ -136,33 +143,33 @@ SUB e3_Setup
 	}
 
 |---------------------------------------------------------------------------------Swap back pending exchanges.
-	/if (${Ini[PendingExchanges.ini,${MacroQuest.Server},${Me.CleanName}].Length} && ${Ini[PendingExchanges.ini,${MacroQuest.Server},${Me.CleanName}].NotEqual[NONE]}) {
-		/echo |- e3_Setup -| Completing unfinished swap [${Ini[PendingExchanges.ini,${MacroQuest.Server},${Me.CleanName}].Arg[1,/]}] to [${Ini[PendingExchanges.ini,${MacroQuest.Server},${Me.CleanName}].Arg[2,/]}]
+	/if (${Ini[${MacroData_Ini},PendingExchanges-${MacroQuest.Server},${Me.CleanName}].Length} && ${Ini[${MacroData_Ini},PendingExchanges-${MacroQuest.Server},${Me.CleanName}].NotEqual[NONE]}) {
+		/echo |- e3_Setup -| Completing unfinished swap [${Ini[${MacroData_Ini},PendingExchanges-${MacroQuest.Server},${Me.CleanName}].Arg[1,/]}] to [${Ini[${MacroData_Ini},PendingExchanges-${MacroQuest.Server},${Me.CleanName}].Arg[2,/]}]
 		
 		/declare swapRetryTimer timer local 50
 		
 		:SwapBackLoop
 		/if (${Debug}) /echo |- e3_Setup -| :SwapBackLoop
 		
-		/call SwapItem "${Ini[PendingExchanges.ini,${MacroQuest.Server},${Me.CleanName}].Arg[1,/]}" ${Ini[PendingExchanges.ini,${MacroQuest.Server},${Me.CleanName}].Arg[2,/]}
+		/call SwapItem "${Ini[${MacroData_Ini},PendingExchanges-${MacroQuest.Server},${Me.CleanName}].Arg[1,/]}" ${Ini[${MacroData_Ini},PendingExchanges-${MacroQuest.Server},${Me.CleanName}].Arg[2,/]}
 		
-		/if (!${InvSlot[${Ini[PendingExchanges.ini,${MacroQuest.Server},${Me.CleanName},PendingExchange].Arg[2,/]}].Item.Name.Equal[${Ini[PendingExchanges.ini,${MacroQuest.Server},${Me.CleanName}].Arg[1,/]}]}) {
+		/if (!${InvSlot[${Ini[${MacroData_Ini},PendingExchanges-${MacroQuest.Server},${Me.CleanName}].Arg[2,/]}].Item.Name.Equal[${Ini[${MacroData_Ini},PendingExchanges-${MacroQuest.Server},${Me.CleanName}].Arg[1,/]}]}) {
 			/if (${retryTimer}) {
 				/goto :SwapBackLoop
 			} else {
-				/echo I have failed to swap [${Ini[PendingExchanges.ini,${MacroQuest.Server},${Me.CleanName}].Arg[1,/]}] back.
+				/echo I have failed to swap [${Ini[${MacroData_Ini},PendingExchanges-${MacroQuest.Server},${Me.CleanName}].Arg[1,/]}] back.
 			}
 		} else {
-			/call WriteToIni PendingExchanges.ini,${MacroQuest.Server},${Me.CleanName} NONE 1
+			/call WriteToIni ${MacroData_Ini},PendingExchanges-${MacroQuest.Server},${Me.CleanName} NONE 1
 		} 
 	}
-|-----------------------------------------------------------------------------------------------------------------Check for updates and DebugMode.
-	/echo Checking for updates...
-	/if (!${Select[${e3_Version},${Ini[${Macro_Ini},Settings,e3_Version]}]}) /call Update_e3 ${e3_Version}
-	/if (!${e3_Updated}) {
-		/echo e3 loaded.
-		/call startMsg
-	}
+	
+|-----------------------------------------------------------------------------------------------------------------Check to rerun setup after validation.
+	
+	/if (${Select[${Me.Race},Gnome]}) /em picks his nose.
+
+	/echo e3 loaded.
+	/call startMsg
 	
 	/if (${Debug}) {
 		/echo
@@ -175,6 +182,7 @@ SUB e3_Setup
 	|------------------------------------------------------------------If macro is in DebugMode, pause after setup.
 		/mqpause
 	}
+	
 /RETURN
 
 
@@ -185,21 +193,19 @@ SUB startMsg
 	/declare MsgNum int local ${Math.Rand[8]}
 
 	/if (${MsgNum}==1) {
-		/echo ** Unless you have recently made use of the donation link at http://code.google.com/p/e3-macro-builds/, I do not provide technical support for this macro. **
+		/echo ** Unless you have recently made use of the donation link at http://goo.gl/BhnWv, I do not provide technical support for this macro. **
 	} else /if (${MsgNum}==2) {
-		/echo ** If you like my macro and want to show your appreciation, go to, http://code.google.com/p/e3-macro-builds/, to donate! **
+		/echo ** If you like my macro and want to show your appreciation, go to, http://goo.gl/BhnWv, to donate! **
 	} else /if (${MsgNum}==3) {
-		/echo ** One donation is worth a thousand thanks.  If you like my macro, go to, http://code.google.com/p/e3-macro-builds/, and donate! **
+		/echo ** One donation is worth a thousand thanks.  If you like my macro, go to, http://goo.gl/BhnWv, and donate! **
 	} else /if (${MsgNum}==4) {
-		/echo ** Unless you're a hot chick with firm breasts, or have recently made use of the donation link on the webpage, post all questions, issues, or suggestions on the issues page of http://code.google.com/p/e3-macro-builds/. **
+		/echo ** Unless you're a hot chick with firm breasts, or have recently made use of the donation link on the webpage, post all questions, issues, or suggestions on the issues page of http://goo.gl/BhnWv. **
 	} else /if (${MsgNum}==5) {
-		/echo ** What's that?! Oh, it's the donations link at, http://code.google.com/p/e3-macro-builds/.  Maybe you should check it out... **
+		/echo ** What's that?! Oh, it's the donations link at, http://goo.gl/BhnWv.  Maybe you should check it out... **
 	} else /if (${MsgNum}==6) {
-		/echo ** Have you used the website's donation button today? **
+		/echo ** Have you used the website's donation button today?  Go to, http://goo.gl/BhnWv.**
 	} else /if (${MsgNum}==7) {
-		/echo ** If you like my macro, give me money!  Go to, http://code.google.com/p/e3-macro-builds/, and donate.
-	} else /if (${MsgNum}==8) {
-		/echo ** Unless you have donated, do not bug me for tech support. **
+		/echo ** If you like my macro, give me money!  Go to, http://goo.gl/BhnWv, and donate.
 	}
 	
 /if (${Debug}) /echo <== startMsg -|
@@ -211,7 +217,6 @@ SUB startMsg
 |- Checks for and enables required macro plugins.	-|
 |----------------------------------------------------|
 SUB CheckPlugins
-/echo Checking Plugins...
 
 |-----------------------------------------------------------------------------------------------------------------------------------Check MQ2EQBC.
 /if (!${Plugin[MQ2EQBC].Name.Length}) {
@@ -219,7 +224,7 @@ SUB CheckPlugins
 	/plugin MQ2EQBC
 	/delay 10s !${Select[${EQBC},NULL]}
 	/if (${Select[${EQBC},NULL]}) {
-		/echo ***WARNING*** Could not connect to EQBC.  Make sure you have the EQBCS application running and restart.
+		/echo ***WARNING*** Could not load MQ2EQBC.  Make sure you have MQ2EQBC.dll and restart.
 		/endmacro
 	}
 }
@@ -228,10 +233,7 @@ SUB CheckPlugins
 	/if (!${EQBC.Connected}) {
 		/bccmd connect
 		/delay 10s ${EQBC.Connected}
-		/if (!${EQBC.Connected}) {
-			/echo ***WARNING*** Could not connect to EQBCS, please open EQBCS and try again.
-			/endmacro
-		}
+		/if (!${EQBC.Connected}) /echo ***WARNING*** Could not connect to EQBCS, please open EQBCS and try again.
 	}
 
 |--------------------------------------------------------------------------------------------------------------------------------Check MQ2NetBots.
@@ -313,7 +315,7 @@ SUB CheckPlugins
 		/echo Could not load MQ2HUD.
 	}
 }
-
+|** MQ2Cast is no longer used, and has been disabled at this time.
 |-----------------------------------------------------------------------------------------------------------------------------------Check MQ2Cast.
 /if (!${Plugin[MQ2Cast].Name.Length}) {
 	/echo Plugin MQ2Cast is not loaded, attempting to resolve...
@@ -324,6 +326,7 @@ SUB CheckPlugins
 		/endmacro
 	}
 }
+**|
 /RETURN
 
 
@@ -664,71 +667,66 @@ SUB MakeMacro_Ini(Version)
 /if (${Debug}) /echo |- MakeMacro_Ini ==>
 
 |-----------------------------------------------------------------------------------------------------------------------------------Macro entries.
-	/call WriteToIni ${Macro_Ini},Settings,e3_Version 4.1 1
-	/call WriteToIni ${Macro_Ini},Settings,ChatChannel /bc
-	/call WriteToIni ${Macro_Ini},Settings,DebugMode Off
-	/call WriteToIni ${Macro_Ini},Settings,ValidateIniEntries On
-	/call WriteToIni ${Macro_Ini},Settings,Verbosity Off
+	/call WriteToIni "${Macro_Ini},General,Macro Version" 4.1 1
+	/call WriteToIni "${Macro_Ini},General,Macro Output Channel" /bc
+	/call WriteToIni "${Macro_Ini},General,Debug Mode (On/Off)" Off
+	/call WriteToIni "${Macro_Ini},General,Validate Ini Entries (On/Off)" On
+	/call WriteToIni "${Macro_Ini},General,Verbosity (On/Off)" Off
+	/call WriteToIni "${Macro_Ini},General,Max Command Response Distance" 250
+	/call WriteToIni "${Macro_Ini},General,Leash Length" 125
 	
 |---------------------------------------------------------------------------------------------------------------------e3_Macro_Assist.inc entries.
-	/call WriteToIni ${Macro_Ini},Assists,AssistBreakDistance 250
-	/call WriteToIni ${Macro_Ini},Assists,Allowed_TargetTypes NPC,Pet
-	/call WriteToIni ${Macro_Ini},Assists,AutoAssist(On/Off) On
-	/call WriteToIni ${Macro_Ini},Assists,EngagePct 98
-	/call WriteToIni ${Macro_Ini},Assists,AE_Radius 200
-	
-|-----------------------------------------------------------------------------------------------------------------------e3_Macro_Loot.inc entries.
-	/call WriteToIni ${Macro_Ini},AutoLoot,AutoLoot(On/Off) On
-	/call WriteToIni ${Macro_Ini},AutoLoot,Looters Bitz,Shagga,Draaxx
-	/call WriteToIni ${Macro_Ini},AutoLoot,LinkChannel /say
-	/call WriteToIni ${Macro_Ini},AutoLoot,Seek_Radius 35
-	
-|-------------------------------------------------------------------------------------------------------------------------------------AutoTribute.
-	/call WriteToIni ${Macro_Ini},AutoTribute,AutoTribute(On/Off) On
+	/call WriteToIni "${Macro_Ini},Assists,Auto-Assist (On/Off)" On
+	/call WriteToIni "${Macro_Ini},Assists,Auto-Assist Engage Percent" 98
+	/call WriteToIni "${Macro_Ini},Assists,Max Assist Engage Distance" 250
+	/call WriteToIni "${Macro_Ini},Assists,Acceptable Target Types" NPC,Pet
+	| Phase this out?
+	/call WriteToIni "${Macro_Ini},Assists,Area Effect Radius" 200
 	
 |-----------------------------------------------------------------------------------------------------------------e3_Macro_Background.inc entries.
-	/call WriteToIni ${Macro_Ini},Background,AutoDestroy "*List names, or IDs, of items you want to automatically destroy when they are on your cursor.  Use , to add additional items."
-	/call WriteToIni ${Macro_Ini},Background,IdleTimeOut 5m
-	/call WriteToIni ${Macro_Ini},Background,AutoInventoryTimer 30s
-	/call WriteToIni ${Macro_Ini},Background,CloseSpellBookTimer 30s
+	/call WriteToIni "${Macro_Ini},Background,Auto-Destroy" "*List names, or IDs, of items you want to automatically destroy when they are on your cursor.  Use , to add additional items."
+	/call WriteToIni "${Macro_Ini},Background,Idle Time Out (Min)" 5
+	/call WriteToIni "${Macro_Ini},Background,Auto-Inventory Timer (Sec)" 30
+	/call WriteToIni "${Macro_Ini},Background,Close Spellbook Timer (Sec)" 30
 
 |------------------------------------------------------------------------------------------------------------------e3_Macro_BuffCheck.inc entries.
-	/call WriteToIni ${Macro_Ini},Buffs,Allow_BuffRequests On
-	/call WriteToIni ${Macro_Ini},Buffs,Restricted_BuffRequests On
-
+	/call WriteToIni "${Macro_Ini},Buffs,Allow Buff Requests (On/Off)" On
+	/call WriteToIni "${Macro_Ini},Buffs,Restricted Buffs" "*List any buffs that you don't want people to be able to request.  Use / to add additional spells."
+	/call WriteToIni "${Macro_Ini},Buffs,BuffCheck Interval (Sec)" 60
+	
 |--------------------------------------------------------------------------------------------------------------------e3_Macro_Casting.inc entries.
-	/call WriteToIni ${Macro_Ini},Casting,PauseStickToCast Off
-	/call WriteToIni ${Macro_Ini},Casting,Default_SpellSet "*Name of your saved spellsets"
-	/call WriteToIni ${Macro_Ini},Casting,Default_SpellGem 8
+	/call WriteToIni "${Macro_Ini},Casting,Pause Stick To Cast (On/Off)" Off
+	/call WriteToIni "${Macro_Ini},Casting,Default Spell Set" "*Name of your saved spellsets"
+	/call WriteToIni "${Macro_Ini},Casting,Default Spell Gem" 8
 	
 |-----------------------------------------------------------------------------------------------------------------------------------Corpse Summoning.
-	/call WriteToIni ${Macro_Ini},CorpseSummoning,SoulStone "Pristine Soulstone"
-	/call WriteToIni ${Macro_Ini},CorpseSummoning,SoulStoneCost 170
-|---------------------------------------------------------------------------------------------------------------------------Follow/MoveTo entries.
-	/call WriteToIni ${Macro_Ini},Follow/MoveTo,FollowBreakDistance 250
-	/call WriteToIni ${Macro_Ini},Follow/MoveTo,MoveToBreakDistance 750
-	/call WriteToIni ${Macro_Ini},Follow/MoveTo,LeashLength 125
-
-|-------------------------------------------------------------------------------------------------------------------e3_Macro_Wait4Rez.inc entries.
-	/call WriteToIni ${Macro_Ini},Wait4Rez,Wait4Rez(On/Off) On
-	/call WriteToIni ${Macro_Ini},Wait4Rez,Wait4Rez_Alert 1
-	/call WriteToIni ${Macro_Ini},Wait4Rez,BagDelay 20
-	/call WriteToIni ${Macro_Ini},Wait4Rez,ItemDelay 3
-
-|----------------------------------------------------------------------------------------------------------------------------------Ini file paths.
-	/noparse /ini Macro_Inis\e3_Settings FilePaths Bot_Ini_Path Bot_Inis\Bot_${Me.CleanName}.ini
-	/noparse /ini Macro_Inis\e3_Settings FilePaths discTimers_Ini_Path Macro_Inis\discTimers.ini
-	/noparse /ini Macro_Inis\e3_Settings FilePaths Group_Ini_Path Macro_Inis\Groups.ini
-	/noparse /ini Macro_Inis\e3_Settings FilePaths Forage_Ini_Path Macro_Inis\Forage.ini
-	/noparse /ini Macro_Inis\e3_Settings FilePaths itemTimers_Ini_Path Macro_Inis\itemTimers.ini
-	/noparse /ini Macro_Inis\e3_Settings FilePaths Loot_Ini_Path Macro_Inis\Loot.ini
-	/noparse /ini Macro_Inis\e3_Settings FilePaths Routes_Ini_Path Macro_Inis\Routes.ini
-	/noparse /ini Macro_Inis\e3_Settings FilePaths SpellAliases_Ini_Path Macro_Inis\SpellAliases.ini
-	/noparse /ini Macro_Inis\e3_Settings FilePaths ZoneSettings_Ini_Path Macro_Inis\ZoneSettings.ini
+	/call WriteToIni "${Macro_Ini},Corpse Summoning,Soul Stone" "Pristine Soulstone"
+	/call WriteToIni "${Macro_Ini},Corpse Summoning,Soul Stone Cost (Plat)" 170
+	/call WriteToIni "${Macro_Ini},Corpse Summoning,Route to Corpse Summoner" "Dest West Guild Lobby"
 	
+|-----------------------------------------------------------------------------------------------------------------------e3_Macro_Loot.inc entries.
+	/call WriteToIni "${Macro_Ini},Loot,Auto-Loot (On/Off)" On
+	/call WriteToIni "${Macro_Ini},Loot,Looters" "*List looters.  Use , to add multiple looters, ex Looters=Shagga,Draaxx,Bitz"
+	/call WriteToIni "${Macro_Ini},Loot,Loot Link Channel" /say
+	/call WriteToIni "${Macro_Ini},Loot,Corpse Seek Radius" 35
+	
+|-----------------------------------------------------------------------------------------------------------------------Remote access entries.
+	/call WriteToIni "${Macro_Ini},Remote Access,Allow Remote Access (On/Off)" On
+	/call WriteToIni "${Macro_Ini},Remote Access,Remote Access Password" "*Allows others control of your characters, when the password is given with a command.  Ex. Warwar tells you, 'Follow Me (NorkSucks!)'."
+	/call WriteToIni "${Macro_Ini},Remote Access,Remote Access Ignore List" "*List annoying people, who are blocked from accessing your characters"
+	
+|-------------------------------------------------------------------------------------------------------------------------------------AutoTribute.
+	/call WriteToIni "${Macro_Ini},Tribute,Auto-Tribute (On/Off)" On
+	
+|-------------------------------------------------------------------------------------------------------------------e3_Macro_Wait4Rez.inc entries.
+	/call WriteToIni "${Macro_Ini},Wait4Rez,Wait4Rez (On/Off)" On
+	/call WriteToIni "${Macro_Ini},Wait4Rez,Wait4Rez Alert (Beeps)" 1
+	/call WriteToIni "${Macro_Ini},Wait4Rez,Loot Bag Delay" 20
+	/call WriteToIni "${Macro_Ini},Wait4Rez,Loot Item Delay" 3
+
 /if (${Debug}) /echo <== MakeMacro_Ini -|
 /RETURN
-
+	
 
 
 |------------------------------------------------------------------------------------------------------------|
@@ -738,16 +736,16 @@ SUB MakeCharacter_Ini
 /if (${Debug}) /echo |- MakeCharacter_Ini ==>
 
 |-----------------------------------------------------------------------------------------------------------------------------LifeSupport entries.
-	/call WriteToIni ${Character_Ini},LifeSupport,LifeSupport#1 "*List spells, items, AAs, or discs you want this character to use in emergencies. Order entries from highest % HPs to lowest.  Specify ability Name / Type / PctHPs to use, ex. LifeSupport#1=Feign Death/gem5/40, LifeSupport#2=Distillate of Divine Healing X/item/30, LifeSupport#3=Death Peace/alt/20, LifeSupport#4=Weaponshield Discipline/disc/15."
+	/call WriteToIni "${Character_Ini},Life Support,Life Support#1" "*List spells, items, AAs, or discs you want this character to use in emergencies. Order entries from highest % HPs to lowest.  Specify ability Name / Type / PctHPs to use, ex. Life Support#1=Feign Death/gem5/40, Life Support#2=Distillate of Divine Healing X/item/30, Life Support#3=Death Peace/alt/20, Life Support#4=Weaponshield Discipline/disc/15."
 
 |------------------------------------------------------------------------------------------------------------------e3_Macro_BuffCheck.inc entries.
-/if (!${Ini[${Character_Ini},Buffs].Length}) {
-	/call WriteToIni ${Character_Ini},Buffs,SelfBuff#1 "*List any items, spells, or alternate abilities you want this character to maintain on themselves.  If using a clicky, add '/item' after the item name, '/alt', for an alternate ability.  Ex. Buff#1=Mask of Deception/item, Buff#2=Flaming Arrows/alt"
-	/call WriteToIni ${Character_Ini},Buffs,GroupBuff#1 "*List any buffs you want this character to cast, when given the 'Buff me' command"
-	/call WriteToIni ${Character_Ini},Buffs,BuffOther#1 "*List any buffs to maintain on other NetBots, at a low priority ( BuffOthers are cast when you stop to rebuff yourself ). Add '/group' to spells that can only be cast on group members.  Ex. BuffOther#1=Yasa/Call of the Rathe"
-	/call WriteToIni ${Character_Ini},Buffs,CombatBuff#1 "*List any buffs to maintain on other NetBots, at a high priority ( These are buffs maintained during combat like, Avatar, Jaguar, Divine Intervention etc.). Add '/group' to spells that can only be cast on group members. Ex. CombatBuff#1=Killians/Spirit of the Jaguar/gem4"
-	/call WriteToIni ${Character_Ini},Buffs,InstantIllusion "*Enter an instant click illusion item to constantly maintain"
-}
+	/if (!${Ini[${Character_Ini},Buffs].Length}) {
+		/call WriteToIni "${Character_Ini},Buffs,Self Buff#1" "*List any items, spells, or alternate abilities you want this character to maintain on themselves.  If using a clicky, add '/item' after the item name, '/alt', for an alternate ability.  Ex. Buff#1=Mask of Deception/item, Buff#2=Flaming Arrows/alt"
+		/call WriteToIni "${Character_Ini},Buffs,Group Buff#1" "*List any buffs you want this character to cast, when given the 'Buff me' command"
+		/call WriteToIni "${Character_Ini},Buffs,Buff Other#1" "*List any buffs to maintain on other NetBots, at a low priority ( Buff Others are cast when you stop to rebuff yourself ). Add '/group' to spells that can only be cast on group members.  Ex. Buff Other#1=Yasa/Call of the Rathe"
+		/call WriteToIni "${Character_Ini},Buffs,Combat Buff#1" "*List any buffs to maintain on other NetBots, at a high priority ( These are buffs maintained during combat like, Avatar, Jaguar, Divine Intervention etc.). Add '/group' to spells that can only be cast on group members. Ex. Combat Buff#1=Killians/Spirit of the Jaguar/gem4"
+		/call WriteToIni "${Character_Ini},Buffs,Instant Illusion" "*Enter an instant click illusion item to constantly maintain"
+	}
 
 |--------------------------------------------------------------------------------------------------------------------------Class specific entries.
 	/call Make${Me.Class.ShortName}_Ini
@@ -755,26 +753,26 @@ SUB MakeCharacter_Ini
 |-------------------------------------------------------------------------------------------------If I'm a healer, add e3_Macro_Heals.inc entries.
 /if (${Me.Class.HealerType}) {
 	/if (!${Ini[${Character_Ini},Heals].Length}) {
-		/call WriteToIni ${Character_Ini},Heals,MainTank "*List a main tank. Use , to add additional tanks.  Ex MainTank=Killians,Jalal,Bitz"
-		/call WriteToIni ${Character_Ini},Heals,MainTank_Heal(Spell/Gem/Pct) "*Heal spell to use on the main tank/gem to mem it to/pct to heal the main tank at"
-		/call WriteToIni ${Character_Ini},Heals,MainTank_QuickHeal(Spell/Gem/Pct) "*Quick heal spell to use on the main tank/gem to mem it to/pct to heal the main tank at"
-		/call WriteToIni ${Character_Ini},Heals,Patch_Heal(Spell/Gem/Pct) "*Heal spell to use on everyone except the main tank/gem to mem it to/pct to cast at"
-		/call WriteToIni ${Character_Ini},Heals,PriorityTarget#1 "*List targets take priority over other characters when being considered for heals. ( You dont need to add tanks here )"
-		/call WriteToIni ${Character_Ini},Heals,HoT_Mode(MTOnly/All/Off) "*Heal Over Time Mode, 'MTOnly' will only cast HoTs on your main tank, 'All' will cast HoT on everyone"
-		/call WriteToIni ${Character_Ini},Heals,Heal_Over_Time(Spell/Gem/Pct) "*Heal over time spell to cast/gem to mem it to/pct to cast at"
-		/call WriteToIni ${Character_Ini},Heals,Pet_Heal(Spell/Gem/Pct) "*Heal spell to cast on pets/gem to mem it to/pct to cast at"
-		/if (${Me.Class.ShortName.Equal[CLR]} || ${Me.Class.ShortName.Equal[DRU]}) /call WriteToIni ${Character_Ini},Heals,Join_CH-Chain(On/Off) "*Set this 'On' to have this character join in Complete Heal chains."
+		/call WriteToIni "${Character_Ini},Heals,Main Tank" "*List a main tank. Use , to add additional tanks.  Ex Main Tank=Killians,Jalal,Bitz"
+		/call WriteToIni "${Character_Ini},Heals,Main Tank Heal (Spell/Gem/Pct)" "*Heal spell to use on the main tank/gem to mem it to/pct to heal the main tank at"
+		/call WriteToIni "${Character_Ini},Heals,Main Tank Quick Heal (Spell/Gem/Pct)" "*Quick heal spell to use on the main tank/gem to mem it to/pct to heal the main tank at"
+		/call WriteToIni "${Character_Ini},Heals,Patch Heal (Spell/Gem/Pct)" "*Heal spell to use on everyone except the main tank/gem to mem it to/pct to cast at"
+		/call WriteToIni "${Character_Ini},Heals,Priority Target#1" "*List targets take priority over other characters when being considered for heals. ( You dont need to add tanks here )"
+		/call WriteToIni "${Character_Ini},Heals,HoT Mode (MTOnly/All/Off)" "*Heal Over Time Mode, 'MTOnly' will only cast HoTs on your main tank, 'All' will cast HoT on everyone"
+		/call WriteToIni "${Character_Ini},Heals,Heal Over Time (Spell/Gem/Pct)" "*Heal over time spell to cast/gem to mem it to/pct to cast at"
+		/call WriteToIni "${Character_Ini},Heals,Pet Heal (Spell/Gem/Pct)" "*Heal spell to cast on pets/gem to mem it to/pct to cast at"
+		| /if (${Me.Class.ShortName.Equal[CLR]} || ${Me.Class.ShortName.Equal[DRU]}) /call WriteToIni "${Character_Ini},Heals,Join CH-Chain (On/Off)" "*Set this 'On' to have this character join in Complete Heal chains."
 	}
 }
 
 |-----------------------------------------------------------------------------------------------If I'm a pet class, add e3_Macro_Pets.inc entries.
 /if (${Select[${Me.Class.ShortName},BST,ENC,MAG,NEC,SHD,SHM]}) {
 	/if (!${Ini[${Character_Ini},Pets].Length}) {
-		/call WriteToIni ${Character_Ini},Pets,Pet(Spell/Reageant) "*Pet spell/reageant if there is one"
-		/call WriteToIni ${Character_Ini},Pets,Pet_AutoShrink(On/Off) "*Do you want to automatically shrink pets?"
-		/call WriteToIni ${Character_Ini},Pets,Pet_Heal(Spell/Gem/Pct) "*Would you like to use a pet specific heal like Planar Renewal or Touch of Death?"
-		/call WriteToIni ${Character_Ini},Pets,Pet_Mend(Pct) "*If you have the 'Mend Companion' alternate ability, what percent would you like to use it at?"
-		/call WriteToIni ${Character_Ini},Pets,PetBuff#1 "*List any spells you want this character to maintain on their pets"
+		/call WriteToIni "${Character_Ini},Pets,Pet (Spell/Gem/Reageant)" "*Pet spell/gem/reageant if there is one"
+		/call WriteToIni "${Character_Ini},Pets,Pet Auto-Shrink (On/Off)" "*Do you want to automatically shrink pets?"
+		/call WriteToIni "${Character_Ini},Pets,Pet Heal (Spell/Gem/Pct)" "*Would you like to use a pet specific heal like Planar Renewal or Touch of Death?"
+		/call WriteToIni "${Character_Ini},Pets,Pet Mend (Pct)" "*If you have the 'Mend Companion' alternate ability, what percent would you like to use it at?"
+		/call WriteToIni "${Character_Ini},Pets,Pet Buff#1" "*List any spells you want this character to maintain on their pets"
 	}
 }
 
@@ -783,9 +781,9 @@ SUB MakeCharacter_Ini
 |-------------------------------------------------------------------If I'm a melee class, add Assist_Stick entries.
 /if (${Select[${Me.Class.ShortName},BRD,BER,BST,MNK,PAL,RNG,ROG,SHD,WAR]}) {
 	/if (!${Ini[${Character_Ini},Assists].Length}) {
-		/call WriteToIni ${Character_Ini},Assists,AssistType(Melee/Ranged) Melee
-		/call WriteToIni ${Character_Ini},Assists,Melee_StickPoint behind
-		/call WriteToIni ${Character_Ini},Assists,Melee_StickDistance MaxMelee
+		/call WriteToIni "${Character_Ini},Assists,Assist Type (Melee/Ranged)" Melee
+		/call WriteToIni "${Character_Ini},Assists,Melee Stick Point" behind
+		/call WriteToIni "${Character_Ini},Assists,Melee Stick Distance" MaxMelee
 	}
 }	
 
@@ -801,7 +799,7 @@ SUB MakeCharacter_Ini
 	/if (!${Ini[${Character_Ini},Nukes].Length}) {
 		/call WriteToIni ${Character_Ini},Nukes,Ex#1 "*List any nukes you want this character to cast during assists, specify gem# or item and a minimum mana or item timer. - Nuke#1=Name/Gem#/MinMana-Timer/Drop Aggro Delay"
 		/call WriteToIni ${Character_Ini},Nukes,Ex#2 "*Ex Spell Entry: Nuke#1=Frozen Wind/gem7/35m/7s"
-		/call WriteToIni ${Character_Ini},Nukes,Ex#3 "*Ex Item Entry: Aged Shissar Elemntalist Staff/item/210s/3s"
+		/call WriteToIni ${Character_Ini},Nukes,Ex#3 "*Ex Item Entry: Nuke#1Aged Shissar Elemntalist Staff/item/210s/3s"
 		/call WriteToIni ${Character_Ini},Nukes,Nuke#1
 	}
 }
@@ -813,8 +811,8 @@ SUB MakeCharacter_Ini
 		/call WriteToIni ${Character_Ini},DoTs,Ex#2 "*DoT_OnAssist will be cast on each target, while DoT_OnCommand will only be cast on command."
 		/call WriteToIni ${Character_Ini},DoTs,Ex#3 "*Ex Spell Entry:  DoT_OnAssist#1=Blood of Thule/gem7/35m"
 		/call WriteToIni ${Character_Ini},DoTs,Ex#4 "*Ex Item Entry:  DoT_OnCommand#1=Aged Shissar Deathspeaker Staff/item/120s"
-		/call WriteToIni ${Character_Ini},DoTs,DoT_OnAssist#1
-		/call WriteToIni ${Character_Ini},DoTs,DoT_OnCommand#1
+		/call WriteToIni "${Character_Ini},DoTs,DoT on Assist#1"
+		/call WriteToIni "${Character_Ini},DoTs,DoT on Command#1"
 	}
 }
 
@@ -823,10 +821,10 @@ SUB MakeCharacter_Ini
 	/if (!${Ini[${Character_Ini},Debuffs].Length}) {
 		/call WriteToIni ${Character_Ini},Debuffs,Ex#1 "*List any Debuffs you want this character to cast, the gem to mem it to, the minimum pct mana to have to cast the spell"
 		/call WriteToIni ${Character_Ini},Debuffs,Ex#2 "*Debuff_OnAssist will be cast on each target, while Debuff_OnCommand will only be cast on command."
-		/call WriteToIni ${Character_Ini},Debuffs,Ex#3 "*Ex Spell Entry:  Debuff_OnAssist#1=Turgur's Insects/gem7/35m"
-		/call WriteToIni ${Character_Ini},Debuffs,Ex#4 "*Ex Item Entry:  Debuff_OnCommand#1=Time's Antithesis/item/5s"
-		/call WriteToIni ${Character_Ini},Debuffs,Debuff_OnAssist#1
-		/call WriteToIni ${Character_Ini},Debuffs,Debuff_OnCommand#1
+		/call WriteToIni ${Character_Ini},Debuffs,Ex#3 "*Ex Spell Entry:  Debuff on Assist#1=Turgur's Insects/gem7/35m"
+		/call WriteToIni ${Character_Ini},Debuffs,Ex#4 "*Ex Item Entry:  Debuff on Command#1=Time's Antithesis/item/5s"
+		/call WriteToIni "${Character_Ini},Debuffs,Debuff on Assist#1"
+		/call WriteToIni "${Character_Ini},Debuffs,Debuff on Command#1"
 	}
 }
 
@@ -844,22 +842,22 @@ SUB MakeCharacter_Ini
 	/call WriteToIni ${Character_Ini},Burn,Ex#1 "*List any Spells/Items/AAs/Discs you want this character to use during quick and full burns."
 	/call WriteToIni ${Character_Ini},Burn,Ex#2 "*Ex1 Spell: Nuke#1=Frozen Wind/gem7"
 	/call WriteToIni ${Character_Ini},Burn,Ex#3 "*Ex2 AA: Guardian of the Forest/alt"
-	/call WriteToIni ${Character_Ini},Burn,Ex#4 "*Ex Item: Aged Shissar Elemntalist Staff/item/210s"
+	/call WriteToIni ${Character_Ini},Burn,Ex#4 "*Ex Item: Aged Shissar Elemntalist Staff/item"
 	/call WriteToIni ${Character_Ini},Burn,Ex#5 "*Ex Disc: Trueshot Discipline/disc"
-	/call WriteToIni ${Character_Ini},Burn,QuickBurn#1
-	/call WriteToIni ${Character_Ini},Burn,FullBurn#1
+	/call WriteToIni "${Character_Ini},Burn,Quick Burn#1"
+	/call WriteToIni "${Character_Ini},Burn,Full Burn#1"
 }
 
 |-------------------------------------------------------------------------------------------------------------------------------Swap item entries.
-/call WriteToIni ${Character_Ini},SwapItems,Ex#1 "*Create an entry of any name, List ItemName/SlotToEquip."
-/call WriteToIni ${Character_Ini},SwapItems,Ex#2 "*Ex. CrappySword=Rusty Longsword/mainhand"
-/call WriteToIni ${Character_Ini},SwapItems,Ex#2 "*Use a , to add additional items to swap on the same command"
-/call WriteToIni ${Character_Ini},SwapItems,Ex#3 "*Ex. TwoCrappySwords=Rusty Longsword/Mainhand,Rusty Short Sword/Offhand"
-/call WriteToIni ${Character_Ini},SwapItems,Ex#4 "*Use /swap EntryName in game to swap the items.  Ex /swap CrappySword, or /swap TwoCrappySwords"
+/call WriteToIni "${Character_Ini},Swap Items,Ex#1" "*Create an entry of any name, List ItemName/SlotToEquip."
+/call WriteToIni "${Character_Ini},Swap Items,Ex#2" "*Ex. CrappySword=Rusty Longsword/mainhand"
+/call WriteToIni "${Character_Ini},Swap Items,Ex#2" "*Use a , to add additional items to swap on the same command"
+/call WriteToIni "${Character_Ini},Swap Items,Ex#3" "*Ex. TwoCrappySwords=Rusty Longsword/Mainhand,Rusty Short Sword/Offhand"
+/call WriteToIni "${Character_Ini},Swap Items,Ex#4" "*Use /swap EntryName in game to swap the items.  Ex /swap CrappySword, or /swap TwoCrappySwords"
 
 |--------------------------------------------------------------------------------------------------------------------------Check Reageant entries.
-/call WriteToIni ${Character_Ini},ReageantCheck,Ex#1 "*List reageants you want to keep track of, along with the minimum to have in stock."
-/call WriteToIni ${Character_Ini},ReageantCheck,Reageant#1 "*Ex. Small Portal Fragments/50"
+/call WriteToIni "${Character_Ini},Reageant Check,Ex#1" "*List reageants you want to keep track of, along with the minimum to have in stock."
+/call WriteToIni "${Character_Ini},Reageant Check,Reageant#1" "*Ex. Small Portal Fragments/50"
 
 /if (${Debug}) /echo <== MakeCharacter_Ini -|
 /RETURN

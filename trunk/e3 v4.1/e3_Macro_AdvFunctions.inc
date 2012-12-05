@@ -50,7 +50,7 @@ SUB IniToVar(Ini_Key, VarToMake, VarType, VarScope)
 		|--------------------------------------------------------------------------------------------Validate bool.
 			/if (${VarType.Equal[bool]}) {
 				/if (!${Select[${Ini[${Ini_Key}]},TRUE,ON,YES,1]} && !${Select[${Ini[${Ini_Key}]},FALSE,OFF,NO,0]}) {
-					/if (${Debug}) /echo |- IniToVar -|  ERROR: Ini_Key [${Ini_Key}] must be, TRUE or FALSE, YES or NO, ON or OFF, 1 or 0.  Please enter a valid setting, and reload.
+					/echo |- IniToVar -|  ERROR: Ini_Key [${Ini_Key}] must be, TRUE or FALSE, YES or NO, ON or OFF, 1 or 0.  Please enter a valid setting, and reload.
 				} else {
 					/if (${Defined[${VarToMake}]}) /deletevar ${VarToMake}
 					/declare ${VarToMake} bool ${VarScope} ${If[${Select[${Ini[${Ini_Key}]},TRUE,ON,YES,1]},TRUE,FALSE]}
@@ -60,7 +60,7 @@ SUB IniToVar(Ini_Key, VarToMake, VarType, VarScope)
 		|---------------------------------------------------------------------------------------------Validate int.
 			} else /if (${VarType.Equal[Int]}) {
 				/if (!${Int[${Ini[${Ini_Key}]}]}) {
-					/if (${Debug}) /echo |- IniToVar -| ERROR: Ini_Key [${Ini_Key}] must be a number.  Please enter a valid setting, and reload.
+					/echo |- IniToVar -| ERROR: Ini_Key [${Ini_Key}] must be an integer.  Please enter a valid whole number, and reload.
 				} else {
 					/if (${Defined[${VarToMake}]}) /deletevar ${VarToMake}
 					/declare ${VarToMake} int ${VarScope} ${Ini[${Ini_Key}]}
@@ -70,7 +70,7 @@ SUB IniToVar(Ini_Key, VarToMake, VarType, VarScope)
 		|-------------------------------------------------------------------------------------------Validate float.
 			} else /if (${VarType.Equal[Float]}) {
 				/if (!${Float[${Ini[${Ini_Key}]}]}) {
-					/if (${Debug}) /echo |- IniToVar -| ERROR: Ini_Key [${Ini_Key}] must be a number.  Please enter a valid setting, and reload.
+					/echo |- IniToVar -| ERROR: Ini_Key [${Ini_Key}] must be a real number.  Please enter a valid number, and reload.
 				} else {
 					/if (${Defined[${VarToMake}]}) /deletevar ${VarToMake}
 					/declare ${VarToMake} float ${VarScope} ${Ini[${Ini_Key}]}
@@ -79,8 +79,14 @@ SUB IniToVar(Ini_Key, VarToMake, VarType, VarScope)
 				
 		|-----------------------------------------------------------------------------------Create string or timer.
 			} else {
+				/if (${Defined[${VarToMake}]}) /deletevar ${VarToMake}
 				/declare ${VarToMake} ${VarType} ${VarScope} ${Ini[${Ini_Key}]}
 				/if (${Debug}) /echo |- IniToVar -| Defined: ${VarToMake} [${${VarToMake}}]
+			}
+			
+			/if (${Defined[Validation_Count]}) {
+				| /if (${Debug}) /echo |- IniToVar -| Validation_Count: [${Validation_Count} + ${Ini[${Ini_Key}].Length} = ${Math.Calc[${Validation_Count} + ${Ini[${Ini_Key}].Length}].Int}]
+				/varcalc Validation_Count ${Validation_Count} + ${Ini[${Ini_Key}].Length}
 			}
 		}
 	}
@@ -144,6 +150,10 @@ SUB IniToArray(Ini_Key, ArrayName, ArrayScope)
 		|-------------------------------------------------------------------------Import ini entries into the array.
 			/for i 1 to ${${ArrayName}.Size}
 				/varset ${ArrayName}[${i}] ${Ini[${Ini_Key}${i}]}
+				/if (${Defined[Validation_Count]}) {
+					| /if (${Debug}) /echo |- IniToVar -| Validation_Count: [${Validation_Count} + ${${ArrayName}[${i}].Length} = ${Math.Calc[${Validation_Count} + ${${ArrayName}[${i}].Length}].Int}]
+					/varcalc Validation_Count ${Validation_Count} + ${${ArrayName}[${i}].Length}
+				}
 			/next i
 		}
 	}
@@ -574,4 +584,43 @@ SUB MoveToLoc(float y_loc, float x_loc)
 	}
 	
 /if (${Debug}) /echo <== MoveToLoc -|
+/RETURN
+
+
+
+SUB rewrite_ValidationKey(int newValue, int CurrentArg)
+/if (${Debug}) /echo |- rewrite_ValidationKey ==>
+
+	/if (!${Ini[${MacroData_Ini},ValidationKey-${MacroQuest.Server},${Me.CleanName}].Length}) {
+		/if (${Debug}) /echo |- rewrite_ValidationKey -| Creating key: [${newValue}].
+		/call WriteToIni "${MacroData_Ini},ValidationKey-${MacroQuest.Server},${Me.CleanName}" "${newValue}" 1	
+	} else {
+	
+		/declare i int local
+		/declare old_Key string local ${Ini[${MacroData_Ini},ValidationKey-${MacroQuest.Server},${Me.CleanName}]}
+		/declare new_Key string local
+		
+		/for i 1 to ${CurrentArg}
+		
+			/if (${i} < ${CurrentArg}) {
+				/varset new_Key ${new_Key}${Int[${old_Key.Arg[${i},-]}]}-
+			} else {
+				/varset new_Key ${new_Key}${newValue}-
+			}
+		
+		/next i
+		
+		/varcalc i ${CurrentArg} + 1
+		
+		:check_NextArg
+		/if (${Ini[${MacroData_Ini},ValidationKey-${MacroQuest.Server},${Me.CleanName}].Arg[${i},-].Length}) {
+			/varset new_Key ${new_Key}${Int[${old_Key.Arg[${i},-]}]}- 
+			/varcalc i ${i} + 1
+			/goto :check_NextArg
+		}
+		/if (${Debug}) /echo |- rewrite_ValidationKey -| Rewriting key: [${new_Key}] 
+		/call WriteToIni "${MacroData_Ini},ValidationKey-${MacroQuest.Server},${Me.CleanName}" "${new_Key}" 1
+	}
+
+/if (${Debug}) /echo <== rewrite_ValidationKey -|
 /RETURN

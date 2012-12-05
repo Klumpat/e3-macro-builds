@@ -18,8 +18,8 @@ SUB event_UseCoprseSummoner()
 		/echo ERROR: I have to be in The Guild Lobby, to use the corpse summoner.  Move there, and try again.
 	} else {
 
-		/call IniToVar ${Macro_Ini},CorpseSummoning,SoulStone SoulStoneToUse string outer
-		/call IniToVar ${Macro_Ini},CorpseSummoning,SoulStoneCost SoulStoneCost string outer
+		/call IniToVar "${Macro_Ini},Corpse Summoning,Soul Stone" SoulStoneToUse string outer
+		/call IniToVar "${Macro_Ini},Corpse Summoning,Soul Stone Cost (Plat)" SoulStoneCost string outer
 		/declare GiveUpTimer	int outer 600
 	
 	|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------Check Money.

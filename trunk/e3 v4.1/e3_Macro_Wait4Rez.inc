@@ -19,10 +19,10 @@
 SUB setup_Wait4Rez
 /if (${Debug}) /echo |- Wait4Rez_Setup ==>
 	
-	/call INItoVar ${Macro_Ini},Wait4Rez,Wait4Rez(On/Off) use_Wait4Rez bool outer
-	/call INItoVar ${Macro_Ini},Wait4Rez,Wait4Rez_Alert Wait4RezAlert int outer
-	/call INItoVar ${Macro_Ini},Wait4Rez,BagDelay BagDelay int outer
-	/call INItoVar ${Macro_Ini},Wait4Rez,ItemDelay ItemDelay int outer	
+	/call INItoVar "${Macro_Ini},Wait4Rez,Wait4Rez (On/Off)" use_Wait4Rez bool outer
+	/call INItoVar "${Macro_Ini},Wait4Rez,Wait4Rez Alert (Beeps)" Wait4RezAlert int outer
+	/call INItoVar "${Macro_Ini},Wait4Rez,Loot Bag Delay" BagDelay int outer
+	/call INItoVar "${Macro_Ini},Wait4Rez,Loot Item Delay" ItemDelay int outer	
 	
 /if (${Debug}) /echo <== Wait4Rez_Setup -|
 /RETURN

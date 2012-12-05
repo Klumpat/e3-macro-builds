@@ -90,10 +90,9 @@ Sub DRU_Setup
 /if (${Debug}) /echo |- DRU_Setup ==>
 
 	/if (!${Ini[${Character_Ini},Druid].Length}) /call MakeDRU_Ini
-	/call INItoVar ${Character_Ini},Druid,EvacOnCommand(On/Off) castEvac bool outer
-	/call INItoVar ${Character_Ini},Druid,Evac(Spell) Evac_Spell string outer
-	/call INItoVar ${Character_Ini},Pets,Pets(On/Off) Pets bool outer
-	/call IniToVar ${Character_Ini},Druid,SpiritOfWood_Pct spiritofWood_Pct int outer
+	/call INItoVar "${Character_Ini},Druid,Evac on Command (On/Off)" castEvac bool outer
+	/call INItoVar "${Character_Ini},Druid,Evac Spell" Evac_Spell string outer
+	/call IniToVar "${Character_Ini},Druid,Spirit of Wood (Pct)" spiritofWood_Pct int outer
 
 /if (${Debug}) /echo <== DRU_Setup -|
 /return
@@ -108,10 +107,10 @@ Sub DRU_Setup
 Sub MakeDRU_Ini
 /if (${Debug}) /echo |- DRU_Ini ==>
 
-	/call WriteToIni ${Character_Ini},Druid,Auto_Forage(On/Off) "*Do you want this character to automatically forage?" 0
-	/call WriteToIni ${Character_Ini},Druid,EvacOnCommand(On/Off) "*Do you want this character to cast Exodus, or a specified evac spell on command?" 0
-	/call WriteToIni ${Character_Ini},Druid,Evac(Spell) "*List an evac spell to use if Exodus is not ready." 0
-	/call WriteToIni ${Character_Ini},Druid,SpiritOfWood_Pct "*Average group health to cast Spirit of Wood." 0
+	/call WriteToIni "${Character_Ini},Druid,Auto-Forage (On/Off)" "*Do you want this character to automatically forage?" 0
+	/call WriteToIni "${Character_Ini},Druid,Evac on Command (On/Off)" "*Do you want this character to cast Exodus, or a specified evac spell on command?" 0
+	/call WriteToIni "${Character_Ini},Druid,Evac Spell" "*List an evac spell to use if Exodus is not ready." 0
+	/call WriteToIni "${Character_Ini},Druid,Spirit of Wood (Pct)" "*Average group health to cast Spirit of Wood." 0
 		
 /if (${Debug}) /echo <== DRU_Ini -|
 /return
