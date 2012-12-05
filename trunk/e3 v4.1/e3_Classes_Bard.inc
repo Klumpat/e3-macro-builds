@@ -215,23 +215,28 @@ SUB EVENT_startMelody(line, melodyName)
 			
 			:check_nextSong
 			/if (${Ini[${Character_Ini},${melodyName}_Melody,Song#${i}].Arg[1,/].NotEqual[PLACEHOLDER]}) {
-			
-			|-------------------------------------------------------------------------------------------------------If the song is not memmed.
-				/if (!${Me.Gem[${Ini[${Character_Ini},${melodyName}_Melody,Song#${i}].Arg[1,/]}]}) {
-					:retry
-					
-					/if (${Debug}) /echo |- EVENT_startMelody -| :memloop
-					/memspell ${Ini[${Character_Ini},${melodyName}_Melody,Song#${i}].Arg[2,/].Right[1]} "${Ini[${Character_Ini},${melodyName}_Melody,Song#${i}].Arg[1,/]}"
-					/delay 90 ${Me.Gem[${Ini[${Character_Ini},${melodyName}_Melody,Song#${i}].Arg[1,/]}]}
-					/if (!${Me.Gem[${Ini[${Character_Ini},${melodyName}_Melody,Song#${i}].Arg[1,/]}]} && ${retryTimer}) {
-						/goto :retry
-					} else /if (${Window[SpellBookWnd].Open}) {
-						/stand
-					}
+				
+				/if (!${Me.Book[${Ini[${Character_Ini},${melodyName}_Melody,Song#${i}].Arg[1,/]}]}) {	
+					/echo ERROR: @[Group Buff#${i}] -  I don't have [${Ini[${Character_Ini},${melodyName}_Melody,Song#${i}].Arg[1,/]}] in my spellbook.  Skipping.
+				} else {
+				
+					|-------------------------------------------------------------------------------------------------------If the song is not memmed.
+						/if (!${Me.Gem[${Ini[${Character_Ini},${melodyName}_Melody,Song#${i}].Arg[1,/]}]}) {
+							:retry
+							
+							/if (${Debug}) /echo |- EVENT_startMelody -| :memloop
+							/memspell ${Ini[${Character_Ini},${melodyName}_Melody,Song#${i}].Arg[2,/].Right[1]} "${Ini[${Character_Ini},${melodyName}_Melody,Song#${i}].Arg[1,/]}"
+							/delay 90 ${Me.Gem[${Ini[${Character_Ini},${melodyName}_Melody,Song#${i}].Arg[1,/]}]}
+							/if (!${Me.Gem[${Ini[${Character_Ini},${melodyName}_Melody,Song#${i}].Arg[1,/]}]} && ${retryTimer}) {
+								/goto :retry
+							} else /if (${Window[SpellBookWnd].Open}) {
+								/stand
+							}
+						}
+				
+				|--------------------------------------------------------------------------------------------------Update songList with the corresponding gem#
+					/varset songList ${songList} ${Me.Gem[${Ini[${Character_Ini},${melodyName}_Melody,Song#${i}].Arg[1,/]}]}
 				}
-			
-			|--------------------------------------------------------------------------------------------------Update songList with the corresponding gem#
-				/varset songList ${songList} ${Me.Gem[${Ini[${Character_Ini},${melodyName}_Melody,Song#${i}].Arg[1,/]}]}
 			}
 			
 		|-----------------------------------------------------------------------------------------------------Check for additional Songs.
