@@ -19,10 +19,10 @@ SUB Event_YourKill
 /if (${Debug}) /echo |- Event_YourKill ==>
 
 |--------------------------------------------------------------------------------------------------------------------------------If I am a looter.
-	/if (${NinjaLoot_On}) {
+	/if (${Auto_Loot}) {
 	
 	|---------------------------------------------------Check that I'm not invisible, and have free inventory space.
-		/if (!${Me.Invis} && ${Me.FreeInventory}) {
+		/if (!${Me.Invis}) {
 			/declare i int local
 		|------------------------------------Rebuild looted_Corpses list, remove IDs of corpses that have vanished.
 			/if (${looted_Corpses.Length}) {
@@ -37,7 +37,7 @@ SUB Event_YourKill
 			/for i 1 to ${SpawnCount[npc corpse radius ${seek_Radius}]}
 			
 				/if (${looted_Corpses.Length} && ${Select[${NearestSpawn[${i},corpse radius ${seek_Radius}].ID},${looted_Corpses.Replace[-,,]}]}) /goto :skip_Loot
-				
+		
 				/call loot_It ${NearestSpawn[${i},corpse radius ${seek_Radius}].ID}
 				/if (${Macro.Return.Equal[JUST_LOOTED]}) /delay 3
 				
@@ -46,16 +46,20 @@ SUB Event_YourKill
 			/next i
 			
 	|-------------------------------------------------------------Else, if there is no free inventory space, alert the user, and turn off looting.	
-		} else /if (!${Me.FreeInventory}) {
+		}
+|**
+		else /if (!${Me.FreeInventory}) {
 			/declare a int local
 			/for a 1 to ${Loot_Alert}
 				/beep 1
 				/delay 3
 			/next a
-			/varset NinjaLoot_On FALSE
+			/varset Auto_Loot FALSE
 			/docommand ${ChatToggle} I'm full, turning loots off.
 		}
+	**|
 	}
+
 	
 /if (${Debug}) /echo <== Event_YourKill -|
 /RETURN
@@ -68,11 +72,11 @@ SUB Event_YourKill
 |- @param corpseID: ID of the corpse you are trying to loot.			-|
 |------------------------------------------------------------------------|
 SUB loot_It(int corpseID)
-/varset Debug 1
 /if (${Debug}) /echo |- loot_It ==>
 
 |-------------------------------------------------------------------Check to see if corpseID belongs to an NPC (NPC corpses have _'s in the name).
 	/declare corpseName ${Spawn[id ${corpseID}]}
+	
 	/if (${Spawn[id ${corpseID}].LineOfSight} && ${corpseName.Find[_]}) {
 	
 	|--------------------------------------------------------------------Pause follow functions, and target corpseID
@@ -98,7 +102,7 @@ SUB loot_It(int corpseID)
 		
 	|------------------------------------------------------------------------------------------------------------If corpseID is in range, loot it.
 		/if (${Spawn[id ${corpseID}].Distance} < 20 && ${Spawn[id ${corpseID}].DistanceZ} < 20) {
-		
+
 		|-------------------------------------------------------------------------If looter is a bard, pause melody.
 			/if (${Twist.Twisting}) /call pauseTwist
 			
@@ -122,100 +126,101 @@ SUB loot_It(int corpseID)
 			
 		|----------------------------------------------------------------------------Check each item on the corpse, and decide to keep or destroy.
 			/if (${lootTotal}) {
+				
 				/declare i int local
 				/declare e int local
 				/declare iniEntryVariables string local
-				/for i 1 to ${lootTotal}
-					/delay 1s ${InvSlot[loot${i}].Item.ID} != 0
-					/varset iniEntryVariables ${If[${Math.Calc[${InvSlot[loot${i}].Item.Value}/1000].Int},~${Math.Calc[${InvSlot[loot${i}].Item.Value}/1000].Int}p,${If[${Math.Calc[${InvSlot[loot${i}].Item.Value}/100].Int},~${Math.Calc[${InvSlot[loot${i}].Item.Value}/100].Int}g,${If[${Math.Calc[${InvSlot[loot${i}].Item.Value}/10].Int},~${Math.Calc[${InvSlot[loot${i}].Item.Value}/10].Int}s,${If[${Math.Calc[${InvSlot[loot${i}].Item.Value}/1].Int},~${Math.Calc[${InvSlot[loot${i}].Item.Value}/1].Int}c,]}]}]}]}${If[${InvSlot[loot${i}].Item.Stackable},(${InvSlot[loot${i}].Item.StackSize}),]}${If[${InvSlot[loot${i}].Item.NoDrop},(ND),]}${If[${InvSlot[loot${i}].Item.Container},(C),]}
-					
-				|--------------------------------------If there is no entry in the Loot_Ini for this item, make one.
-					/if (!${Ini[${Loot_Ini},${InvSlot[loot${i}].Item.Name.Left[1]},${InvSlot[loot${i}].Item.Name}${iniEntryVariables}].Length}) {
-					
-					|---------------------------Import settings from oldloot.ini
-						/if (${Ini[Macro_Inis\OldLoot.ini,${InvSlot[loot${i}].Item.Name.Left[1]},${InvSlot[loot${i}].Item.Name}].Length}) {
-							/echo Autoloot: Importing ini setting [${InvSlot[loot${i}].Item.Name} (${Ini[Macro_Inis\OldLoot.ini,${InvSlot[loot${i}].Item.Name.Left[1]},${InvSlot[loot${i}].Item.Name}]})]
-							/call WriteToIni "${Loot_Ini},${InvSlot[loot${i}].Item.Name.Left[1]},${InvSlot[loot${i}].Item.Name}${iniEntryVariables}" ${If[${InvSlot[loot${i}].Item.Container},Container,${If[${Ini[Macro_Inis\OldLoot.ini,${InvSlot[loot${i}].Item.Name.Left[1]},${InvSlot[loot${i}].Item.Name}].Equal[NDITEM]},Skip,${If[${Ini[Macro_Inis\OldLoot.ini,${InvSlot[loot${i}].Item.Name.Left[1]},${InvSlot[loot${i}].Item.Name}].Equal[keep]},Keep${If[${InvSlot[loot${i}].Item.Stackable},/${InvSlot[loot${i}].Item.StackSize},]},${If[${Ini[Macro_Inis\OldLoot.ini,${InvSlot[loot${i}].Item.Name.Left[1]},${InvSlot[loot${i}].Item.Name}].Equal[destroy]},Destroy,IMPORT_FAILED]}]}]}]} 0
-						} else {
-
-							/call WriteToIni "${Loot_Ini},${InvSlot[loot${i}].Item.Name.Left[1]},${InvSlot[loot${i}].Item.Name}${iniEntryVariables}" ${If[${InvSlot[loot${i}].Item.Container},Container,${If[${InvSlot[loot${i}].Item.NoDrop},Skip,Keep${If[${InvSlot[loot${i}].Item.Stackable},/${InvSlot[loot${i}].Item.StackSize},]}]}]}
-							/echo Autoloot: Adding [${InvSlot[loot${i}].Item.Name} (${Ini[${Loot_Ini},${InvSlot[loot${i}].Item.Name.Left[1]},${InvSlot[loot${i}].Item.Name}${iniEntryVariables}]})]
-						}
-					}
 				
-				|----------------------------------------------------------------------------------Destroy the item.
-					/if (${Ini[${Loot_Ini},${InvSlot[loot${i}].Item.Name.Left[1]},${InvSlot[loot${i}].Item.Name}${iniEntryVariables}].Find[Destroy]}) {
-						/echo Autoloot: Destroying [${InvSlot[loot${i}].Item.Name}]
-						/if (${InvSlot[loot${i}].Item.Lore} && ${FindItem[${InvSlot[loot${i}].Item.Name}].ID}) /goto :skip_Lore
-						/call loot_Handle ${i} destroy
-
-				|-------------------------------------------------------------------------------------Keep the item.
-					} else /if (${Ini[${Loot_Ini},${InvSlot[loot${i}].Item.Name.Left[1]},${InvSlot[loot${i}].Item.Name}${iniEntryVariables}].Find[Keep]} || ${Ini[${Loot_Ini},${InvSlot[loot${i}].Item.Name.Left[1]},${InvSlot[loot${i}].Item.Name}${iniEntryVariables}].Find[Sell]}) {
-	
-					
-					| change this to loop through the arguments in the ini entry, looking for on that passes ${Int[ini entry arg[i,/]}
-					|---------------If I have an item limit, check my stock.
-						/varset e 1
-						:check_MaxStock
-/echo /if (${Ini[${Loot_Ini},${InvSlot[loot${i}].Item.Name.Left[1]},${InvSlot[loot${i}].Item.Name}${iniEntryVariables}].Arg[${e},/].Length})
-						/if (${Ini[${Loot_Ini},${InvSlot[loot${i}].Item.Name.Left[1]},${InvSlot[loot${i}].Item.Name}${iniEntryVariables}].Arg[${e},/].Length}) {
-/echo /if (!${Int[${Ini[${Loot_Ini},${InvSlot[loot${i}].Item.Name.Left[1]},${InvSlot[loot${i}].Item.Name}${iniEntryVariables}].Arg[${e},/]}]})
-							/if (!${Int[${Ini[${Loot_Ini},${InvSlot[loot${i}].Item.Name.Left[1]},${InvSlot[loot${i}].Item.Name}${iniEntryVariables}].Arg[${e},/]}]}) {
-								/varcalc e ${e} + 1
-								/goto :check_MaxStock
+				/if (${Me.FreeInventory}) {
+				
+					/for i 1 to ${lootTotal}
+						/delay 1s ${InvSlot[loot${i}].Item.ID} != 0
+						/varset iniEntryVariables ${If[${Math.Calc[${InvSlot[loot${i}].Item.Value}/1000].Int},~${Math.Calc[${InvSlot[loot${i}].Item.Value}/1000].Int}p,${If[${Math.Calc[${InvSlot[loot${i}].Item.Value}/100].Int},~${Math.Calc[${InvSlot[loot${i}].Item.Value}/100].Int}g,${If[${Math.Calc[${InvSlot[loot${i}].Item.Value}/10].Int},~${Math.Calc[${InvSlot[loot${i}].Item.Value}/10].Int}s,${If[${Math.Calc[${InvSlot[loot${i}].Item.Value}/1].Int},~${Math.Calc[${InvSlot[loot${i}].Item.Value}/1].Int}c,]}]}]}]}${If[${InvSlot[loot${i}].Item.Stackable},(${InvSlot[loot${i}].Item.StackSize}),]}${If[${InvSlot[loot${i}].Item.NoDrop},(ND),]}${If[${InvSlot[loot${i}].Item.Container},(C),]}
+						
+					|--------------------------------------If there is no entry in the Loot_Ini for this item, make one.
+						/if (!${Ini[${Loot_Ini},${InvSlot[loot${i}].Item.Name.Left[1]},${InvSlot[loot${i}].Item.Name}${iniEntryVariables}].Length}) {
+						
+						|---------------------------Import settings from oldloot.ini
+							/if (${Ini[Macro_Inis\OldLoot.ini,${InvSlot[loot${i}].Item.Name.Left[1]},${InvSlot[loot${i}].Item.Name}].Length}) {
+								/echo Autoloot: Importing ini setting [${InvSlot[loot${i}].Item.Name} (${Ini[Macro_Inis\OldLoot.ini,${InvSlot[loot${i}].Item.Name.Left[1]},${InvSlot[loot${i}].Item.Name}]})]
+								/call WriteToIni "${Loot_Ini},${InvSlot[loot${i}].Item.Name.Left[1]},${InvSlot[loot${i}].Item.Name}${iniEntryVariables}" ${If[${InvSlot[loot${i}].Item.Container},Container,${If[${Ini[Macro_Inis\OldLoot.ini,${InvSlot[loot${i}].Item.Name.Left[1]},${InvSlot[loot${i}].Item.Name}].Equal[NDITEM]},Skip,${If[${Ini[Macro_Inis\OldLoot.ini,${InvSlot[loot${i}].Item.Name.Left[1]},${InvSlot[loot${i}].Item.Name}].Equal[keep]},Keep${If[${InvSlot[loot${i}].Item.Stackable},/${InvSlot[loot${i}].Item.StackSize},]},${If[${Ini[Macro_Inis\OldLoot.ini,${InvSlot[loot${i}].Item.Name.Left[1]},${InvSlot[loot${i}].Item.Name}].Equal[destroy]},Destroy,IMPORT_FAILED]}]}]}]} 0
 							} else {
-/echo /if (${Math.Calc[${FindItemCount[${InvSlot[loot${i}].Item.Name}]} + 1].Int} > ${Ini[${Loot_Ini},${InvSlot[loot${i}].Item.Name.Left[1]},${InvSlot[loot${i}].Item.Name}${iniEntryVariables}].Arg[2,/]}) 
-								/if (${Math.Calc[${FindItemCount[${InvSlot[loot${i}].Item.Name}]} + 1].Int} > ${Ini[${Loot_Ini},${InvSlot[loot${i}].Item.Name.Left[1]},${InvSlot[loot${i}].Item.Name}${iniEntryVariables}].Arg[2,/]}) {
-									/echo Autoloot: Fully stocked on [${InvSlot[loot${i}].Item.Name}], Skipping.
-									/goto :skip_Lore
+
+								/call WriteToIni "${Loot_Ini},${InvSlot[loot${i}].Item.Name.Left[1]},${InvSlot[loot${i}].Item.Name}${iniEntryVariables}" ${If[${InvSlot[loot${i}].Item.Container},Container,${If[${InvSlot[loot${i}].Item.NoDrop},Skip,Keep${If[${InvSlot[loot${i}].Item.Stackable},/${InvSlot[loot${i}].Item.StackSize},]}]}]}
+								/echo Autoloot: Added [${InvSlot[loot${i}].Item.Name} (${Ini[${Loot_Ini},${InvSlot[loot${i}].Item.Name.Left[1]},${InvSlot[loot${i}].Item.Name}${iniEntryVariables}]})] to your Loot.ini
+							}
+						}
+					
+					|----------------------------------------------------------------------------------Destroy the item.
+						/if (${Ini[${Loot_Ini},${InvSlot[loot${i}].Item.Name.Left[1]},${InvSlot[loot${i}].Item.Name}${iniEntryVariables}].Find[Destroy]}) {
+							/echo Autoloot: Destroying [${InvSlot[loot${i}].Item.Name}]
+							/if (${InvSlot[loot${i}].Item.Lore} && ${FindItem[${InvSlot[loot${i}].Item.Name}].ID}) /goto :skip_Lore
+							/call loot_Handle ${i} destroy
+
+					|-------------------------------------------------------------------------------------Keep the item.
+						} else /if (${Ini[${Loot_Ini},${InvSlot[loot${i}].Item.Name.Left[1]},${InvSlot[loot${i}].Item.Name}${iniEntryVariables}].Find[Keep]} || ${Ini[${Loot_Ini},${InvSlot[loot${i}].Item.Name.Left[1]},${InvSlot[loot${i}].Item.Name}${iniEntryVariables}].Find[Sell]}) {
+		
+						
+						| change this to loop through the arguments in the ini entry, looking for on that passes ${Int[ini entry arg[i,/]}
+						|---------------If I have an item limit, check my stock.
+							/varset e 1
+							:check_MaxStock
+
+							/if (${Ini[${Loot_Ini},${InvSlot[loot${i}].Item.Name.Left[1]},${InvSlot[loot${i}].Item.Name}${iniEntryVariables}].Arg[${e},/].Length}) {
+								/if (!${Int[${Ini[${Loot_Ini},${InvSlot[loot${i}].Item.Name.Left[1]},${InvSlot[loot${i}].Item.Name}${iniEntryVariables}].Arg[${e},/]}]}) {
+									/varcalc e ${e} + 1
+									/goto :check_MaxStock
+								} else {
+									/if (${Math.Calc[${FindItemCount[${InvSlot[loot${i}].Item.Name}]} + 1].Int} > ${Ini[${Loot_Ini},${InvSlot[loot${i}].Item.Name.Left[1]},${InvSlot[loot${i}].Item.Name}${iniEntryVariables}].Arg[${e},/]}) {
+										/echo Autoloot: Fully stocked on [${InvSlot[loot${i}].Item.Name}], Skipping.
+										/goto :skip_Lore
+									}
 								}
 							}
-						}
-						
-					|----------------------------If the item is lore, make sure I don't have one.  If I do, skip it.
-						/if (${InvSlot[loot${i}].Item.Lore} && ${FindItem[${InvSlot[loot${i}].Item.Name}].ID}) /goto :skip_Lore
-						
-					|-Check if, the item is lore and I don't have one, or, if the item is not no drop, or if the item is no drop and not lore.
-						/if (${InvSlot[loot${i}].Item.Lore} && !${FindItem[${InvSlot[loot${i}].Item.Name}].ID} || !${InvSlot[loot${i}].Item.NoDrop} || ${InvSlot[loot${i}].Item.NoDrop} && !${InvSlot[loot${i}].Item.Lore}) {
 							
-						|----------------------------Check for free inventory, and that the item is not a container.	
-							/if (${Me.FreeInventory} && !${InvSlot[loot${i}].Item.Container}) {
-								/echo Autoloot: Looting [${InvSlot[loot${i}].Item.Name}]
-								/call loot_Handle ${i} keep
+						|----------------------------If the item is lore, make sure I don't have one.  If I do, skip it.
+							/if (${InvSlot[loot${i}].Item.Lore} && ${FindItem[${InvSlot[loot${i}].Item.Name}].ID}) /goto :skip_Lore
+							
+						|-Check if, the item is lore and I don't have one, or, if the item is not no drop, or if the item is no drop and not lore.
+							/if (${InvSlot[loot${i}].Item.Lore} && !${FindItem[${InvSlot[loot${i}].Item.Name}].ID} || !${InvSlot[loot${i}].Item.NoDrop} || ${InvSlot[loot${i}].Item.NoDrop} && !${InvSlot[loot${i}].Item.Lore}) {
 								
-						|----------------------If inventory is full, alert the user, and turn off looting functions.
-							| change this to continue checking corpses, only linking, instead of looting.
-	
-							} else /if (!${Me.FreeInventory}) {
-								/declare a int local
-								/for a 1 to ${Loot_Alert}
-									/beep 1
-									/delay 3
-								/next a
-								/varset NinjaLoot_On FALSE
-								/docommand ${ChatToggle} I'm full, turning loots off.
+							|----------------------------Check for free inventory, and that the item is not a container.	
+								/if (${Me.FreeInventory} && !${InvSlot[loot${i}].Item.Container}) {
+									/echo Autoloot: Looting [${InvSlot[loot${i}].Item.Name}]
+									/call loot_Handle ${i} keep
+									
+							|----------------------If inventory is full, alert the user, and turn off looting functions.
+								| change this to continue checking corpses, only linking, instead of looting.
+		
+								}
+								|**
+								else /if (!${Me.FreeInventory}) {
+									/declare a int local
+									/for a 1 to ${Loot_Alert}
+										/beep 1
+										/delay 3
+									/next a
+									/varset Auto_Loot FALSE
+									/docommand ${ChatToggle} I'm full, turning loots off.
+								}
+								**|
 							}
 						}
-					}
-					:skip_Lore
-				/next i
-				
+						:skip_Lore
+					/next i
+				}
 			|-------------------------------------------------If I've finished looting, and there are still items on the corpse, announce in chat.
 				/if (${Corpse.Items}) {
 					
-					/declare linkList string local 
+					/declare linkList string local [${Corpse.CleanName} - ID ${Corpse.ID}] 
 					
 					/for i 1 to ${lootTotal}
 					
-						/if (${InvSlot[loot${i}].Item.ID}) /noparse /varset linkList ${LinkDB[${InvSlot[loot${i}].Item.Name}]}
+						/if (${InvSlot[loot${i}].Item.ID}) /varset linkList ${linkList} ~ ${LinkDB[${InvSlot[loot${i}].Item.Name}]}
 					
 					/next i
 					
-					/echo ${linkList}
-				|**
-					/notify LootWND LW_BroadcastButton leftmouseup
-					/keypress enter chat
-				**|
+					/docommand ${linkChannel} ${linkList}
 				|--------------------------------------------------------------Add corpseID to looted_Corpses array.
 					:SKIP_LOOT
 					/varset looted_Corpses ${looted_Corpses}${corpseID}-
@@ -231,7 +236,6 @@ SUB loot_It(int corpseID)
 	}
 	
 /if (${Debug}) /echo <== loot_It -|
-/varset Debug 0
 /RETURN JUST_LOOTED
 
 
@@ -365,12 +369,12 @@ SUB setup_Loot
 /if (${Debug}) /echo |- setup_Loot ==>
 
 |-----------------------------------------------------------------------------------------------------------------------Import Macro_Ini settings.
-	/call INItoVar "${Macro_Ini},AutoLoot,Looters" Looters string outer
+	/call INItoVar "${Macro_Ini},Loot,Looters" Looters string outer
 	
 	/if (${Select[${Me.CleanName},${Looters.Replace[/,,]}]}) {
-		/call INItoVar "${Macro_Ini},Loot,Auto-Loot (On/Off)" ${Auto-Loot} bool outer
-		/call INItoVar "${Macro_Ini},Loot,Loot Link Channel" LinkChannel string outer
-		/call INItoVar "${Macro_Ini},Loot,Corpse Seek Radius" SeekRadius string outer
+		/call INItoVar "${Macro_Ini},Loot,Auto-Loot (On/Off)" Auto_Loot bool outer
+		/call INItoVar "${Macro_Ini},Loot,Loot Link Channel" linkChannel string outer
+		/call INItoVar "${Macro_Ini},Loot,Corpse Seek Radius" seek_Radius string outer
 
 	|-------------------------------------------------------------------------------------------------------------------------------Check MQ2Exchange.
 		/if (!${Plugin[MQ2LinkDB].Name.Length}) {

@@ -91,7 +91,7 @@ SUB buffSelf
 				
 		|----------------------------------------------------------------------------------------------------------------------------------------BAD_ENTRY.	
 			} else /if (${castType.Equal[BAD_ENTRY]}) {
-				/if (${Debug}) /echo ERROR: [@Self Burn#${i}] [${SelfBuffs[${i}]}] has been flagged as a BAD_ENTRY.  Skipping.
+				/if (${Debug}) /echo ERROR: [@Self Buff#${i}] [${SelfBuffs[${i}]}] has been flagged as a BAD_ENTRY.  Skipping.
 			}
 		}
 	/next i
@@ -421,24 +421,24 @@ SUB setup_Buffs
 				
 				|------------------------------------------------------------------------------------------------------------Auto-fix castType
 					/if (!${SelfBuffs[${i}].Arg[2,/].Length}) {
-						/echo [Self Burn#${i}] - [${SelfBuffs[${i}]}] does not have a specified castType.  Attempting to fix...
+						/echo [Self Buff#${i}] - [${SelfBuffs[${i}]}] does not have a specified castType.  Attempting to fix...
 						
 						/if (${Int[${Me.Book[${SelfBuffs[${i}]}]}]}) {
 							/varset SelfBuffs[${i}] ${SelfBuffs[${i}]}/gem${If[${Me.Gem[${SelfBuffs[${i}]}]},${Me.Gem[${SelfBuffs[${i}]}]},${DefaultGem}]}
-							/call WriteToIni "${Character_Ini},Buffs,Self Burn#${i}" "${SelfBuffs[${i}]}" 1
+							/call WriteToIni "${Character_Ini},Buffs,Self Buff#${i}" "${SelfBuffs[${i}]}" 1
 							/echo [${SelfBuffs[${i}]}] was found in my spellbook.  Setting [${SelfBuffs[${i}].Arg[1,/]}] to cast from [gem${DefaultGem}]
 						} else /if (${FindItemCount[${SelfBuffs[${i}]}]}) {
 							/varset SelfBuffs[${i}] ${SelfBuffs[${i}]}/item
-							/call WriteToIni "${Character_Ini},Buffs,Self Burn#${i}" "${SelfBuffs[${i}]}" 1
+							/call WriteToIni "${Character_Ini},Buffs,Self Buff#${i}" "${SelfBuffs[${i}]}" 1
 							/echo [${SelfBuffs[${i}]}] was found in my inventory.  Setting [${SelfBuffs[${i}].Arg[1,/]}] to [item]
 						} else /if (${Me.AltAbility[${SelfBuffs[${i}]}]}) {
 							/varset SelfBuffs[${i}] ${SelfBuffs[${i}]}/alt
-							/call WriteToIni "${Character_Ini},Buffs,Self Burn#${i}" "${SelfBuffs[${i}]}" 1
+							/call WriteToIni "${Character_Ini},Buffs,Self Buff#${i}" "${SelfBuffs[${i}]}" 1
 							/echo [${SelfBuffs[${i}]}] was found in my Alternate Abilities.  Setting [${SelfBuffs[${i}].Arg[1,/]}] to [alt]
 						} else {
 							/varset SelfBuffs[${i}] ${SelfBuffs[${i}]}/BAD_ENTRY
-							/call WriteToIni "${Character_Ini},Buffs,Self Burn#${i}" "${SelfBuffs[${i}]}" 1
-							/echo Could not find a compatible castType for [${SelfBuffs[${i}]}].  Flagging [Self Burn#${i}] as a BAD_ENTRY.
+							/call WriteToIni "${Character_Ini},Buffs,Self Buff#${i}" "${SelfBuffs[${i}]}" 1
+							/echo Could not find a compatible castType for [${SelfBuffs[${i}]}].  Flagging [Self Buff#${i}] as a BAD_ENTRY.
 						}
 					}
 					
@@ -446,27 +446,27 @@ SUB setup_Buffs
 					/if (${SelfBuffs[${i}].Arg[2,/].Find[gem]}) {
 						/if (!${Int[${Me.Book[${SelfBuffs[${i}].Arg[1,/]}]}]}) {
 							/varset SelfBuffs[${i}] ${SelfBuffs[${i}].Arg[1,/]}/BAD_ENTRY
-							/call WriteToIni "${Character_Ini},Buffs,Self Burn#${i}" "${SelfBuffs[${i}]}" 1
-							/echo ERROR: @[Self Burn#${i}] - [${SelfBuffs[${i}].Arg[1,/]}] was not found in my spellbook.  Flagging [Self Burn#${i}] as a BAD_ENTRY.
+							/call WriteToIni "${Character_Ini},Buffs,Self Buff#${i}" "${SelfBuffs[${i}]}" 1
+							/echo ERROR: @[Self Buff#${i}] - [${SelfBuffs[${i}].Arg[1,/]}] was not found in my spellbook.  Flagging [Self Buff#${i}] as a BAD_ENTRY.
 						}
 					} else /if (${SelfBuffs[${i}].Arg[2,/].Equal[item]}) {
 						/if (!${FindItemCount[${SelfBuffs[${i}].Arg[1,/]}]}) {
 							/varset SelfBuffs[${i}] ${SelfBuffs[${i}].Arg[1,/]}/BAD_ENTRY
-							/call WriteToIni "${Character_Ini},Buffs,Self Burn#${i}" "${SelfBuffs[${i}]}" 1
-							/echo ERROR: @[Self Burn#${i}] - I do not have [${SelfBuffs[${i}].Arg[1,/]}] in my inventory.  Flagging [Self Burn#${i}] as a BAD_ENTRY.
+							/call WriteToIni "${Character_Ini},Buffs,Self Buff#${i}" "${SelfBuffs[${i}]}" 1
+							/echo ERROR: @[Self Buff#${i}] - I do not have [${SelfBuffs[${i}].Arg[1,/]}] in my inventory.  Flagging [Self Buff#${i}] as a BAD_ENTRY.
 						}
 					} else /if (${SelfBuffs[${i}].Arg[2,/].Equal[alt]} || ${SelfBuffs[${i}].Arg[2,/].Equal[aa]}) {
 						/if (!${Me.AltAbility[${SelfBuffs[${i}].Arg[1,/]}].ID}) {
 							/varset SelfBuffs[${i}] ${SelfBuffs[${i}].Arg[1,/]}/BAD_ENTRY
-							/call WriteToIni "${Character_Ini},Buffs,Self Burn#${i}" "${SelfBuffs[${i}]}" 1
-							/echo ERROR: @[Self Burn#${i}] - I do not have any ranks in [${SelfBuffs[${i}].Arg[1,/]}].  Flagging [Self Burn#${i}] as a BAD_ENTRY.
+							/call WriteToIni "${Character_Ini},Buffs,Self Buff#${i}" "${SelfBuffs[${i}]}" 1
+							/echo ERROR: @[Self Buff#${i}] - I do not have any ranks in [${SelfBuffs[${i}].Arg[1,/]}].  Flagging [Self Buff#${i}] as a BAD_ENTRY.
 						}			
 					} else /if (${SelfBuffs[${i}].Arg[2,/].Find[BAD_ENTRY]}) {
-							/echo ERROR: @[Self Burn#${i}] - There is a problem with the user entry for [${SelfBuffs[${i}].Arg[1,/]}] in [${Character_Ini}].  Please review this entry, and restart the macro.
+							/echo ERROR: @[Self Buff#${i}] - There is a problem with the user entry for [${SelfBuffs[${i}].Arg[1,/]}] in [${Character_Ini}].  Please review this entry, and restart the macro.
 					} else {
 						/varset SelfBuffs[${i}] ${SelfBuffs[${i}].Arg[1,/]}/BAD_ENTRY
-						/call WriteToIni "${Character_Ini},Buffs,Self Burn#${i}" "${SelfBuffs[${i}]}" 1
-						/echo ERROR: @[Self Burn#${i}] - [${SelfBuffs[${i}].Arg[2,/]}] is not an acceptable castType.  Flagging [Self Burn#${i}] as a BAD_ENTRY.
+						/call WriteToIni "${Character_Ini},Buffs,Self Buff#${i}" "${SelfBuffs[${i}]}" 1
+						/echo ERROR: @[Self Buff#${i}] - [${SelfBuffs[${i}].Arg[2,/]}] is not an acceptable castType.  Flagging [Self Buff#${i}] as a BAD_ENTRY.
 					}
 
 				/next i
@@ -524,26 +524,26 @@ SUB setup_Buffs
 					|-----------------------------------------------------------------------------------------------------------Validate BuffOthers array.
 						/if (${BuffOthers[${i}].Arg[3,/].Find[gem]}) {
 							/if (!${Int[${Me.Book[${BuffOthers[${i}].Arg[2,/]}]}]}) {
-								/varset BuffOthers[${i}] ${BuffOthers[${i}]}/BAD_ENTRY
+								/varset BuffOthers[${i}] ${BuffOthers[${i}].Arg[1,/]}/BAD_ENTRY
 								/call WriteToIni "${Character_Ini},Buffs,Buff Other#${i}" "${BuffOthers[${i}]}" 1
 								/echo ERROR: @[Buff Other#${i}] - [${BuffOthers[${i}].Arg[1,/]}] was not found in my spellbook.  Flagging [Buff Other#${i}] as a BAD_ENTRY.
 							}
 						} else /if (${BuffOthers[${i}].Arg[3,/].Equal[item]}) {
 							/if (!${FindItem[${BuffOthers[${i}].Arg[2,/]}].ID}) {
-								/varset BuffOthers[${i}] ${BuffOthers[${i}]}/BAD_ENTRY
+								/varset BuffOthers[${i}] ${BuffOthers[${i}].Arg[1,/]}/BAD_ENTRY
 								/call WriteToIni "${Character_Ini},Buffs,Buff Other#${i}" "${BuffOthers[${i}]}" 1
 								/echo ERROR: @[Buff Other#${i}] - I do not have [${BuffOthers[${i}].Arg[1,/]}] in my inventory.  Flagging [Buff Other#${i}] as a BAD_ENTRY.
 							}
 						} else /if (${BuffOthers[${i}].Arg[2,/].Equal[alt]} || ${BuffOthers[${i}].Arg[2,/].Equal[aa]}) {
 							/if (!${Me.AltAbility[${BuffOthers[${i}].Arg[1,/]}].ID}) {
-								/varset BuffOthers[${i}] ${BuffOthers[${i}]}/BAD_ENTRY
+								/varset BuffOthers[${i}] ${BuffOthers[${i}].Arg[1,/]}/BAD_ENTRY
 								/call WriteToIni "${Character_Ini},Buffs,Buff Other#${i}" "${BuffOthers[${i}]}" 1
 								/echo ERROR: @[Buff Other#${i}] - I do not have any ranks in [${BuffOthers[${i}].Arg[1,/]}].  Flagging [Buff Other#${i}] as a BAD_ENTRY.
 							}			
 						} else /if (${BuffOthers[${i}].Arg[2,/].Find[BAD_ENTRY]}) {
 							/echo ERROR: @[Buff Other#${i}] - There is a problem with the user entry for [${BuffOthers[${i}].Arg[1,/]}] in [${Character_Ini}].  Please review this entry, and restart the macro.
 						} else {
-							/varset BuffOthers[${i}] ${BuffOthers[${i}]}/BAD_ENTRY
+							/varset BuffOthers[${i}] ${BuffOthers[${i}].Arg[1,/]}/BAD_ENTRY
 							/call WriteToIni "${Character_Ini},Buffs,Buff Other#${i}" "${BuffOthers[${i}]}" 1
 							/echo ERROR: @[Buff Other#${i}] - [${BuffOthers[${i}].Arg[2,/]}] is not an acceptable castType.  Flagging [Buff Other#${i}] as a BAD_ENTRY.
 						}
@@ -574,7 +574,7 @@ SUB setup_Buffs
 				|------------------------------------------------------------------------------------------------------------Check for Target and spell to cast.
 					/if (!${CombatBuffs[${i}].Arg[2,/].Length}) {
 						/echo ERROR: @[Combat Buff#${i}] - [${CombatBuffs[${i}]}]. You must specify a Target, and a buff to cast; ex Combat Buff#1=Killians/Spirit of Eagle.
-						/call WriteToIni "${Character_Ini},Buffs,Combat Buff#${i}" "${CombatBuffs[${i}]}/BAD_ENTRY" 1
+						/call WriteToIni "${Character_Ini},Buffs,Combat Buff#${i}" "${CombatBuffs[${i}]}/PLACEHOLDER/BAD_ENTRY" 1
 					} else {
 					
 					|------------------------------------------------------------------------------------------------------------Auto-fix castType
@@ -584,15 +584,15 @@ SUB setup_Buffs
 							/if (${Int[${Me.Book[${CombatBuffs[${i}].Arg[2,/]}]}]}) {
 								/varset CombatBuffs[${i}] ${CombatBuffs[${i}]}/gem${If[${Me.Gem[${CombatBuffs[${i}].Arg[2,/]}]},${Me.Gem[${CombatBuffs[${i}].Arg[2,/]}]},${DefaultGem}]}
 								/call WriteToIni "${Character_Ini},Buffs,Combat Buff#${i}" "${CombatBuffs[${i}]}" 1
-								/echo [${CombatBuffs[${i}]}] was found in my spellbook.  Setting [${CombatBuffs[${i}].Arg[1,/]}] to cast from [gem${DefaultGem}]
+								/echo [${CombatBuffs[${i}]}] was found in my spellbook.  Setting [${CombatBuffs[${i}].Arg[2,/]}] to cast from [gem${DefaultGem}]
 							} else /if (${FindItemCount[${CombatBuffs[${i}].Arg[2,/]}]}) {
 								/varset CombatBuffs[${i}] ${CombatBuffs[${i}]}/item
 								/call WriteToIni "${Character_Ini},Buffs,Combat Buff#${i}" "${CombatBuffs[${i}]}" 1
-								/echo [${CombatBuffs[${i}]}] was found in my inventory.  Setting [${CombatBuffs[${i}].Arg[1,/]}] to [item]
+								/echo [${CombatBuffs[${i}]}] was found in my inventory.  Setting [${CombatBuffs[${i}].Arg[2,/]}] to [item]
 							} else /if (${Me.AltAbility[${CombatBuffs[${i}].Arg[2,/]}]}) {
 								/varset CombatBuffs[${i}] ${CombatBuffs[${i}]}/alt
 								/call WriteToIni "${Character_Ini},Buffs,Combat Buff#${i}" "${CombatBuffs[${i}]}" 1
-								/echo [${CombatBuffs[${i}]}] was found in my Alternate Abilities.  Setting [${CombatBuffs[${i}].Arg[1,/]}] to [alt]
+								/echo [${CombatBuffs[${i}]}] was found in my Alternate Abilities.  Setting [${CombatBuffs[${i}].Arg[2,/]}] to [alt]
 							} else {
 								/varset CombatBuffs[${i}] ${CombatBuffs[${i}]}/BAD_ENTRY
 								/call WriteToIni "${Character_Ini},Buffs,Combat Buff#${i}" "${CombatBuffs[${i}]}" 1
@@ -603,26 +603,26 @@ SUB setup_Buffs
 					|-----------------------------------------------------------------------------------------------------------Validate CombatBuffs array.
 						/if (${CombatBuffs[${i}].Arg[3,/].Find[gem]}) {
 							/if (!${Int[${Me.Book[${CombatBuffs[${i}].Arg[2,/]}]}]}) {
-								/varset CombatBuffs[${i}] ${CombatBuffs[${i}]}/BAD_ENTRY
+								/varset CombatBuffs[${i}] ${CombatBuffs[${i}].Arg[1,/]}/${CombatBuffs[${i}].Arg[2,/]}/BAD_ENTRY
 								/call WriteToIni "${Character_Ini},Buffs,Combat Buff#${i}" "${CombatBuffs[${i}]}" 1
 								/echo ERROR: @[Combat Buff#${i}] - [${CombatBuffs[${i}].Arg[1,/]}] was not found in my spellbook.  Flagging [Combat Buff#${i}] as a BAD_ENTRY.
 							}
 						} else /if (${CombatBuffs[${i}].Arg[3,/].Equal[item]}) {
 							/if (!${FindItem[${CombatBuffs[${i}].Arg[2,/]}].ID}) {
-								/varset CombatBuffs[${i}] ${CombatBuffs[${i}]}/BAD_ENTRY
+								/varset CombatBuffs[${i}] ${CombatBuffs[${i}].Arg[1,/]}/${CombatBuffs[${i}].Arg[2,/]}/BAD_ENTRY
 								/call WriteToIni "${Character_Ini},Buffs,Combat Buff#${i}" "${CombatBuffs[${i}]}" 1
 								/echo ERROR: @[Combat Buff#${i}] - I do not have [${CombatBuffs[${i}].Arg[1,/]}] in my inventory.  Flagging [Combat Buff#${i}] as a BAD_ENTRY.
 							}
-						} else /if (${CombatBuffs[${i}].Arg[2,/].Equal[alt]} || ${CombatBuffs[${i}].Arg[2,/].Equal[aa]}) {
-							/if (!${Me.AltAbility[${CombatBuffs[${i}].Arg[1,/]}].ID}) {
-								/varset CombatBuffs[${i}] ${CombatBuffs[${i}]}/BAD_ENTRY
+						} else /if (${CombatBuffs[${i}].Arg[3,/].Equal[alt]} || ${CombatBuffs[${i}].Arg[3,/].Equal[aa]}) {
+							/if (!${Me.AltAbility[${CombatBuffs[${i}].Arg[2,/]}].ID}) {
+								/varset CombatBuffs[${i}] ${CombatBuffs[${i}].Arg[1,/]}/${CombatBuffs[${i}].Arg[2,/]}/BAD_ENTRY
 								/call WriteToIni "${Character_Ini},Buffs,Combat Buff#${i}" "${CombatBuffs[${i}]}" 1
-								/echo ERROR: @[Combat Buff#${i}] - I do not have any ranks in [${CombatBuffs[${i}].Arg[1,/]}].  Flagging [Combat Buff#${i}] as a BAD_ENTRY.
+								/echo ERROR: @[Combat Buff#${i}] - I do not have any ranks in [${CombatBuffs[${i}].Arg[2,/]}].  Flagging [Combat Buff#${i}] as a BAD_ENTRY.
 							}			
-						} else /if (${CombatBuffs[${i}].Arg[2,/].Find[BAD_ENTRY]}) {
+						} else /if (${CombatBuffs[${i}].Arg[3,/].Find[BAD_ENTRY]}) {
 							/echo ERROR: @[Combat Buff#${i}] - There is a problem with the user entry for [${CombatBuffs[${i}].Arg[1,/]}] in [${Character_Ini}].  Please review this entry, and restart the macro.
 						} else {
-							/varset CombatBuffs[${i}] ${CombatBuffs[${i}]}/BAD_ENTRY
+							/varset CombatBuffs[${i}] ${CombatBuffs[${i}].Arg[1,/]}/${CombatBuffs[${i}].Arg[2,/]}/BAD_ENTRY
 							/call WriteToIni "${Character_Ini},Buffs,Combat Buff#${i}" "${CombatBuffs[${i}]}" 1
 							/echo ERROR: @[Combat Buff#${i}] - [${CombatBuffs[${i}].Arg[2,/]}] is not an acceptable castType.  Flagging [Combat Buff#${i}] as a BAD_ENTRY.
 						}

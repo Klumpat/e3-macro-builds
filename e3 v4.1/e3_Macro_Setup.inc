@@ -100,7 +100,7 @@ SUB e3_Setup
 	/call IniToVar "${Macro_Ini},General,Verbosity (On/Off)" Verbosity bool outer
 	
 	/call IniToVar "${Macro_Ini},General,Max Command Response Distance" FollowBreakDistance int outer
-	/call IniToVar "${Macro_Ini},General,Max Command Response Distance" MoveToBreakDistance int outer
+	/declare MoveToBreakDistance int outer ${Math.Calc[${FollowBreakDistance}*3]}
 	/call IniToVar "${Macro_Ini},General,Leash Length" LeashLength int outer
 
 |---------------------------------------------------------------Check for Bot_Ini. If one doesn't exist, create it.
