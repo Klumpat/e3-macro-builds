@@ -69,7 +69,6 @@ Sub BRD_Assist
 |- Imports variables from the [Bard] section of the Character_Ini.	-|
 |------------------------------------------------------------------------|
 Sub BRD_Setup
-/varset Debug 1
 /if (${Debug}) /echo |- BRD_Setup ==>
 
 	/if (!${Ini[${Character_Ini},${Me.Class}].Length}) /call Make${Me.Class.ShortName}_Ini
@@ -98,7 +97,6 @@ Sub BRD_Setup
 	}
 
 /if (${Debug}) /echo <== BRD_Setup -|
-/varset Debug 0
 /return
 
 
@@ -111,7 +109,7 @@ Sub BRD_Setup
 Sub MakeBRD_Ini
 /if (${Debug}) /echo |- BRD_Ini ==>
 
-	/call WriteToIni "${Character_Ini},Bard,Auto-Forage On/Off)" "*Do you want this character to automatically forage?" 0
+	/call WriteToIni "${Character_Ini},Bard,Auto-Forage (On/Off)" "*Do you want this character to automatically forage?" 0
 
 /if (${Debug}) /echo <== BRD_Ini -|
 /return

@@ -31,7 +31,7 @@ SUB Background_Services
 	/if (!${Cursor.ID}) {
 		/if (!${Me.Casting.ID} || ${Me.Class.ShortName.Equal[BRD]}) {
 			/if (${lifeSupport.Size}) /call check_lifeSupport
-			/if (${Defined[ConstantIllusion]} && !${Select[${Me.Race},${illusionRace}]}) /call check_Illusion
+			/if (${Defined[ConstantIllusion]}) /call check_Illusion
 		}
 	}
 	/call Background_Events
@@ -633,7 +633,13 @@ SUB check_Follow
 |- Illusions must be instant cast.							-|
 |------------------------------------------------------------|
 SUB check_Illusion
-/if (${Me.FreeBuffSlots} > ${MaxBuffs} && ${FindItem[${ConstantIllusion}].ID} && ${Me.Buff[${FindItem[${ConstantIllusion}].Spell}].Duration}<20 && ${Spell[${FindItem[${ConstantIllusion}].Spell}].Stacks}) /call e3_Cast 0 "${ConstantIllusion}" item 0s
+/if (${Debug}) /echo |- check_Illusion ==>
+
+	/if (${Me.FreeBuffSlots} > ${MaxBuffs} && ${FindItem[${ConstantIllusion}].ID}) {
+		/if (${Me.Buff[${FindItem[${ConstantIllusion}].Spell}].Duration} < ${Math.Calc[${buffCheck_Interval} / 6].Int} && ${Spell[${FindItem[${ConstantIllusion}].Spell}].Stacks}) /call e3_Cast 0 "${ConstantIllusion}" item 0s
+	}
+	
+/if (${Debug}) /echo <== check_Illusion -|
 /RETURN
 
 

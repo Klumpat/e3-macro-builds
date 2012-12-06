@@ -711,19 +711,19 @@ SUB setup_Buffs
 		}		
 	}
 	
-|-------------------------------------------------------------------------------------------------------------------Setup BuffCheck variables.
-	/if (${SelfBuffs.Size} || ${BuffOthers.Size}) {
-		/declare BuffCheck bool outer TRUE
-		/call IniToVar "${Macro_Ini},Buffs,Allow Buff Requests (On/Off/PWOnly)" allow_BuffRequests ${If[${Ini[${Macro_Ini},Buffs,Allow Buff Requests (On/Off/PWOnly)].Equal[pwonly]},string,bool]} outer
-		/call IniToVar "${Macro_Ini},Buffs,BuffCheck Interval (Sec)" buffCheck_Interval int outer
-	}
-
 |---------------------------------------------------------------------------------------------------------------------Constant Illusion variables.
 	/call IniToVar "${Character_Ini},Buffs,Instant Illusion" ConstantIllusion string outer
 	/if (${Defined[ConstantIllusion]}) {
 		/declare illusionRace string outer ${FindItem[${ConstantIllusion}].Spell}
 		/varset illusionRace ${illusionRace.Replace[Illusion: ,]}
 		/if (${illusionRace.Equal[Guktan]}) /varset illusionRace Froglok
+	}
+	
+|-------------------------------------------------------------------------------------------------------------------Setup BuffCheck variables.
+	/if (${SelfBuffs.Size} || ${BuffOthers.Size} || ${ConstantIllusion.Length}) {
+		/declare BuffCheck bool outer TRUE
+		/call IniToVar "${Macro_Ini},Buffs,Allow Buff Requests (On/Off/PWOnly)" allow_BuffRequests ${If[${Ini[${Macro_Ini},Buffs,Allow Buff Requests (On/Off/PWOnly)].Equal[pwonly]},string,bool]} outer
+		/call IniToVar "${Macro_Ini},Buffs,BuffCheck Interval (Sec)" buffCheck_Interval int outer
 	}
 
 /if (${Debug}) /echo <== setup_Buffs -|
