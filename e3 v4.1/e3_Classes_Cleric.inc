@@ -28,7 +28,7 @@ Sub CLR_Main
 	/if (${celestialRegen_Pct} && ${Group}>2 && ${Me.AltAbilityReady[Celestial Regeneration]}) /call check_celestialRegen
 
 |-----------------------------------------------------------------------------------------------------------------------------------#2 check_CombatBuffs.
-	/if (!${idle} && ${PriorityBuffs.Size}) /call checkPriorityBuffs
+	/if (!${idle} && ${CombatBuffs.Size}) /call CombatBuffs
 		/if (${ActionTaken}) /return
 		
 |--------------------------------------------------------------------------------------------------------------------------------#3 check_CommandDebuffs.

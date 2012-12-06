@@ -23,7 +23,7 @@ Sub PAL_Main
 		/if (${ActionTaken}) /return
 
 |-----------------------------------------------------------------------------------------------------------------------------------#2 check_CombatBuffs.
-	/if (!${idle} && ${PriorityBuffs.Size}) /call checkPriorityBuffs
+	/if (!${idle} && ${CombatBuffs.Size}) /call CombatBuffs
 		/if (${ActionTaken}) /return
 
 |------------------------------------------------------------------------------------------------------------------------------------#3 Assist Functions.

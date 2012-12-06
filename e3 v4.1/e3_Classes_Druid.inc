@@ -21,7 +21,7 @@ Sub DRU_Main
 
 /if (${Heals}) /call CheckHeals
 /if (${spiritofWood_Pct} && ${Group}>2 && !${alt_Timer_173}) /call check_spiritofWood
-/if (!${idle} && ${PriorityBuffs.Size}) /call checkPriorityBuffs
+/if (!${idle} && ${CombatBuffs.Size}) /call CombatBuffs
 	/if (${ActionTaken}) /return
 	
 |--------------------------------------------------------------------------------------------------------------------------------#1 check_CommandDebuffs.

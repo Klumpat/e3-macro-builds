@@ -31,7 +31,7 @@ Sub NEC_Main
 		
 		
 |-----------------------------------------------------------------------------------------------------------------------------------#4 check_CombatBuffs.
-	/if (!${idle} && ${PriorityBuffs.Size}) /call checkPriorityBuffs
+	/if (!${idle} && ${CombatBuffs.Size}) /call CombatBuffs
 		/if (${ActionTaken}) /return
 		
 		
