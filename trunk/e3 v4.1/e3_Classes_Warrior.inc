@@ -19,7 +19,7 @@ Sub WAR_Main
 /if (${Debug}) /echo |- WAR_Main ==>
 
 |-----------------------------------------------------------------------------------------------------------------------------------#1 check_CombatBuffs.
-	/if (!${idle} && ${PriorityBuffs.Size}) /call checkPriorityBuffs
+	/if (!${idle} && ${CombatBuffs.Size}) /call CombatBuffs
 		/if (${ActionTaken}) /return
 		
 |------------------------------------------------------------------------------------------------------------------------------------#2 Assist Functions.

@@ -332,7 +332,7 @@ SUB check_Idle
 	
 	|----------------------------------------If I'm not in a safe zone, check to see if I have been active recently.  If so, update the idleTimer.	
 		/if (${activeTimer} || ${combatTimer}) {
-			/varset idleTimer ${idleInterval}
+			/varset idleTimer ${idleInterval}m
 			/if (${idle}) /varset idle FALSE
 		} else {
 		

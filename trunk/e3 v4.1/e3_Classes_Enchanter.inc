@@ -19,7 +19,7 @@ Sub ENC_Main
 /if (${Debug}) /echo |- ENC_Main ==>
 
 |-----------------------------------------------------------------------------------------------------------------------------------#1 check_PriorityBuffs (Rune).
-	/if (!${idle} && ${PriorityBuffs.Size}) /call checkPriorityBuffs
+	/if (!${idle} && ${CombatBuffs.Size}) /call CombatBuffs
 		/if (${ActionTaken}) /return
 
 |------------------------------------------------------------------------------------------------------------------------------------------------#2 check_AutoMez.
