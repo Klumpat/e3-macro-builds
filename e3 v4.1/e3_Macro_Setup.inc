@@ -166,8 +166,12 @@ SUB e3_Setup
 	
 |-----------------------------------------------------------------------------------------------------------------Check to rerun setup after validation.
 	
-	/if (${Select[${Me.Race},Gnome]}) /em picks his nose.
-
+	/if (${Select[${Me.Race},Gnome]}) {
+		/em picks his nose.
+	} else /if (${Me.Class.ShortName.Equal[WAR]} && ${Select[${Me.Race},ogre]}) {
+		/em hugs himself.
+	}
+	
 	/echo e3 loaded.
 	/call startMsg
 	
@@ -182,7 +186,7 @@ SUB e3_Setup
 	|------------------------------------------------------------------If macro is in DebugMode, pause after setup.
 		/mqpause
 	}
-	
+
 /RETURN
 
 
@@ -670,7 +674,6 @@ SUB MakeMacro_Ini(Version)
 	/call WriteToIni "${Macro_Ini},General,Macro Version" 4.1 1
 	/call WriteToIni "${Macro_Ini},General,Macro Output Channel" /bc
 	/call WriteToIni "${Macro_Ini},General,Debug Mode (On/Off)" Off
-	/call WriteToIni "${Macro_Ini},General,Validate Ini Entries (On/Off)" On
 	/call WriteToIni "${Macro_Ini},General,Verbosity (On/Off)" Off
 	/call WriteToIni "${Macro_Ini},General,Max Command Response Distance" 250
 	/call WriteToIni "${Macro_Ini},General,Leash Length" 125

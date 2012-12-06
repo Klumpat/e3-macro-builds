@@ -194,7 +194,7 @@ SUB Wait4Rez(functionCall)
 	|-----------------------------------------------------------------------------------------Loot Items one by one.
 		/if (${lootTotal}) {
 			/for i 1 to ${lootTotal}
-			/if (${Me.State.Equal[BIND]} && ${Widow[LootWnd].Child[LW_CorpseName].Text.Equal[${Me.CleanName}'s corpse]}) {
+			/if (${Me.State.Equal[BIND]} && ${Corpse.CleanName.Equal[${Me.CleanName}'s corpse]}) {
 					/delay 1s ${InvSlot[loot${i}].Item.ID}
 					
 				|--------------------------------------------Call rez_loot_Handle, pass the slotNumber to loot from.

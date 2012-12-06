@@ -216,24 +216,12 @@ SUB setup_Heals
 /if (${Debug}) /echo |- setup_Heals ==>
 
 	/if (${Ini[${Character_Ini},Heals].Length}) {
-		
-	|--------------------------------------------------------------------------------Check for Main Tank
-		/call INItoVar ${Character_Ini},Heals,MainTank MainTank string outer
-	
-	}
-	
-/if (${Debug}) /echo <== setup_Heals -|
-/RETURN
-
-
-
-/if (${Ini[${Character_Ini},Heals].Length}) {
 	
 |------------------------------------------------------------------------------------------------------MainTank_Heal.
-	/call INItoVar ${Character_Ini},Heals,MainTank MainTank string outer
+	/call INItoVar "${Character_Ini},Heals,Main Tank" MainTank string outer
 	
 	/if (${Defined[MainTank]}) {
-		/call INItoVar ${Character_Ini},Heals,MainTank_Heal(Spell/Gem/Pct) MainTank_Heal string outer
+		/call INItoVar "${Character_Ini},Heals,Main Tank Heal (Spell/Gem/Pct)" MainTank_Heal string outer
 		
 		/if (${Defined[MainTank_Heal]}) {
 			/if (!${Int[${Me.Book[${MainTank_Heal.Arg[1,/]}]}]}) {
@@ -243,7 +231,7 @@ SUB setup_Heals
 		}
 		
 	|-------------------------------------------------------------------------------------------------------MTQuick_Heal.
-		/call INItoVar ${Character_Ini},Heals,MainTank_QuickHeal(Spell/Gem/Pct) MTQuick_Heal string outer
+		/call INItoVar "${Character_Ini},Heals,Main Tank Quick Heal (Spell/Gem/Pct)" MTQuick_Heal string outer
 		/if (${Defined[MTQuick_Heal]}) {
 			/if (!${Int[${Me.Book[${MTQuick_Heal.Arg[1,/]}]}]}) {
 				/echo ERROR: @[MainTank_QuickHeal] - I do not have [${MTQuick_Heal.Arg[1,/]}] in my spellbook. Disabling MainTank_QuickHeals.
@@ -253,8 +241,8 @@ SUB setup_Heals
 	}	
 	
 |---------------------------------------------------------------------------------------------------------Patch_Heal.
-	/call INItoArray ${Character_Ini},Heals,PriorityTarget# priorityTargets
-	/call INItoVar ${Character_Ini},Heals,Patch_Heal(Spell/Gem/Pct) Patch_Heal string outer
+	/call INItoArray "${Character_Ini},Heals,Priority Target#" priorityTargets
+	/call INItoVar "${Character_Ini},Heals,Patch Heal (Spell/Gem/Pct)" Patch_Heal string outer
 	/if (${Defined[Patch_Heal]}) {
 		/if (!${Int[${Me.Book[${Patch_Heal.Arg[1,/]}]}]}) {
 			/echo ERROR: @[Patch_Heal] - I do not have [${Patch_Heal.Arg[1,/]}] in my spellbook. Disabling Patch_Heals.
@@ -263,9 +251,8 @@ SUB setup_Heals
 	}
 	
 |----------------------------------------------------------------------------------------------------------------HoT.
-	/call INItoVar ${Character_Ini},Heals,HoT_Mode(MTOnly/All/Off) HoT_Mode string outer
+	/call INItoVar "${Character_Ini},Heals,HoT Mode (MTOnly/All/Off)" HoT_Mode string outer
 	/if (${Defined[HoT_Mode]}) {
-		/call INItoVar ${Character_Ini},Heals,Heal_Over_Time(Spell/Gem/Pct) HoT_Spell string outer
 		/if (!${Select[${HoT_Mode},MTOnly,All,Off]}) {
 			/echo ERROR: @[HoT_Mode] - [${HoT_Mode}] is not a recognized heal over time mode, disabling HoT functions. Please review [${Character_Ini}] and reload e3.
 			/deletevar HoT_Mode
@@ -273,7 +260,7 @@ SUB setup_Heals
 			/if (${HoT_Mode.Equal[off]}) {
 				/deletevar HoT_Mode
 			} else {
-				/call INItoVar ${Character_Ini},Heals,Pet_Heal(Spell/Gem/Pct) HoT_Spell string outer
+				/call INItoVar "${Character_Ini},Heals,Heal Over Time (Spell/Gem/Pct)" HoT_Spell string outer
 				/if (${Defined[HoT_Spell]}) {
 					/if (!${Int[${Me.Book[${HoT_Spell.Arg[1,/]}]}]}) {
 						/echo ERROR: @[Heal_Over_Time] - I do not have [${HoT_Spell.Arg[1,/]}] in my spellbook. Disabling Heal_Over_Time.
@@ -286,7 +273,7 @@ SUB setup_Heals
 	}
 	
 |----------------------------------------------------------------------------------------------Pet_Heal.
-	/call INItoVar ${Character_Ini},Heals,Pet_Heal(Spell/Gem/Pct) Pet_Heal string outer
+	/call INItoVar "${Character_Ini},Heals,Pet Heal (Spell/Gem/Pct)" Pet_Heal string outer
 	/if (${Defined[Pet_Heal]}) {
 		/if (!${Int[${Me.Book[${Pet_Heal.Arg[1,/]}]}]}) {
 			/echo ERROR: @[Pet_Heal] - I do not have [${Pet_Heal.Arg[1,/]}] in my spellbook. Disabling Pet_Heals.
@@ -312,3 +299,6 @@ SUB setup_Heals
 		| /call event_CheckGroup
 	}
 }
+	
+/if (${Debug}) /echo <== setup_Heals -|
+/RETURN

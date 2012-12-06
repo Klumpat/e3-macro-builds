@@ -590,7 +590,7 @@ SUB next_WP(float y_loc, float x_loc)
 |-------------Calculate distance to my destination.  If I'm closer than 5 units, start moving to the next waypoint.
 	/call Triangulate_Distance ${Me.Loc.Replace[ ,]} ${y_loc},${x_loc}	
 	/if (${Macro.Return}<15) {
-		/echo skipping to next wp
+		| /echo skipping to next wp
 		/goto :skip_wait4Stop
 	}
 	

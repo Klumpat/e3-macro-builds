@@ -370,12 +370,12 @@ SUB setup_Loot
 
 |-----------------------------------------------------------------------------------------------------------------------Import Macro_Ini settings.
 	/call INItoVar "${Macro_Ini},Loot,Looters" Looters string outer
+	/if (${Looters.Find[/]}) /varset Looters ${Looters.Replace[/,,]}
 	
-	/if (${Select[${Me.CleanName},${Looters.Replace[/,,]}]}) {
+	/if (${Select[${Me.CleanName},${Looters}]}) {
 		/call INItoVar "${Macro_Ini},Loot,Auto-Loot (On/Off)" Auto_Loot bool outer
 		/call INItoVar "${Macro_Ini},Loot,Loot Link Channel" linkChannel string outer
 		/call INItoVar "${Macro_Ini},Loot,Corpse Seek Radius" seek_Radius string outer
-
 	|-------------------------------------------------------------------------------------------------------------------------------Check MQ2Exchange.
 		/if (!${Plugin[MQ2LinkDB].Name.Length}) {
 			/echo Plugin MQ2LinkDB is not loaded, attempting to resolve...
@@ -394,7 +394,6 @@ SUB setup_Loot
 		/if (!${Ini[${Loot_Ini}].Length}) /call Build_Alphabetized_Ini ${Loot_Ini}
 
 	|--------------------------------------------------------------------------------------------------------------------Create looting variables.
-		| Unused at this time --- /declare Loot_OutPut string outer /gu
 		/declare looted_Corpses string outer
 	}
 

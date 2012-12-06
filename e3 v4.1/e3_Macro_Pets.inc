@@ -47,7 +47,7 @@ SUB summon_Pet
 		/call e3_Cast ${Me.ID} "${PetSpell.Arg[1,/]}" gem${DefaultGem} ${If[${Me.Gem[${Spell[${PetSpell.Arg[1,/]}]}]},25,90]}
 		
 |--------------------------------------------If I don't have the required reageants to summon a pet, alter, and turn pets off.
-	} else /if (${PetSpell.Arg[2,/].Length} && !${FindItemCount[=${PetSpell.Arg[2,/]}].ID}) {
+	} else /if (${PetSpell.Arg[2,/].Length} && !${FindItemCount[=${PetSpell.Arg[2,/]}]}) {
 		/if (${Debug} && ${spamTimer}) {
 			/echo I do not have the required reageant to cast [${PetSpell.Arg[1,/]}].
 			/varset Pets FALSE

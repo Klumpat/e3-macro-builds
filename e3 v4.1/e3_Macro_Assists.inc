@@ -953,52 +953,60 @@ SUB event_Taunt_Off
 SUB event_SwarmPets(line, ChatSender, swarmTarget)
 /if (${Debug}) /echo |- event_SwarmPets ==>
 
-|---------------------Validate target.
+|--------------------------------------------------------------------------------------------------------------------------Validate target.
 	/if (${SpawnCount[id ${swarmTarget}]} && ${Spawn[${swarmTarget}].Type.NotEqual[Corpse]} && ${Select[${Spawn[${swarmTarget}].Type},${AcceptableTargetTypes}]} && ${SpawnCount[pc ${ChatSender}]}) {
-		
-	|-------------------------------------------------------------------------------------------------Magician abilities.
+	
+	|--------------------------------------------------------------------------------------------------------------Magician abilities.
 		/if (${Me.Class.ShortName.Equal[MAG]}) {
-			/if (${Me.AltAbilityReady[Servant of Ro]} && ${alt_Timer_${Me.AltAbility[Servant of Ro].ID}}) {
+		
+		|---------------------------------------------------------------------------------------Use Servant of Ro AA.
+			/if (${Me.AltAbilityReady[Servant of Ro]}) {
 				/call e3_Cast ${swarmTarget} ${Me.AltAbility[Servant of Ro].ID} alt
-			} else /if (!${Me.AltAbilityReady[Servant of Ro]} || ${alt_Timer_${Me.AltAbility[Servant of Ro].ID}) {
-				/if (${Verbosity}) /docommand ${ChatToggle} Servant of Ro is not ready.
-			}
-			/if (${Me.AltAbilityReady[Host of the Elements]} && ${alt_Timer_${Me.AltAbility[Host of the Elements].ID}}) {
-				/delay 5
-				/call e3_Cast ${swarmTarget} ${Me.AltAbilityReady[Host of the Elements].ID} alt
-			} else /if (!${Me.AltAbilityReady[Host of the Elements]} || ${Me.AltAbility[Host of the Elements].ID}) {
-				/if (${Verbosity}) /docommand ${ChatToggle} Host of the Elements is not ready.
+			} else {
+				/docommand ${ChatToggle} Servant of Ro is not ready.
 			}
 			
-	|------------------------------------------------------------------------------------------Necromancer abilities.
-		} else /if (${Me.Class.ShortName.Equal[NEC]}) {
-			/if (${Me.AltAbilityReady[Swarm of Decay]} && ${alt_Timer_${Me.AltAbility[Swarm of Decay].ID}}) {
-				/call e3_Cast ${swarmTarget} ${Me.AltAbility[Swarm of Decay].ID} alt
-			} else /if (${Me.AltAbilityReady[Swarm of Decay]} || ${alt_Timer_${Me.AltAbility[Swarm of Decay].ID}}) {
-				/if (${Verbosity}) /docommand ${ChatToggle} Swarm of Decay is not ready.
+		|---------------------------------------------------------------------------------------Use Host of the Elements AA.	
+			/if (${Me.AltAbilityReady[Host of the Elements]}) {
+				/call e3_Cast ${swarmTarget} ${Me.AltAbility[Host of the Elements].ID} alt
+			} else {
+				/docommand ${ChatToggle} Host of the Elements is not ready.
 			}
-			/if (${Me.AltAbilityReady[Wake the Dead]} && ${alt_Timer_${Me.AltAbility[Wake the Dead].ID}}) { {
+			
+	|-----------------------------------------------------------------------------------------------------------Necromancer abilities.
+		} else /if (${Me.Class.ShortName.Equal[NEC]}) {
+			
+		|---------------------------------------------------------------------------------------Use Swarm of Decay AA.
+			/if (${Me.AltAbilityReady[Swarm of Decay]}) {
+				/call e3_Cast ${swarmTarget} ${Me.AltAbility[Swarm of Decay].ID} alt
+			} else {
+				/docommand ${ChatToggle} Swarm of Decay is not ready.
+			}
+			
+		|---------------------------------------------------------------------------------------Use Wake the Dead AA.
+			/if (${Me.AltAbilityReady[Wake the Dead]}) {
 				/delay 5
 				/call e3_Cast ${swarmTarget} ${Me.AltAbility[Wake the Dead].ID} alt
-			} else /if (${Me.AltAbilityReady[Wake the Dead]} || ${alt_Timer_${Me.AltAbility[Wake the Dead].ID}}) {
-				/if (${Verbosity}) /docommand ${ChatToggle} Wake The Dead is not ready.
+			} else {
+				/docommand ${ChatToggle} Wake The Dead is not ready.
 			}
-			
-	|-----------------------------------------------------------------------------------------------Shaman abilities.
 		} else /if (${Me.Class.ShortName.Equal[SHM]}) {
-			/if (${Me.AltAbilityReady[Spirit Call]} && ${alt_Timer_${Me.AltAbility[Spirit Call].ID}}) {
+		
+		|---------------------------------------------------------------------------------------Use Spirit Call AA.
+			/if (${Me.AltAbilityReady[Spirit Call]}) {
 				/call e3_Cast ${swarmTarget} ${Me.AltAbility[Spirit Call].ID} alt
-   		} else /if (!${Me.AltAbilityReady[Spirit Call]} || ${Me.AltAbility[Spirit Call].ID}) {
-			/if (${Verbosity}) /docommand ${ChatToggle} Host of the Elements is not ready.
-			}
+			} else {
+				/docommand ${ChatToggle} Host of the Elements is not ready.
 			}
 			
 	|----------------------------------------------------------------------------------------------Wizard abilities.		
 		} else /if (${Me.Class.ShortName.Equal[WIZ]}) {
-			/if (${Me.AltAbilityReady[Call of Xuzl]} && ${alt_Timer_${Me.AltAbility[Call of Xuzl].ID}}) {
+			
+		|---------------------------------------------------------------------------------------Use Call of Xuzl AA.	
+			/if (${Me.AltAbilityReady[Call of Xuzl]}) {
 				/call e3_Cast ${swarmTarget} ${Me.AltAbility[Call of Xuzl].ID} alt
-			} else /if (${Me.AltAbilityReady[Call of Xuzl]} || ${alt_Timer_${Me.AltAbility[Call of Xuzl].ID}}) {
-				/if (${Verbosity}) /docommand ${ChatToggle} Call of Xuzl is not ready.
+			} else {
+				/docommand ${ChatToggle} Call of Xuzl is not ready.
 			}
 		}
 	}
@@ -1017,7 +1025,7 @@ SUB event_QuickBurn(line, ChatSender)
 /if (${Debug}) /echo |- event_QuickBurn ==>
 
 	/if (${SpawnCount[pc ${ChatSender}]} && ${Defined[use_QBurn]}) {
-		/if (${Verbosity}) /docommand ${ChatToggle} Using Quick Burns...
+		/docommand ${ChatToggle} Using Quick Burns...
 		/varset use_QBurn TRUE
 	}
 
@@ -1030,33 +1038,44 @@ SUB event_QuickBurn(line, ChatSender)
 |- QuickBurn's MainLoop hook, calls QuickBurns in succession until your target dies.	-|
 |----------------------------------------------------------------------------------------|
 SUB QuickBurns
-| /varset Debug 1
-/if (${Debug}) /echo |- QuickBurn ==>
+/if (${Debug}) /echo |- QuickBurns ==>
 
-	/if (${QBurn_Counter} <= ${QuickBurns.Size}) {
-		/if (${Select[${QuickBurns[${QBurn_Counter}].Arg[2,/].Left[3]},GEM,Gem,gem]}) {
-			/call e3_Cast ${AssistTarget} "${QuickBurns[${QBurn_Counter}].Arg[1,/]}" ${QuickBurns[${QBurn_Counter}].Arg[2,/]} ${Spell[${QuickBurns[${QBurn_Counter}].Arg[1,/]}].Recast}s
-			/varcalc QBurn_Counter ${QBurn_Counter} + 1
-		} else /if (${Select[${QuickBurns[${QBurn_Counter}].Arg[2,/]},ITEM,Item,item]}) {
-			/call e3_Cast ${AssistTarget} "${QuickBurns[${QBurn_Counter}].Arg[1,/]}" item
-			/varcalc QBurn_Counter ${QBurn_Counter} + 1
-		} else /if (${Select[${QuickBurns[${QBurn_Counter}].Arg[2,/]},ALT,Alt,alt]}) {
-			/call e3_Cast ${AssistTarget} "${QuickBurns[${QBurn_Counter}].Arg[1,/]}" alt
-			/varcalc QBurn_Counter ${QBurn_Counter} + 1
-		} else /if (${Select[${QuickBurns[${QBurn_Counter}].Arg[2,/]},DISC,Disc,disc]}) {
-			/if (${Window[CombatAbilityWnd].Child[CAW_CombatEffectLabel].Text.Equal[No Effect]}) { 
-				/call e3_Cast ${AssistTarget} "${QuickBurns[${QBurn_Counter}].Arg[1,/]}" disc
+	/if (!${Assisting}) {
+		/echo You must be currently attacking something to burn.
+	} else {
+
+		/if (${QBurn_Counter} <= ${QuickBurns.Size}) {
+		
+			/if (${QuickBurns[${QBurn_Counter}].Arg[2,/].Find[gem]}) {
+				/if (${Debug}) /echo |- QuickBurn -| Casting [${QuickBurns[${QBurn_Counter}].Arg[1,/]}] [${QuickBurns[${QBurn_Counter}].Arg[2,/]}] [${Spell[${QuickBurns[${QBurn_Counter}].Arg[1,/]}].Recast}s]
+				/call e3_Cast ${AssistTarget} "${QuickBurns[${QBurn_Counter}].Arg[1,/]}" ${QuickBurns[${QBurn_Counter}].Arg[2,/]} ${Spell[${QuickBurns[${QBurn_Counter}].Arg[1,/]}].Recast}s
 				/varcalc QBurn_Counter ${QBurn_Counter} + 1
+			} else /if (${QuickBurns[${QBurn_Counter}].Arg[2,/].Equal[item]}) {
+				/if (${Debug}) /echo |- QuickBurn -| Casting [${QuickBurns[${QBurn_Counter}].Arg[1,/]}] [${QuickBurns[${QBurn_Counter}].Arg[2,/]}]
+				/call e3_Cast ${AssistTarget} "${QuickBurns[${QBurn_Counter}].Arg[1,/]}" item
+				/varcalc QBurn_Counter ${QBurn_Counter} + 1
+			} else /if (${QuickBurns[${QBurn_Counter}].Arg[2,/].Equal[alt]} || ${QuickBurns[${QBurn_Counter}].Arg[2,/].Equal[aa]}) {
+				/if (${Debug}) /echo |- QuickBurn -| Casting [${QuickBurns[${QBurn_Counter}].Arg[1,/]}] [${QuickBurns[${QBurn_Counter}].Arg[2,/]}]
+				/call e3_Cast ${AssistTarget} "${QuickBurns[${QBurn_Counter}].Arg[1,/]}" alt
+				/varcalc QBurn_Counter ${QBurn_Counter} + 1
+			} else /if (${QuickBurns[${QBurn_Counter}].Arg[2,/].Equal[disc]}) {
+				/if (${Window[CombatAbilityWnd].Child[CAW_CombatEffectLabel].Text.NotEqual[No Effect]}) {
+					/if (${Debug}) /echo |- QuickBurn -| Waiting on disc [${Window[CombatAbilityWnd].Child[CAW_CombatEffectLabel].Text}]
+				} else {
+					/if (${Debug}) /echo |- QuickBurn -| Casting [${QuickBurns[${QBurn_Counter}].Arg[1,/]}] [${QuickBurns[${QBurn_Counter}].Arg[2,/]}]
+					/call e3_Cast ${AssistTarget} "${QuickBurns[${QBurn_Counter}].Arg[1,/]}" disc
+					/varcalc QBurn_Counter ${QBurn_Counter} + 1
+				}
 			}
+			
+		} else {
+			/varset QBurn_Counter 1
+			/varset use_QBurn FALSE
 		}
-	} else /if (${QBurn_Counter} > ${QuickBurns.Size}) {
-		/varset QBurn_Counter 1
-		/varset use_QBurn FALSE
 	}
 	/varset combatTimer ${combatDelay}
 
-/if (${Debug}) /echo <== QuickBurn -|
-| /varset Debug 0
+/if (${Debug}) /echo <== QuickBurns -|
 /RETURN
 
 
@@ -1066,10 +1085,18 @@ SUB QuickBurns
 |----------------------------------------------------|
 #event FullBurn "<#1#> Full Burn"
 SUB event_FullBurn(line, ChatSender)
-/if (${SpawnCount[pc ${ChatSender}]} && ${Defined[use_FBurn]}) {
-	/if (${Verbosity}) /docommand ${ChatToggle} Using Full Burns...
-	/varset use_FBurn TRUE
-}
+/if (${Debug}) /echo |- event_FullBurn ==>
+
+	/if (!${Assisting}) {
+			/echo You must be currently attacking something to burn.
+	} else {
+		/if (${SpawnCount[pc ${ChatSender}]} && ${Defined[use_FBurn]}) {
+			/docommand ${ChatToggle} Using Full Burns...
+			/varset use_FBurn TRUE
+		}
+	}
+	
+/if (${Debug}) /echo <== event_FullBurn -|
 /RETURN
 
 
@@ -1078,30 +1105,41 @@ SUB event_FullBurn(line, ChatSender)
 |- FullBurn's MainLoop hook, calls FullBurns, and QuickBurns, in succession until your target dies.	-|
 |----------------------------------------------------------------------------------------------------|
 SUB FullBurns
-/call Background_Events
-/if (${FBurn_Counter} <= ${FullBurns.Size}) {
-	/if (${Select[${FullBurns[${FBurn_Counter}].Arg[2,/].Left[3]},GEM,Gem,gem]}) {
-		/call e3_Cast ${AssistTarget} "${FullBurns[${FBurn_Counter}].Arg[1,/]}" ${FullBurns[${FBurn_Counter}].Arg[2,/]} 5s
-		/varcalc FBurn_Counter ${FBurn_Counter} + 1
-	} else /if (${Select[${FullBurns[${FBurn_Counter}].Arg[2,/]},ITEM,Item,item]}) {
-		/call e3_Cast ${AssistTarget} "${FullBurns[${FBurn_Counter}].Arg[1,/]}" item ${FullBurns[${FBurn_Counter}].Arg[3,/]}
-		/varcalc FBurn_Counter ${FBurn_Counter} + 1
-	} else /if (${Select[${FullBurns[${FBurn_Counter}].Arg[2,/]},ALT,Alt,alt]}) {
-		/if (!${alt_Timer_${Me.AltAbility[${FullBurns[${FBurn_Counter}].Arg[1,/]}].ID}}) /call e3_Cast ${AssistTarget} "${FullBurns[${FBurn_Counter}].Arg[1,/]}" alt
-		/varcalc FBurn_Counter ${FBurn_Counter} + 1
-	} else /if (${Select[${FullBurns[${FBurn_Counter}].Arg[2,/]},DISC,Disc,disc]}) {
-		/if (${Window[CombatAbilityWnd].Child[CAW_CombatEffectLabel].Text.Equal[No Effect]} && !${disc_Timer_${QuickBurns[${QBurn_Counter}].Arg[1,/].Replace[ ,]}}) { 
-			/call useDisc "${FullBurns[${FBurn_Counter}].Arg[1,/]}"
-			/delay 10
+/if (${Debug}) /echo |- FullBurns ==>
+
+	/if (${FBurn_Counter} <= ${FullBurns.Size}) {
+	
+		/if (${FullBurns[${FBurn_Counter}].Arg[2,/].Find[gem]}) {
+			/if (${Debug}) /echo |- FullBurn -| Casting [${FullBurns[${FBurn_Counter}].Arg[1,/]}] [${FullBurns[${FBurn_Counter}].Arg[2,/]}] [${Spell[${FullBurns[${FBurn_Counter}].Arg[1,/]}].Recast}s]
+			/call e3_Cast ${AssistTarget} "${FullBurns[${FBurn_Counter}].Arg[1,/]}" ${FullBurns[${FBurn_Counter}].Arg[2,/]} ${Spell[${FullBurns[${FBurn_Counter}].Arg[1,/]}].Recast}s
 			/varcalc FBurn_Counter ${FBurn_Counter} + 1
+		} else /if (${FullBurns[${FBurn_Counter}].Arg[2,/].Equal[item]}) {
+			/if (${Debug}) /echo |- FullBurn -| Casting [${FullBurns[${FBurn_Counter}].Arg[1,/]}] [${FullBurns[${FBurn_Counter}].Arg[2,/]}]
+			/call e3_Cast ${AssistTarget} "${FullBurns[${FBurn_Counter}].Arg[1,/]}" item
+			/varcalc FBurn_Counter ${FBurn_Counter} + 1
+		} else /if (${FullBurns[${FBurn_Counter}].Arg[2,/].Equal[alt]} || ${FullBurns[${FBurn_Counter}].Arg[2,/].Equal[aa]}) {
+			/if (${Debug}) /echo |- FullBurn -| Casting [${FullBurns[${FBurn_Counter}].Arg[1,/]}] [${FullBurns[${FBurn_Counter}].Arg[2,/]}]
+			/call e3_Cast ${AssistTarget} "${FullBurns[${FBurn_Counter}].Arg[1,/]}" alt
+			/varcalc FBurn_Counter ${FBurn_Counter} + 1
+		} else /if (${FullBurns[${FBurn_Counter}].Arg[2,/].Equal[disc]}) {
+			/if (${Window[CombatAbilityWnd].Child[CAW_CombatEffectLabel].Text.NotEqual[No Effect]}) {
+				/if (${Debug}) /echo |- FullBurn -| Waiting on disc [${Window[CombatAbilityWnd].Child[CAW_CombatEffectLabel].Text}]
+			} else {
+				/if (${Debug}) /echo |- FullBurn -| Casting [${FullBurns[${FBurn_Counter}].Arg[1,/]}] [${FullBurns[${FBurn_Counter}].Arg[2,/]}]
+				/call e3_Cast ${AssistTarget} "${FullBurns[${FBurn_Counter}].Arg[1,/]}" disc
+				/varcalc FBurn_Counter ${FBurn_Counter} + 1
+			}
 		}
+	
+	} else {
+		/varset FBurn_Counter 1
+		/varset use_FBurn FALSE
+		/if (${Defined[use_QBurn]}) /varset use_QBurn TRUE
 	}
-} else /if (${FBurn_Counter} > ${FullBurns.Size}) {
-	/varset FBurn_Counter 1
-	/varset use_FBurn FALSE
-	/if (${Defined[use_QBurn]}) /varset use_QBurn TRUE
-}
-/varset combatTimer ${combatDelay}
+	
+	/varset combatTimer ${combatDelay}
+
+/if (${Debug}) /echo <== FullBurns -|
 /RETURN
 
 
@@ -2025,7 +2063,7 @@ SUB setup_Assists
 		/varset Validation_On FALSE
 		/goto :Validate_FullBurns
 	}
-	/if (${Defined[FullBurn]}) {
+	/if (${Defined[FullBurns]}) {
 		/declare use_FBurn bool outer FALSE
 		/declare FBurn_Counter int outer 1
 	}

@@ -163,6 +163,7 @@ sub Event_Rez(string line, string ChatSender)
 	/if (${ChatSender.Left[1].Compare[ ]}<0) /varset ChatSender ${ChatSender.Right[-2].Left[-1]}
 	/if ( ${Select[${Me.Class},Cleric]} && ${Spawn[${ChatSender}'s].ID}) {
 		/tell ${ChatSender} Wait4Rez
+		/if (${Select[${Me.Race},High Elf]}) /em pops a toot!
 		/if (${FindItem[Water Sprinkler of Nem Ankh].ID}) {
 			/call e3_Cast ${Spawn[${ChatSender}'s].ID} "Water Sprinkler of Nem Ankh" item 0s
 		} else /if (!${FindItem[Water Sprinkler of Nem Ankh].ID}) {
