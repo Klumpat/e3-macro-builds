@@ -277,317 +277,185 @@ SUB Update_Aliases
 |------------------------------------------------------------------------------------------------------------------------------Create new aliases.
 
 |-----------------------------------------------------------------------------------------------Follow aliases.
-	/squelch /alias /followon delete
-	/squelch /alias /followme delete
-	/squelch /alias /followit delete
-	/squelch /alias /stop delete
 	
-	/alias /followon /bc Follow ${Me.CleanName}
-	/alias /followme /bc Follow ${Me.CleanName}
-	/alias /followit /bc Follow ${Target.CleanName}
-	/alias /stop /bc Stop
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/followon].Replace[$,].Equal[/bc Follow {Me.CleanName}]}) /alias /followon /bc Follow ${Me.CleanName}
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/followme].Replace[$,].Equal[/bc Follow {Me.CleanName}]}) /alias /followme /bc Follow ${Me.CleanName}
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/followit].Replace[$,].Equal[/bc Follow {Target.CleanName}]}) /alias /followit /bc Follow ${Target.CleanName}
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/stop].Equal[/bc Stop]} /alias /stop /bc Stop
 	
 |-------------------------------------------------------------------------------------------Move to me aliases.
-	/squelch /alias /Allmtm delete
-	/squelch /alias /Priestmtm delete
-	/squelch /alias /Priestsmtm delete
-	/squelch /alias /Castermtm delete
-	/squelch /alias /castersmtm delete
-	/squelch /alias /Meleemtm delete
-	/squelch /alias /Meleesmtm delete
-	/squelch /alias /Rangedmtm delete
-	/squelch /alias /Rangemtm delete
 	
-	/alias /Allmtm /bc move to me
-	/alias /Priestmtm /bc Priests move to me
-	/alias /Priestsmtm /bc Priests move to me
-	/alias /Castermtm /bc Casters move me
-	/alias /castersmtm /bc Casters move me
-	/alias /Meleemtm /bc Melee move me
-	/alias /Meleesmtm /bc Melee move me
-	/alias /Rangedmtm /bc Ranged move me
-	/alias /Rangemtm /bc Ranged move me
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/Allmtm].Equal[/bc move to me]} /alias /Allmtm /bc move to me
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/Priestmtm].Equal[/bc Priests move to me]} /alias /Priestmtm /bc Priests move to me
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/Priestsmtm].Equal[/bc Priests move to me]} /alias /Priestsmtm /bc Priests move to me
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/Castermtm].Equal[/bc Casters move to me]} /alias /Castermtm /bc Casters move me
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/Castersmtm].Equal[/bc Casters move to me]} /alias /castersmtm /bc Casters move me
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/Meleemtm].Equal[/bc Melee move to me]} /alias /Meleemtm /bc Melee move me
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/Meleesmtm].Equal[/bc Melee move to me]} /alias /Meleesmtm /bc Melee move me
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/Rangedmtm].Equal[/bc Ranged move to me]} /alias /Rangedmtm /bc Ranged move me
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/Rangemtm].Equal[/bc Ranged move to me]} /alias /Rangemtm /bc Ranged move me
 
 |---------------------------------------------------------------------------------------Move to target aliases.
-	/squelch /alias /Allthere delete
-	/squelch /alias /Athere delete
-	/squelch /alias /PriestThere delete
-	/squelch /alias /PriestsThere delete
-	/squelch /alias /CasterThere delete
-	/squelch /alias /CastersThere delete
-	/squelch /alias /MeleeThere delete
-	/squelch /alias /MeleesThere delete
-	/squelch /alias /RangeThere delete
-	/squelch /alias /RangedThere delete
-	/squelch /alias /mtm delete
-	
-	/alias /Allthere /bc All move to ${Target.ID}
-	/alias /Athere /bc All move to ${Target.ID}
-	/alias /PriestThere /bc Priests to ${Target.ID}
-	/alias /PriestsThere /bc Priests move to ${Target.ID}
-	/alias /CasterThere /bc Casters move to ${Target.ID}
-	/alias /CastersThere /bc Casters move to ${Target.ID}
-	/alias /MeleeThere /bc Melee move to ${Target.ID}
-	/alias /MeleesThere /bc Melee move to ${Target.ID}
-	/alias /RangeThere /bc Ranged move to ${Target.ID}
-	/alias /RangedThere /bc Ranged move to ${Target.ID}
-	/alias /mtm /bc Move to me
+
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/Allthere].Replace[$,].Equal[/bc All move to {Target.ID}]} /alias /Allthere /bc All move to ${Target.ID}
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/Athere].Replace[$,].Equal[/bc All move to {Target.ID}]} /alias /Athere /bc All move to ${Target.ID}
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/PriestThere].Replace[$,].Equal[/bc Priests move to {Target.ID}]} /alias /PriestThere /bc Priests to ${Target.ID}
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/PriestsThere].Replace[$,].Equal[/bc Priests move to {Target.ID}]} /alias /PriestsThere /bc Priests move to ${Target.ID}
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/CasterThere].Replace[$,].Equal[/bc Casters move to {Target.ID}]} /alias /CasterThere /bc Casters move to ${Target.ID}
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/CastersThere].Replace[$,].Equal[/bc Casters move to {Target.ID}]} /alias /CastersThere /bc Casters move to ${Target.ID}
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/MeleeThere].Replace[$,].Equal[/bc Melee move to {Target.ID}]} /alias /MeleeThere /bc Melee move to ${Target.ID}
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/MeleesThere].Replace[$,].Equal[/bc Melee move to {Target.ID}]} /alias /MeleesThere /bc Melee move to ${Target.ID}
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/RangeThere].Replace[$,].Equal[/bc Ranged move to {Target.ID}]} /alias /RangeThere /bc Ranged move to ${Target.ID}
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/RangedThere].Replace[$,].Equal[/bc Ranged move to {Target.ID}]} /alias /RangedThere /bc Ranged move to ${Target.ID}
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/mtm].Equal[/bc Move to me]} /alias /mtm /bc Move to me
 
 |----------------------------------------------------------------------------------------------Group functions.
-	/squelch /alias /group delete
-	/squelch /alias /groupup delete
-	/squelch /alias /setGroup delete
-	/squelch /alias /SaveGroup delete
-	/squelch /alias /disbandall delete
-	/squelch /alias /disbandbots delete
-	
-	/alias /group /bc Group
-	/alias /groupup /bc Group
-	/alias /setGroup /bc SetGroup
-	/alias /SaveGroup /bc Save Group
-	/alias /disbandall /bc Disband all
-	/alias /disbandbots /bc Disband all
+
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/group].Equal[/bc Group]} /alias /group /bc Group
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/groupup].Equal[/bc Group]} /alias /groupup /bc Group
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/setGroup].Equal[/bc SetGroup]} /alias /setGroup /bc SetGroup
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/SaveGroup].Equal[/bc Save Group]} /alias /SaveGroup /bc Save Group
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/disbandall].Equal[/bc Disband all]} /alias /disbandall /bc Disband all
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/disbandbots].Equal[/bc Disband all]} /alias /disbandbots /bc Disband all
 
 |------------------------------------------------------------------------------------------------------Vet AAs.
-	/squelch /alias /infusions delete
-	/squelch /alias /infusion delete
-	/squelch /alias /intensify delete
-	/squelch /alias /intensity delete
-	/squelch /alias /lessons delete
-	/squelch /alias /lesson delete
-	/squelch /alias /mgb delete
-	
-	/alias /infusions /bc Infusions
-	/alias /infusion /bc Infusions
-	/alias /intensify /bc Intensify
-	/alias /intensity /bc Intensify
-	/alias /lessons /bc Lessons
-	/alias /lesson /bc Lessons
-	/alias /mgb /bc MGB
+
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/infusions].Equal[/bc Infusions]} /alias /infusions /bc Infusions
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/infusion].Equal[/bc Infusions]} /alias /infusion /bc Infusions
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/intensify].Equal[/bc Intensify]} /alias /intensify /bc Intensify
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/intensity].Equal[/bc Intensify]} /alias /intensity /bc Intensify
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/lessons].Equal[/bc Lessons]} /alias /lessons /bc Lessons
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/lesson].Equal[/bc Lessons]} /alias /lesson /bc Lessons
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/mgb].Equal[/bc MGB]} /alias /mgb /bc MGB
 
 |---------------------------------------------------------------------------------------------Medbreak aliases.
-	/squelch /alias /medOn delete
-	/squelch /alias /medOff delete
-	
-	/alias /medOn /bc Start MedBreak
-	/alias /medOff /bc End MedBreak
+
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/medOn].Equal[/bc Start MedBreak]} /alias /medOn /bc Start MedBreak
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/medOff].Equal[/bc End MedBreak]} /alias /medOff /bc End MedBreak
 
 |------------------------------------------------------------------------------------------------Debug aliases.
-	/squelch /alias /debugON delete
-	/squelch /alias /debugOFF delete
 
-	/alias /debugON /varset Debug TRUE
-	/alias /debugOFF /varset Debug FALSE
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/debugON].Equal[/varset Debug TRUE]} /alias /debugON /varset Debug TRUE
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/debugOFF].Equal[/varset Debug FALSE]} /alias /debugOFF /varset Debug FALSE
 
 |-----------------------------------------------------------------------------------------------Zoning aliases.
-	/squelch /alias /evac delete
-	/squelch /alias /gate delete
-	
-	/alias /evac /bc Evac
-	/alias /gate /bc Gate
+
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/evac].Equal[/bc Evac]} /alias /evac /bc Evac
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/gate].Equal[/bc Gate]} /alias /gate /bc Gate
 	
 |-------------------------------------------------------------------------------------------------Pets aliases.
-	/squelch /alias /suspendpets delete
-	/squelch /alias /suspets delete
-	/squelch /alias /returnpets delete
-	/squelch /alias /retpets delete
-	/squelch /alias /shrinkpets delete
-	
-	/alias /suspendpets /bc Suspend Pets
-	/alias /suspets /bc Suspend Pets
-	/alias /returnpets /bc Return Pets
-	/alias /retpets /bc Return Pets
-	/alias /shrinkpets /bc Shrink Pets
+
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /suspendpets /bc Suspend Pets
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /suspets /bc Suspend Pets
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /returnpets /bc Return Pets
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /retpets /bc Return Pets
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /shrinkpets /bc Shrink Pets
 	
 |------------------------------------------------------------------------------------------------Buff aliases.
-	/squelch /alias /buff delete
-	/squelch /alias /buffme delete
-	/squelch /alias /buffs delete
-	/squelch /alias /bufft delete
-	/squelch /alias /buffit delete
-	/squelch /alias /buffall delete
-	/squelch /alias /buffgroups delete
-	/squelch /alias /buffpet delete
-	
-	/alias /buff /bc Buff me
-	/alias /buffme /bc Buff me
-	/alias /buffs /bc Buff me
-	/alias /bufft /bc Buffs on ${Target.ID}
-	/alias /buffit /bc Buffs on ${Target.ID}
-	/alias /buffall /bc Buff All
-	/alias /buffgroups /bc Buff All
-	/alias /buffpet /bc Buffs on ${Spawn[pet ${Spawn[id ${Target.ID}].Pet}].ID}
+
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /buff /bc Buff me
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /buffme /bc Buff me
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /buffs /bc Buff me
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Replace[$,].Equal[]} /alias /bufft /bc Buffs on ${Target.ID}
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Replace[$,].Equal[]} /alias /buffit /bc Buffs on ${Target.ID}
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /buffall /bc Buff All
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /buffgroups /bc Buff All
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Replace[$,].Equal[]} /alias /buffpet /bc Buffs on ${Spawn[pet ${Spawn[id ${Target.ID}].Pet}].ID}
 	
 |------------------------------------------------------------------------------------------------Heals aliases.
-	/squelch /alias /updategroup delete
-	/squelch /alias /updategrp delete
-	/squelch /alias /rfshheals delete
-	/squelch /alias /refreshheals delete
-	/squelch /alias /resetheals delete
-	/squelch /alias /rstheals delete
-	
-	/alias /updategroup /bc Update Group
-	/alias /updategrp /bc Update Group
-	/alias /rfshheals /bc Refresh Heals
-	/alias /refreshheals /bc Refresh Heals
-	/alias /resetheals /bc Refresh Heals
-	/alias /rstheals /bc Refresh Heals
+
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /updategroup /bc Update Group
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /updategrp /bc Update Group
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /rfshheals /bc Refresh Heals
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /refreshheals /bc Refresh Heals
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /resetheals /bc Refresh Heals
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /rstheals /bc Refresh Heals
 	
 |---------------------------------------------------------------------------------------Class specific aliases.
-	/squelch /alias /rezit delete
 	
-	/alias /rezit /bc RezOn ${Target.CleanName.Arg[1,']}
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Replace[$,].Equal[]} /alias /rezit /bc RezOn ${Target.CleanName.Arg[1,']}
 	
 |----------------------------------------------------------------------------------------------Assists aliases.
-	/squelch /alias /tauntOff delete
-	/squelch /alias /tauntOn delete
-	/squelch /alias /assiston delete
-	/squelch /alias /assistme delete
-	/squelch /alias /backoff delete
-	/squelch /alias /dotsoff delete
-	/squelch /alias /debuffsoff delete
-	/squelch /alias /dotson delete
-	/squelch /alias /rainoff delete
-	/squelch /alias /rainon delete
-	/squelch /alias /debuff delete
-	/squelch /alias /debuffson delete
-	/squelch /alias /SwarmPets delete
-	/squelch /alias /quickburn delete
-	/squelch /alias /qburn delete
-	/squelch /alias /Fullburn delete
-	/squelch /alias /fburn delete
-	
-	/alias /tauntOff /varset do_Taunt FALSE
-	/alias /tauntOn /varset do_Taunt TRUE
-	/alias /assiston /bc Assist me
-	/alias /assistme /bc Assist me
-	/alias /backoff /bc Back off
-	/alias /dotsoff /bc DoTs off
-	/alias /debuffsoff /bc Debuffs off
-	/alias /dotson /bc DoTs on ${Target.ID}
-	/alias /rainoff /bc Rain off
-	/alias /rainon /bc Rain on
-	/alias /debuff /bc Debuffs on ${Target.ID}
-	/alias /debuffson /bc Debuffs on ${Target.ID}
-	/alias /SwarmPets /bc Swarm Pets on ${Target.ID}
-	/alias /quickburn /bc Quick Burn
-	/alias /qburn /bc Quick Burn
-	/alias /Fullburn /bc Full Burn
-	/alias /fburn /bc Full Burn
+
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /tauntOff /varset do_Taunt FALSE
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /tauntOn /varset do_Taunt TRUE
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /assiston /bc Assist me
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /assistme /bc Assist me
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /backoff /bc Back off
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /dotsoff /bc DoTs off
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /debuffsoff /bc Debuffs off
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Replace[$,].Equal[]} /alias /dotson /bc DoTs on ${Target.ID}
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /rainoff /bc Rain off
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /rainon /bc Rain on
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Replace[$,].Equal[]} /alias /debuff /bc Debuffs on ${Target.ID}
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Replace[$,].Equal[]} /alias /debuffson /bc Debuffs on ${Target.ID}
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Replace[$,].Equal[]} /alias /SwarmPets /bc Swarm Pets on ${Target.ID}
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /quickburn /bc Quick Burn
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /qburn /bc Quick Burn
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /Fullburn /bc Full Burn
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /fburn /bc Full Burn
 		
 |------------------------------------------------------------------------------------------SmoothMoves aliases.
 	| this alias was added in error in version 4.1
 	/squelch /alias /add delete
 
-	/squelch /alias /recroute delete
-	/squelch /alias /recordroute delete
-	/squelch /alias /traceroute delete
-	/squelch /alias /stoprec delete
-	/squelch /alias /stoprecord delete
-	/squelch /alias /stoprecording delete
-	/squelch /alias /endrec delete
-	/squelch /alias /endrecord delete
-	/squelch /alias /endrecording delete
-	/squelch /alias /listroutes delete
-	/squelch /alias /listroute delete
-	/squelch /alias /lstrts delete
-	/squelch /alias /addopendoor delete
-	/squelch /alias /addclickdoor delete
-	/squelch /alias /addusedoor delete
-	/squelch /alias /addopenzone delete
-	/squelch /alias /addclickzone delete
-	/squelch /alias /addusezone delete
-	/squelch /alias /addclickstone delete
-	/squelch /alias /addusestone delete
-	/squelch /alias /addrunthruzone delete
-	/squelch /alias /addrtz delete
-	/squelch /alias /Stoproute delete
-	/squelch /alias /allStoproute delete
-	/squelch /alias /run delete
-	/squelch /alias /runroute delete
-	/squelch /alias /routes delete
-	
-	/alias /recroute /echo Record Route
-	/alias /recordroute /echo Record Route
-	/alias /traceroute /echo Record Route
-	/alias /stoprec /echo End Recording
-	/alias /stoprecord /echo End Recording
-	/alias /stoprecording /echo End Recording
-	/alias /endrec /echo End Recording
-	/alias /endrecord /echo End Recording
-	/alias /endrecording /echo End Recording
-	/alias /listroutes /echo List Routes
-	/alias /listroute /echo List Routes
-	/alias /lstrts /echo List Routes
-	/alias /addopendoor /echo Add Click Door
-	/alias /addclickdoor /echo Add Click Door
-	/alias /addusedoor /echo Add Click Door
-	/alias /addopenzone /echo Add Click Zone
-	/alias /addclickzone /echo Add Click Zone
-	/alias /addusezone /echo Add Click Zone
-	/alias /addclickstone /echo Add Click Zone
-	/alias /addusestone /echo Add Click Zone
-	/alias /addrunthruzone /echo Add Run through zone
-	/alias /addrtz /echo Add Run through zone
-	/alias /Stoproute /bc Stop Route
-	/alias /allStoproute /bc Stop Route
-	/alias /run /bc Run Route
-	/alias /runroute /bc Run Route
-	/alias /routes /echo List Routes
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /recroute /echo Record Route
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /recordroute /echo Record Route
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /traceroute /echo Record Route
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /stoprec /echo End Recording
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /stoprecord /echo End Recording
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /stoprecording /echo End Recording
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /endrec /echo End Recording
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /endrecord /echo End Recording
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /endrecording /echo End Recording
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /listroutes /echo List Routes
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /listroute /echo List Routes
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /lstrts /echo List Routes
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /addopendoor /echo Add Click Door
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /addclickdoor /echo Add Click Door
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /addusedoor /echo Add Click Door
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /addopenzone /echo Add Click Zone
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /addclickzone /echo Add Click Zone
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /addusezone /echo Add Click Zone
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /addclickstone /echo Add Click Zone
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /addusestone /echo Add Click Zone
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /addrunthruzone /echo Add Run through zone
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /addrtz /echo Add Run through zone
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /Stoproute /bc Stop Route
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /allStoproute /bc Stop Route
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /run /bc Run Route
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /runroute /bc Run Route
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /routes /echo List Routes
 	
 |-------------------------------------------------------------------------------------------------Misc aliases.
-	/squelch /alias /consentme delete
-	/squelch /alias /pingcorpses delete
-	/squelch /alias /clkyes delete
-	/squelch /alias /yes delete
-	/squelch /alias /swap delete
-	/squelch /alias /countbots delete
-	/squelch /alias /count delete
-	/squelch /alias /botCount delete
-	/squelch /alias /finditem delete
-	/squelch /alias /checkbuff delete
-	/squelch /alias /removebuff delete
-	/squelch /alias /botexit delete
-	/squelch /alias /addtimer delete
-	/squelch /alias /bark delete
-	/squelch /alias /pvpon delete
-	/squelch /alias /pvpoff delete
-	/squelch /alias /findit delete
-	/squelch /alias /dropinvis delete
-	/squelch /alias /raidzone delete
-	/squelch /alias /safezone delete
-	/squelch /alias /raidz delete
-	/squelch /alias /safez delete
-	/squelch /alias /portto delete
-	/squelch /alias /clickit delete
-	
-	/alias /e3 /macro e3.mac
-	/alias /e3all /bcaa //macro e3.mac
-	/alias /consentme /bc Consent ${Me.CleanName}
-	/alias /pingcorpses /bc Ping Corpses
-	/alias /clkyes /bc Click yes
-	/alias /yes /bc Click yes
-	/alias /swap /echo Swap
-	/alias /countbots /echo count bots
-	/alias /rollcall /echo Roll Call
-	/alias /count /echo count bots
-	/alias /botCount /echo count bots
-	/alias /finditem /bc Find Item
-	/alias /checkbuff /bc Check Buff
-	/alias /removebuff /bc Remove Buff
-	/alias /botexit /bc Exit
-	/alias /portto /bc Port To
-	/alias /addtimer /echo Make Timer
-	/alias /bark /bc Bark at ${Target.ID}
-	/alias /pvpon /bc Toggle PvP [ON]
-	/alias /pvpoff /bc Toggle PvP [OFF]
-	/alias /findit /bc Find Item ${Cursor}
-	/alias /dropinvis /bc Drop Invis
-	/alias /raidzone /bc Set Raid Zone
-	/alias /safezone /bc Set Safe Zone
-	/alias /raidz /bc Set Raid Zone
-	/alias /safez /bc Set Safe Zone
-	/alias /clickit /bc Click object at ${Me.Loc.Replace[ ,]}
+
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /e3 /macro e3.mac
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /e3all /bcaa //macro e3.mac
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Replace[$,].Equal[]} /alias /consentme /bc Consent ${Me.CleanName}
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /pingcorpses /bc Ping Corpses
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /clkyes /bc Click yes
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /yes /bc Click yes
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /swap /echo Swap
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /countbots /echo count bots
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /rollcall /echo Roll Call
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /count /echo count bots
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /botCount /echo count bots
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /finditem /bc Find Item
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /checkbuff /bc Check Buff
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /removebuff /bc Remove Buff
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /botexit /bc Exit
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /portto /bc Port To
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /addtimer /echo Make Timer
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Replace[$,].Equal[]} /alias /bark /bc Bark at ${Target.ID}
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /pvpon /bc Toggle PvP [ON]
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /pvpoff /bc Toggle PvP [OFF]
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Replace[$,].Equal[]} /alias /findit /bc Find Item ${Cursor}
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /dropinvis /bc Drop Invis
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /raidzone /bc Set Raid Zone
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /safezone /bc Set Safe Zone
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /raidz /bc Set Raid Zone
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Equal[]} /alias /safez /bc Set Safe Zone
+	/if (!${Ini[..\MacroQuest.ini,Aliases,/].Replace[$,].Equal[]} /alias /clickit /bc Click object at ${Me.Loc.Replace[ ,]}
 	
 /if (${Debug}) /echo <== Update_Aliases -|
 /RETURN
