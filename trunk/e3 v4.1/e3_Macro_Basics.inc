@@ -86,7 +86,7 @@ SUB event_bark(line, msgTarget,  barkIt, ChatSender, SpecifiedBots)
 /RETURN
 
 
-
+| #*#
 #EVENT clickIt "<#1#> Click object at #2#"
 |--------------------------------------------------------------------|
 |- Moves to a given location, and clicks the nearest object.		-|
@@ -184,7 +184,7 @@ SUB EVENT_clickIt(line, ChatSender, locToStart)
 /RETURN
 
 
-
+| #*#
 |----------------------------------------------------------------------------|
 |- Points faces bots to your current heading, and runs through a zone line.	-|
 |----------------------------------------------------------------------------|
@@ -257,7 +257,7 @@ SUB EVENT_runThruZone(Line, ChatSender, locToStart, snapHeading)
 /RETURN
 
 
-
+| rewrite this to be more concise.  break into seperate subs for moveutils vs netadvpath?
 |--------------------------------------------------------------------------------------------------------------------|
 |- Engages, and sets variables related to Follow.																	-|
 |--------------------------------------------------------------------------------------------------------------------|
@@ -337,7 +337,7 @@ SUB event_Follow(Line, ChatSender, SpecifiedBots, SpawnToFollow)
 /RETURN
 
 
-
+| rewrite this to be more concise.  break into seperate subs for moveutils vs netadvpath?
 |----------------------------------------------------------------------------------------------------|
 |- Engages follow plugins on specified follow targets.												-|
 |----------------------------------------------------------------------------------------------------|
@@ -369,15 +369,14 @@ SUB AquireFollow
 				/delay 5 ${Me.Moving}
 			}
 |** ADD A LOOP TO CALCULATE DISTANCE TO YOUR TARGET. ONCE DISTANCE STOPS DECREASING REISSUE FOLLOW COMMAND, TO SNAP TO TARGET
-			/declare HeadingToSpawn string local ${Spawn[pc ${FollowTarget}].HeadingTo}
-			:movingLoop
-			/if (${Me.Moving}) {
-				/if () {
-				
-				}
-			}
-			
-			**|
+	/declare HeadingToSpawn string local ${Spawn[pc ${FollowTarget}].HeadingTo}
+	:movingLoop
+	/if (${Me.Moving}) {
+		/if () {
+		
+		}
+	}
+**|
 		} else {
 		
 	|---------------------------------------------------If MQ2NetAdvPath was not detected, or the FollowTarget was not a NetBot, engage MoveUtils.
@@ -392,7 +391,7 @@ SUB AquireFollow
 /RETURN
 
 
-
+| #*#
 |----------------------------------------------------------------------------|
 |- Disengages follow on bots who are in the same zone as the ChatSender.	-|
 |----------------------------------------------------------------------------|
@@ -430,7 +429,7 @@ SUB event_Stop(Line, ChatSender, SpecifiedBots)
 /RETURN
 
 
-
+| #*#
 #event MoveHere "<#1#> Move to #2#"
 #event MoveHere "<#1#> #3# Move to #2#"
 #event MoveHere "#1# tells you, 'Move to #2#'"
@@ -440,14 +439,16 @@ SUB event_Stop(Line, ChatSender, SpecifiedBots)
 SUB event_MoveHere(line, ChatSender, WhereTo, SpecifiedBots)
 /if (${Debug}) /echo |- event_MoveHere ==>
 
-	|-----------------------------------Validate ChatSender, and SpecifiedBots.
+|-----------------------------------Validate ChatSender, and SpecifiedBots.
 	/if (${ChatSender.Left[1].Compare[ ]}<0) /varset ChatSender ${ChatSender.Right[-2].Left[-1]}
 	/if (${WhereTo.Equal[me]} || ${WhereTo.Equal[here]}) /varset WhereTo ${Spawn[pc ${ChatSender}].CleanName}
 	/if (${SpawnCount[pc ${ChatSender}]} && ${SpawnCount[pc ${WhereTo} radius ${MoveToBreakDistance}]}) {
-		|--------------------------------------------------------Check SpecifiedBots
+		
+	|--------------------------------------------------------Check SpecifiedBots
 		/if (${Select[${Me.CleanName},${SpecifiedBots}]} || ${Select[${Me.Class.ShortName},${SpecifiedBots}]} || ${Select[${Me.Class},${SpecifiedBots}]} || !${Defined[SpecifiedBots]} || ${SpecifiedBots.Equal[all]} || ${SpecifiedBots.Equal[melee]} && ${Select[${Me.Class.ShortName},${MeleeClasses}]} || ${SpecifiedBots.Equal[casters]} && ${Select[${Me.Class.ShortName},${CasterClasses}]} || ${SpecifiedBots.Equal[ranged]} && ${Select[${Me.Class.ShortName},${RangedClasses}]} || ${SpecifiedBots.Equal[Healers]} && ${Select[${Me.Class.ShortName},${PriestClasses}]} || ${SpecifiedBots.Equal[Priests]} && ${Select[${Me.Class.ShortName},${PriestClasses}]}) {
 			/if (${ChatSender.NotEqual[${Me}]}) {
-			|------------------------------------------------------Stop assisting so we don't try to stick to the AssistTarget.	
+			
+		|------------------------------------------------------Stop assisting so we don't try to stick to the AssistTarget.	
 				/if (${Assisting} || ${Me.Combat}) /call Event_BackOff
 			
 			|------------------------------------------------------------------Move to the WhereTo target.
@@ -482,7 +483,7 @@ SUB event_MoveHere(line, ChatSender, WhereTo, SpecifiedBots)
 /RETURN
 
 
-
+| #*#
 |--------------------------------------------------------------------------------------------|
 |- Groupleaders save current group formations to the Groups.ini file, to be recalled later.	-|
 |--------------------------------------------------------------------------------------------|
@@ -507,7 +508,7 @@ SUB event_setGroup(line, groupName)
 /RETURN
 
 
-
+| #*#
 |------------------------------------------------|
 |- Recalls groups saved in your Groups.ini.		-|
 |------------------------------------------------|
@@ -540,8 +541,8 @@ SUB event_GroupUp(line, groupName)
 }
 /RETURN
 
-
-
+| create an event to list all available group setups and names
+| #*#
 |----------------------------------------|
 |- Automatically accepts group invites.	-|
 |----------------------------------------|
@@ -583,39 +584,6 @@ SUB event_Disband
 /squelch /target clear
 /RETURN
 
-| Corpse drag |
-| THIS NEEDS TO BE REVAMPED!!! 
-#event Consent "#*# tells you, 'Consent #1#'"
-#event Consent "<#*#> Consent #1#"
-SUB Event_Consent(line, ConsentTarget)
-/if (${Verbosity}) /docommand ${ChatToggle} Consenting ${ConsentTarget}
-/consent ${ConsentTarget}
-/RETURN
-#event addConsent "You have been given permission to drag #1#'s corpse in all zones."
-SUB event_addConsent(line, consentTarget)
-/if (!${Select[${consentTarget},${consentTargets}]}) {
-	/varset consentTargets ${consentTargets},${consentTarget}
-}
-/RETURN
-#event flushConsent "<#*#> Flush consent"
-SUB event_flushConsent
-/echo Flushing my current consented targets.
-	/if (${Defined[consentTargets]}) /varset consentTargets ${Me.CleanName}
-/RETURN
-#event pingCorpses "<#1#> Ping corpses"
-SUB event_pingCorpses(ChatSender)
-/if (${Defined[consentTargets]}) {
-	/declare i int local
-	/for i 1 to ${SpawnCount['s radius 100]}
-		/if (${Select[${Spawn[${NearestSpawn[${i},'s radius 100]}].CleanName.Arg[1,']},${consentTargets}]}) {
-			/call TrueTarget ${Spawn[${NearestSpawn[${i},'s radius 100]}].ID}
-			/corpse
-		}
-	/next i
-}
-/squelch /target clear
-/RETURN
-
 
 
 |--------------------------------------------------------|
@@ -635,10 +603,7 @@ SUB event_gate(Line, ChatSender, SpecifiedBots)
 |--------------------------------------------------------Check SpecifiedBots
 	/if (${Select[${Me.CleanName},${SpecifiedBots}]} || ${Select[${Me.Class.ShortName},${SpecifiedBots}]} || ${Select[${Me.Class},${SpecifiedBots}]} || !${Defined[SpecifiedBots]} || ${SpecifiedBots.Equal[all]} || ${SpecifiedBots.Equal[melee]} && ${Select[${Me.Class.ShortName},${MeleeClasses}]} || ${SpecifiedBots.Equal[casters]} && ${Select[${Me.Class.ShortName},${CasterClasses}]} || ${SpecifiedBots.Equal[ranged]} && ${Select[${Me.Class.ShortName},${RangedClasses}]} || ${SpecifiedBots.Equal[Healers]} && ${Select[${Me.Class.ShortName},${PriestClasses}]} || ${SpecifiedBots.Equal[Priests]} && ${Select[${Me.Class.ShortName},${PriestClasses}]}) {
 
-		/if (!${Select[${Me.Book[Gate]},NULL]}) {
-			/docommand ${ChatToggle} Preparing to gate...
-			/call e3_Cast ${Me.ID} "Gate" gem${DefaultGem} ${Math.Calc[${Spell[Gate].RecastTime}+3]}s
-		} else  /if (${Select[${Me.Book[Gate]},NULL]}) {
+		/if (!${Me.Book[gate]}) {
 			/if (${FindItem[Philter of Major Translocation].ID}) {
 				/docommand ${ChatToggle} Preparing to gate...
 				/call e3_Cast ${Me.ID} "Philter of Major Translocation" item
@@ -648,6 +613,9 @@ SUB event_gate(Line, ChatSender, SpecifiedBots)
 			} else {
 				/docommand ${ChatToggle} I am not able to gate at this time.
 			}
+		} else {
+			/docommand ${ChatToggle} Preparing to gate...
+			/call e3_Cast ${Me.ID} "Gate" gem${DefaultGem} ${Math.Calc[${Spell[Gate].RecastTime}+3]}s
 		}
 	}
 	
@@ -665,21 +633,21 @@ SUB event_gate(Line, ChatSender, SpecifiedBots)
 #event Evacuate "#*# tells you, '[Evac]'"
 #event Evacuate "#*# tells the group, '[Evac]'"
 SUB event_Evacuate
+/if (${Select[${Me.Class.ShortName},DRU,WIZ]}) {
 /if (${Debug}) /echo |- event_Evacuate ==>
 
-	/if (${castEvac}) {
-		/if (${Me.Casting.ID}) /interrupt
-		/docommand ${ChatToggle} Evacuating.
-		/if (${Me.AltAbilityReady[Exodus]}) {
-			/call e3_Cast ${Me.ID} "Exodus" alt
-		} else /if (${Me.Book[${Evac_Spell.Arg[1,/]}]}) {
-			/call e3_Cast ${Me.ID} "${Evac_Spell.Arg[1,/]}" ${If[${Evac_Spell.Arg[2,/].Length} && ${Evac_Spell.Arg[2,/].Find[gem]},${Evac_Spell.Arg[2,/]},Gem${DefaultGem}]} ${Math.Calc[${Spell[${Evac_Spell}].RecastTime}+3]}s
-		} else {
-			/docommand ${ChatToggle} I am not able to Evac at this time.
-		}
+	/if (${Me.AltAbilityReady[Exodus]}) {
+		/docommand ${ChatToggle} Evacuating!
+		/call e3_Cast ${Me.ID} "Exodus" alt
+	} else /if (${Me.Book[${Evac_Spell.Arg[1,/]}]}) {
+		/docommand ${ChatToggle} Evacuating!
+		/call e3_Cast ${Me.ID} "${Evac_Spell.Arg[1,/]}" gem${DefaultGem} ${Math.Calc[${Spell[${Evac_Spell}].RecastTime}+10]}s
+	} else {
+		/docommand ${ChatToggle} I am not able to Evac at this time.
 	}
 
 /if (${Debug}) /echo <== event_Evacuate -|
+}
 /RETURN
 
 
@@ -747,7 +715,7 @@ SUB event_FindItems(line, ItemToFind)
 /RETURN
 
 
-
+| #*# |
 |------------------------------------------------------------|
 |- Checks for specified buffs and debuffs on NetBots.		-|
 |------------------------------------------------------------|
@@ -897,7 +865,7 @@ SUB event_CountBots
 |------------------------------------------------|
 |- Use, /clickyes, or, /bc Click yes			-|
 |------------------------------------------------|
-#event ClickYes	"<#1#> Click Yes#"
+#event ClickYes	"<#1#> Click Yes"
 SUB event_ClickYes
 /if (${Debug}) /echo |- event_ClickYes ==>
 
@@ -927,7 +895,23 @@ SUB event_Exit(line, ChatSender)
 |------------------------------------------------------------|
 #event LoadSpells "<#*#> Load Spells"
 SUB event_LoadSpells
-/call check_Gems	
+/if (${Debug}) /echo |- event_LoadSpells ==>
+
+	/if (${Me.Class.CanCast} && ${Defined[Default_SpellSet]}) {
+		
+		/declare spellsetMem_Timer timer local 300
+		/docommand ${ChatToggle} Loading spells...
+		/memspellset ${Default_SpellSet}
+		:Memloop
+		/if (${Debug}) /echo |- event_LoadSpells -| :Memloop
+		
+		/call Background_Events
+		/if (${Debug}) /echo spellsetMem_Timer = [${spellsetMem_Timer}]
+		/if (${Window[SpellBookWnd].Open} && ${spellsetMem_Timer}) /goto :Memloop
+		/if (${Me.Sitting}) /stand	
+	}
+
+/if (${Debug}) /echo <== event_LoadSpells -|
 /RETURN
 
 
@@ -951,41 +935,46 @@ SUB event_drop_Invis
 #event Swap_Items "[MQ2] Swap #1#"
 SUB event_Swap_Items(line, IniEntry)
 /if (${Debug}) /echo |- Event Swap_Items ==>
-/if (${Ini[${Character_Ini},SwapItems,${IniEntry}].Length}) {
-	/declare ItemToSwap string local ${Ini[${Character_Ini},SwapItems,${IniEntry}]}
-	/if (${Debug}) /echo |- Swap_Items -| ItemsToSwap: [${ItemToSwap}]
-	/declare i int local 1
-	/declare CurrentArgument string local
-	:SwapLoop
-	/if (${Debug}) /echo |- Event Swap_Items -| :SwapLoop
-	/varset CurrentArgument ${ItemToSwap.Arg[${i},,]}
-	/if (!${Select[${FindItem[${CurrentArgument.Arg[1,/]}].ID},NULL]}) {
-		/if (${CurrentArgument.Arg[2,/].Equal[Mainhand]} && ${FindItem[${CurrentArgument.Arg[1,/]}].Type.Left[2].Equal[2H]} && !${Select[${InvSlot[Offhand].Item},NULL]}) {
-			/echo Unequipping [${InvSlot[Offhand].Item}]
-			/unequip Offhand
-		}
-		/if (!${Select[${InvSlot[${CurrentArgument.Arg[2,/]}].Item},NULL]}) {
-			/echo Swapping [${InvSlot[${CurrentArgument.Arg[2,/]}].Item}] for [${CurrentArgument.Arg[1,/]}]
-		} else /if (${Select[${InvSlot[${CurrentArgument.Arg[2,/]}].Item},NULL]}) {
-			/echo Equipping [${CurrentArgument.Arg[1,/]}]
-		}
-		/if (!${Select[${FindItem[${CurrentArgument.Arg[1,/]}].ID},NULL]}) {
-			/if (${Cursor.ID}) /call ClearCursor
-			/exchange "${CurrentArgument.Arg[1,/]}" ${CurrentArgument.Arg[2,/]}
-			/delay 1s ${InvSlot[${slotName}].Item.Name.Equal[${itemName}]}
-			/if (${Cursor.ID}) /call ClearCursor
-		}
-	} else /if (${Select[${FindItem[${CurrentArgument.Arg[1,/]}].ID},NULL]}) {
-		/echo |- Event Swap_Items -| Error: Item: [${CurrentArgument.Arg[1,/]}] was not found. 
-	}
-	/varcalc i ${i} + 1
-	/if (${ItemToSwap.Arg[${i},,].Length}) {
+
+|----------------------------------------------------------------------If I don't have a matching Ini entry.
+	/if (!${Ini[${Character_Ini},Swap Items,${IniEntry}].Length}) {
+		/if (${Debug}) /echo |- Swap_Items -| I have no listing for [${IniEntry}].
+	} else {
+	
+		/declare i int local 1
+		
+		/declare itemToSwap string local
+		/declare slotToSwap string local
+		
+		:SwapLoop
 		/if (${Debug}) /echo |- event_Swap_Items -| Swaploop.
-		/goto :SwapLoop
+		
+		/varset itemToSwap ${Ini[${Character_Ini},Swap Items,${IniEntry}].Arg[${i},,].Arg[1,/]}
+		/varset slotToSwap ${Ini[${Character_Ini},Swap Items,${IniEntry}].Arg[${i},,].Arg[2,/]}
+		
+	|-------------------------------------------------------------------------------------If I don't have the item in my inventory.
+		/if (!${FindItemCount[${itemToSwap}]}) {
+			/echo |- Event Swap_Items -| #*# Error #*# [${CurrentArgument.Arg[1,/]}] was not found.
+			/varcalc i + 1
+			/if (${Ini[${Character_Ini},Swap Items,${IniEntry}].Arg[${i},,].Length}) /goto :SwapLoop
+		} else {
+			
+		|---------------------------------------------------------------------------------If I'm swapping in a 2 hander, while dual wielding.
+			/if (${slotToSwap.Equal[Mainhand]} && ${FindItem[${itemToSwap}].Type.Left[2].Equal[2H]} && ${InvSlot[Offhand].ID}) {
+				/if (${Verbosity}) /echo Unequipping [${InvSlot[Offhand].Item}]
+				/unequip Offhand
+			}
+			
+		|----------------------------------------------------------------------------------Swap in item.
+			/echo Equipping [${itemToSwap}]
+			/call SwapItem "${itemToSwap}" ${slotToSwap}
+			
+			/varcalc i ${i} + 1
+			/if (${Ini[${Character_Ini},Swap Items,${IniEntry}].Arg[${i},,].Length}) /goto :SwapLoop
+		
+		}
 	}
-} else /if (!${Ini[${Character_Ini},SwapItems,${IniEntry}].Length}) {
-	/echo |- Event Swap_Items -| Error: Ini entry: [${IniEntry}] was not found. 
-}
+
 /if (${Debug}) /echo |- Swap_Items -| <==
 /RETURN
 
@@ -1125,7 +1114,10 @@ SUB event_Lessons(Line, ChatSender, SpecifiedBots)
 					
 					/call e3_Cast ${Me.ID} ${Me.AltAbility[Lesson of the Devoted].ID} alt
 		
-					/if (${returnTwist}) /timed 70 /squelch /twist start
+					/if (${returnTwist}) {
+						/timed 70 /squelch /twist start
+						/varset returnTwist 0
+					}
 				}
 			}
 		}
@@ -1181,7 +1173,10 @@ SUB event_Infusion(Line, ChatSender, SpecifiedBots)
 					
 					/call e3_Cast ${Me.ID} ${Me.AltAbility[Infusion of the Faithful].ID} alt
 		
-					/if (${returnTwist}) /timed 70 /squelch /twist start
+					/if (${returnTwist}) {
+						/timed 70 /squelch /twist start
+						/varset returnTwist 0
+					}
 				}
 			}
 		}
@@ -1238,7 +1233,10 @@ SUB event_Staunch(Line, ChatSender, SpecifiedBots)
 					
 					/call e3_Cast ${Me.ID} ${Me.AltAbility[Staunch Recovery].ID} alt
 		
-					/if (${returnTwist}) /timed 70 /squelch /twist start
+					/if (${returnTwist}) {
+						/timed 70 /squelch /twist start
+						/varset returnTwist 0
+					}
 				}
 			}
 		}
@@ -1291,10 +1289,12 @@ SUB event_Servant(Line, ChatSender, SpecifiedBots)
 						/doability Hide
 					}
 					
-					/echo /call e3_Cast ${Me.ID} ${Me.AltAbility[Steadfast Servant].ID} alt
 					/call e3_Cast ${Me.ID} ${Me.AltAbility[Steadfast Servant].ID} alt
 		
-					/if (${returnTwist}) /timed 70 /squelch /twist start
+					/if (${returnTwist}) {
+						/timed 70 /squelch /twist start
+						/varset returnTwist 0
+					}
 				}
 			}
 		}
@@ -1349,7 +1349,10 @@ SUB event_Intensity(Line, ChatSender, SpecifiedBots)
 					
 					/call e3_Cast ${Me.ID} ${Me.AltAbility[Intensity of the Resolute].ID} alt
 		
-					/if (${returnTwist}) /timed 70 /squelch /twist start
+					/if (${returnTwist}) {
+						/timed 70 /squelch /twist start
+						/varset returnTwist 0
+					}
 				}
 			}
 		}
@@ -1391,7 +1394,10 @@ SUB event_RecoverCorpses(Line, ChatSender, SpecifiedBots)
 			
 			/call e3_Cast ${Me.ID} ${Me.AltAbility[Expedient Reovery].ID} alt
 
-			/if (${returnTwist}) /timed 70 /squelch /twist start
+			/if (${returnTwist}) {
+				/timed 70 /squelch /twist start
+				/varset returnTwist 0
+			}
 		}
 	}
 
@@ -1431,7 +1437,10 @@ SUB event_GateToLobby(Line, ChatSender, SpecifiedBots)
 			
 			/call e3_Cast ${Me.ID} ${Me.AltAbility[Throne of Heroes].ID} alt
 
-			/if (${returnTwist}) /timed 180 /squelch /twist start
+			/if (${returnTwist}) {
+				/timed 180 /squelch /twist start
+				/varset returnTwist 0
+			}
 		}
 	}
 
@@ -1450,14 +1459,13 @@ SUB event_GateToLobby(Line, ChatSender, SpecifiedBots)
 SUB event_GroupPortCommand(line, Destination)
 /if (${Debug}) /echo |- EVENT_GroupPortCommand ==>
 
-	
 	/if (${Select[${Group.Leader},${Me}]}) /g gport${Destination}
 	
 /if (${Debug}) /echo <== EVENT_GroupPortCommand -|
 /RETURN
 
 
-
+| #*#
 |------------------------------------------------|
 |- Engages MedBreak mode, on bots who can cast.	-|
 |------------------------------------------------|
@@ -1492,7 +1500,7 @@ SUB event_medBreak_on(line, ChatSender)
 /RETURN
 
 
-
+| #*#
 |----------------------------------------------------|
 |- disengages MedBreak mode, on bots who can cast.	-|
 |----------------------------------------------------|
@@ -1519,7 +1527,7 @@ SUB event_medBreak_off
 /RETURN
 
 
-
+| #*#
 |--------------------------------------------------------------------------------|
 |- MedBreak hook for Tertiary loop.												-|
 |--------------------------------------------------------------------------------|
@@ -1568,3 +1576,222 @@ SUB check_MedBreak
 
 /if (${Debug}) /echo <== check_MedBreak -|
 /RETURN
+
+
+
+|----------------------------------------|
+|- Consents a PC to drag your corpse.	-|
+|----------------------------------------|
+#event Consent "#*# tells you, 'Consent #1#'"
+#event Consent "<#*#> Consent #1#"
+SUB Event_Consent(line, ConsentTarget)
+/if (${Debug}) /echo |- EVENT_Consent ==>
+
+	/if (${ConsentTarget.NotEqual[${Me.CleanName}]}) {
+		/if (${Verbosity}) /docommand ${ChatToggle} Consenting ${ConsentTarget}
+		/consent ${ConsentTarget}
+	}
+
+/if (${Debug}) /echo <== EVENT_Consent -|
+/RETURN
+
+
+
+|--------------------------------------------------------------------------------------------|
+|- Adds a PC name to your list of consentTargets.  This is used is corpse drag functions.	-|
+|--------------------------------------------------------------------------------------------|
+#event addConsent "You have been given permission to drag #1#'s corpse in all zones."
+SUB event_addConsent(line, consentTarget)
+/if (${Debug}) /echo |- EVENT_addConsent ==>
+
+	/if (!${Select[${consentTarget},${consentTargets}]}) {
+		/varset consentTargets ${consentTargets},${consentTarget}
+	}
+
+/if (${Debug}) /echo <== EVENT_addConsent -|
+/RETURN
+
+
+
+|--------------------------------------------------------------------------------|
+|- Clears your list of PCs who have consented to have you move their corpse.	-|
+|--------------------------------------------------------------------------------|
+#event flushConsent "<#*#> Flush consent"
+#event flushConsent "[MQ2] Flush consent"
+SUB event_flushConsent
+	/echo Flushing my current consented targets.
+	/if (${Defined[consentTargets]}) /varset consentTargets ${Me.CleanName}
+/RETURN
+
+
+
+#event gatherCorpses "[MQ2] Ping corpses"
+#event gatherCorpses "[MQ2] Gather corpses"
+SUB event_gatherCorpses
+/if (${Debug}) /echo |- EVENT_gatherCorpses ==>
+
+	/declare i int local
+	/for i 1 to ${SpawnCount['s radius 100]}
+		/if (${Select[${Spawn[${NearestSpawn[${i},'s radius 100]}].CleanName.Arg[1,']},${consentTargets}]}) {
+			/call TrueTarget ${Spawn[${NearestSpawn[${i},'s radius 100]}].ID}
+			/corpse
+			/delay 1
+		}
+	/next i
+		
+	/squelch /target clear
+
+/if (${Debug}) /echo <== EVENT_gatherCorpses -|
+/RETURN
+
+
+
+#EVENT AE_Rez "[MQ2] AE Rez"
+#EVENT AE_Rez "<#*#> AE Rez"
+#EVENT AE_Rez "[MQ2] Rez all"
+#EVENT AE_Rez "<#*#> Rez all"
+SUB EVENT_AE_Rez
+/if (${Select[${Me.Class},Cleric,Paladin]}) {
+/if (${Debug}) /echo |- EVENT_AE_Rez ==>
+	
+	/if (!${SpawnCount['s radius 50]}) {
+		/echo I couldn't summon any corpses to ressurect...
+	} else {
+	
+		/declare i int local
+		/declare corpseID int local
+		/declare playerName string local
+		/declare rezzable bool outer FALSE
+		/declare swapBack bool local FALSE
+		
+	|-----------------------------------------------------------------------------------Equip cleric epic 1.0
+		/if (${InvSlot[mainhand].Item.Name.NotEqual[Water Sprinkler of Nem Ankh]} && ${FindItemCount[=Water Sprinkler of Nem Ankh]}) {
+			/varset swapBack TRUE
+			/call WriteToIni ${MacroData_Ini},PendingExchanges-${MacroQuest.Server},${Me.CleanName} "${InvSlot[mainhand].Item}/mainhand" 1
+			/call SwapItem "Water Sprinkler of Nem Ankh" mainhand
+		}
+		
+		/for i 1 to ${SpawnCount['s radius 50]}
+			
+			/varset corpseID ${NearestSpawn[${i},'s radius 50].ID}
+			/varset playerName ${NearestSpawn[${i},'s radius 50].CleanName}
+			/varset playerName ${playerName.Arg[1,']}
+			/varset rezzable FALSE
+
+			/if (${Spawn[id ${corpseID}].LineOfSight} && !${corpseName.Find[_]}) {
+				
+				/call TrueTarget ${corpseID}
+				
+				/consider 
+				/delay 10
+				/doevents CorpseExpire
+
+				/if (!${rezzable}) {
+					/echo I cannot ressurect [${Spawn[id ${corpseID}].CleanName}] at this time.
+				} else {
+
+					/if (${Select[${playerName},${consentTargets}]} && ${Target.Distance} > 20) /corpse
+
+					/tell ${playerName} Wait4Rez
+
+					/if (${FindItem[Water Sprinkler of Nem Ankh].ID}) {
+						/call e3_Cast ${corpseID} "Water Sprinkler of Nem Ankh" item
+					} else /if (${Me.Book[Reviviscence]}) {
+						/call e3_Cast ${corpseID} "Reviviscence" Gem${DefaultGem} 45s
+					} else /if (${Me.Book[Ressurection]}) {
+						/call e3_Cast ${corpseID} "Ressurection" Gem${DefaultGem} 45s
+					} else /if (${Me.Book[Restoration]}) {
+						/call e3_Cast ${corpseID} "Restoration" Gem${DefaultGem} 45s
+					} else /if (${Me.Book[Resuscitate]}) {
+						/call e3_Cast ${corpseID} "Resuscitate" Gem${DefaultGem} 45s
+					} else /if (${Me.Book[Renewal]}) {
+						/call e3_Cast ${corpseID} "Renewal" Gem${DefaultGem} 45s
+					} else /if (${Me.Book[Revive]}) {
+						/call e3_Cast ${corpseID} "Revive" Gem${DefaultGem} 45s
+					} else /if (${Me.Book[Reparation]}) {
+						/call e3_Cast ${corpseID} "Reparation" Gem${DefaultGem} 45s
+					} else /if (${Me.Book[Reconstitution]}) {
+						/call e3_Cast ${corpseID} "Reconstitution" Gem${DefaultGem} 45s
+					} else /if (${Me.Book[Reanimation]}) {
+						/call e3_Cast ${corpseID} "Reanimation" Gem${DefaultGem} 45s
+					}
+				}
+			}
+		
+		/next i
+
+		/if (${swapBack}) {
+
+			/delay ${Math.Calc[${MacroQuest.Ping}/2]}
+
+			/declare swapRetryTimer timer local 50
+			:SwapBackLoop
+			/if (${Debug}) /echo |- EVENT_AE_Rez -| :SwapBackLoop
+			
+			/call SwapItem "${Ini[${MacroData_Ini},PendingExchanges-${MacroQuest.Server},${Me.CleanName}].Arg[1,/]}" ${Ini[${MacroData_Ini},PendingExchanges-${MacroQuest.Server},${Me.CleanName}].Arg[2,/]}
+			
+			/if (!${InvSlot[${Ini[${MacroData_Ini},PendingExchanges-${MacroQuest.Server},${Me.CleanName}].Arg[2,/]}].Item.Name.Equal[${Ini[${MacroData_Ini},PendingExchanges-${MacroQuest.Server},${Me.CleanName}].Arg[1,/]}]}) {
+				/if (${retryTimer}) {
+					/goto :SwapBackLoop
+				} else {
+					/echo I have failed to swap [${Ini[${MacroData_Ini},PendingExchanges-${MacroQuest.Server},${Me.CleanName}].Arg[1,/]}] back.
+				}
+			} else {
+				/call WriteToIni ${MacroData_Ini},PendingExchanges-${MacroQuest.Server},${Me.CleanName} NONE 1
+			}
+		}
+		
+		/docommand ${ChatToggle} All viable corpses nearby, have been ressurected.
+		/deletevar rezzable
+	}
+
+/if (${Debug}) /echo <== EVENT_AE_Rez -|
+}
+/RETURN
+
+
+
+#event CorpseExpire "#*#This corpse can be resurrected#*#"
+Sub Event_CorpseExpire
+/if (${Debug}) {
+	/echo |- EVENT_CorpseExpire ==>
+	/echo A am able to ressurect [${Target.CleanName}].
+}
+	/varset rezzable TRUE 
+
+/if (${Debug}) /echo <== EVENT_CorpseExpire -|
+/return
+
+
+
+#EVENT corpseDrag "[MQ2] drag corpses"
+#EVENT corpseDrag "[MQ2] start corpse drag"
+SUB EVENT_corpseDrag
+/if (${Debug}) /echo |- EVENT_corpseDrag ==>
+
+	/declare i int local 1
+	
+	:next_consentTarget
+	/if (${Me.Running}) /keypress "ctrl r" release
+	/if (${consentTargets.Arg[${i},,].Length}) {
+
+		/if (${SpawnCount[${consentTargets.Arg[${i},,]}'s radius 100]} && !${SpawnCount[${consentTargets.Arg[${i},,]}'s radius 10]}) {
+		
+			/call TrueTarget ${Spawn[${consentTargets.Arg[${i},,]}'s].ID}
+			/corpse
+			/delay 1
+		}
+		
+		
+		/varcalc i ${i} + 1
+		/goto :next_consentTarget
+	} else {
+		/varset i 1
+		/goto :next_consentTarget
+	}
+	
+/if (${Debug}) /echo <== EVENT_corpseDrag -|
+/RETURN
+
+
+| need some way to turn off corpse drag; but, I'm bored, and dont want to do it.

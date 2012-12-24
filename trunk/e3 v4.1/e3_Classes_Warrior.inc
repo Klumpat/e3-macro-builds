@@ -81,7 +81,7 @@ Sub WAR_Setup
 				/declare MinBellowEndurance int outer ${Math.Calc[275*3]}
 				/if (!${Defined[do_Taunt]}) /declare do_Taunt bool outer TRUE
 			} else /if (${MyAbilities[${i}].Arg[1,/].Equal[Incite]}) {
-				/declare BellowName string outer Incite
+				/declare BellowName string  outer Incite
 				/declare MinBellowEndurance int outer ${Math.Calc[250*3]}
 				/if (!${Defined[do_Taunt]}) /declare do_Taunt bool outer TRUE
 			} else /if (${MyAbilities[${i}].Arg[1,/].Equal[Berate]}) {
@@ -105,41 +105,6 @@ Sub WAR_Setup
 /return
 
 
-|-------------------------------------------------------------------------------------------------Auto_Bellow
-	/call IniToVar "${Character_Ini},${Me.Class},Auto_Bellow(On/Off)" UNDEFINED bool local
-	/if (${Macro.Return}) {
-	
-	|-----------------------------------------------------------------------------------------Check for the best available 'Bellow' to use.
-		/if (${Me.CombatAbilityReady[Ancient: Chaos Cry]}) {
-			/declare BellowName string outer Ancient: Chaos Cry
-			/declare MinBellowEndurance int outer ${Math.Calc[300*3]}
-		} else /if (${Me.CombatAbilityReady[Bellow of the Mastruq]}) {
-			/declare BellowName string outer Bellow of the Mastruq
-			/declare MinBellowEndurance int outer ${Math.Calc[275*3]}
-		} else /if (${Me.CombatAbilityReady[Incite]}) {
-			/declare BellowName string outer Incite
-			/declare MinBellowEndurance int outer ${Math.Calc[250*3]}
-		} else /if (${Me.CombatAbilityReady[Berate]}) {
-			/declare BellowName string outer Berate
-			/declare MinBellowEndurance int outer ${Math.Calc[200*3]}
-		} else /if (${Me.CombatAbilityReady[Bellow]}) {
-			/declare BellowName string outer Bellow
-			/declare MinBellowEndurance int outer ${Math.Calc[175*3]}
-		} else /if (${Me.CombatAbilityReady[Provoke]}) {
-			/declare BellowName string outer Provoke
-			/declare MinBellowEndurance int outer ${Math.Calc[85*3]}
-		}
-		
-		/if (!${Defined[BellowName]}) {
-			/echo ERROR: @[Auto_Bellow] - No bellow type disc dectected, disabling.
-		} else {
-			/declare do_Taunt bool outer TRUE
-			/call BuildArray MyAbilities "${BellowName}/disc"
-		}
-	}
-
-
-create do_Taunt toggles
 
 |--------------------------------------------------------------------|
 |- MakeWAR_Ini														-|
@@ -148,8 +113,6 @@ create do_Taunt toggles
 |--------------------------------------------------------------------|
 Sub MakeWAR_Ini
 /if (${Debug}) /echo |- WAR_Ini ==>
-
-
 	
 /if (${Debug}) /echo <== WAR_Ini -|
 /return

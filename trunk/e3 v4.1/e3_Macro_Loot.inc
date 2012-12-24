@@ -114,14 +114,14 @@ SUB loot_It(int corpseID)
 			/if (${Macro.Return.Equal[SKIP_LOOT]}) /goto :SKIP_LOOT
 			
 		|----------------------------------------------------------------------------Count items on the corpse, loop until no new items are found.
+			/declare lootTotal_Timer timer local 5s
 			/declare lootTotal int local -1
-			/declare x int local 0
+			
 			:autoxplootlag
-			/varcalc x ${x}+1
 			/if (${lootTotal}!=${Corpse.Items}) {
 				/varset lootTotal ${Corpse.Items}
 				/delay 5
-				/if (${x}<5) /goto :autoxplootlag
+				/if (${lootTotal_Timer}) /goto :autoxplootlag
 			}
 			
 		|----------------------------------------------------------------------------Check each item on the corpse, and decide to keep or destroy.
@@ -212,15 +212,21 @@ SUB loot_It(int corpseID)
 			|-------------------------------------------------If I've finished looting, and there are still items on the corpse, announce in chat.
 				/if (${Corpse.Items}) {
 					
-					/declare linkList string local [${Corpse.CleanName} - ID ${Corpse.ID}] 
+					/if (!${HiddenForestReroute}) {
 					
-					/for i 1 to ${lootTotal}
+						/declare linkList string local [${Corpse.CleanName} - ID ${Corpse.ID}] 
+						
+						/for i 1 to ${lootTotal}
+							/if (${InvSlot[loot${i}].Item.ID}) /varset linkList ${linkList} ~ ${LinkDB[${InvSlot[loot${i}].Item.Name}]}
+						/next i
+						
+						/docommand ${linkChannel} ${linkList}
 					
-						/if (${InvSlot[loot${i}].Item.ID}) /varset linkList ${linkList} ~ ${LinkDB[${InvSlot[loot${i}].Item.Name}]}
+					} else {
+						/notify LootWND LW_BroadcastButton leftmouseup
+						/keypress enter chat
+					}
 					
-					/next i
-					
-					/docommand ${linkChannel} ${linkList}
 				|--------------------------------------------------------------Add corpseID to looted_Corpses array.
 					:SKIP_LOOT
 					/varset looted_Corpses ${looted_Corpses}${corpseID}-
@@ -368,6 +374,9 @@ SUB EVENT_updateLootSetting(line, itemToCheck, iniSetting, ChatSender)
 SUB setup_Loot
 /if (${Debug}) /echo |- setup_Loot ==>
 
+|------------------------------------------------------------------------------------------------------------------------------Setup Loot_Ini.
+	/if (!${Ini[${Loot_Ini}].Length}) /call Build_Alphabetized_Ini ${Loot_Ini}
+
 |-----------------------------------------------------------------------------------------------------------------------Import Macro_Ini settings.
 	/call INItoVar "${Macro_Ini},Loot,Looters" Looters string outer
 	/if (${Looters.Find[/]}) /varset Looters ${Looters.Replace[/,,]}
@@ -377,7 +386,7 @@ SUB setup_Loot
 		/call INItoVar "${Macro_Ini},Loot,Loot Link Channel" linkChannel string outer
 		/call INItoVar "${Macro_Ini},Loot,Corpse Seek Radius" seek_Radius string outer
 	|-------------------------------------------------------------------------------------------------------------------------------Check MQ2Exchange.
-		/if (!${Plugin[MQ2LinkDB].Name.Length}) {
+		/if (!${Plugin[MQ2LinkDB].Name.Length} && ${MacroQuest.Server.NotEqual[HiddenForest]}) {
 			/echo Plugin MQ2LinkDB is not loaded, attempting to resolve...
 			/plugin MQ2LinkDB noauto
 			/delay 3s ${Plugin[MQ2LinkDB].Name.Length}
@@ -387,11 +396,9 @@ SUB setup_Loot
 				/echo ***WARNING*** Could not load MQ2LinkDB, item links will only be given in say.
 				/varset LinkChannel PLUGIN-ERROR
 			}
+		} else {
+			/declare HiddenForestReroute bool outer TRUE
 		}
-		
-	|------------------------------------------------------------------------------------------------------------------------------Setup Loot_Ini.
-		/if (!${Defined[Loot_Ini]}) /declare Loot_Ini string outer loot.ini
-		/if (!${Ini[${Loot_Ini}].Length}) /call Build_Alphabetized_Ini ${Loot_Ini}
 
 	|--------------------------------------------------------------------------------------------------------------------Create looting variables.
 		/declare looted_Corpses string outer

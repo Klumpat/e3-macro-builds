@@ -1,5 +1,5 @@
 |----------------------------------------------------------------------------|
-|- e3_Classes_Cleric.inc v2.0 ( originally designed to work with e3.mac )	-|
+|- e3_Classes_Cleric.inc v2.2 ( originally designed to work with e3.mac )	-|
 |- Written by Killians of PEQ												-|
 |----------------------------------------------------------------------------|
 |- Contains cleric specific functions related to,							-|
@@ -18,43 +18,37 @@
 Sub CLR_Main
 /if (${Debug}) /echo |- CLR_Main ==>
 
-/if (${DivineArb_Pct} && ${Group}>2 && ${Me.AltAbilityReady[Divine Arbitration]}) /call check_DivineArb
-
-|-----------------------------------------------------------------------------------------------------------------------------------------#1 check_Heals.
-	/if (${Heals}) /call CheckHeals
-		/if (${ActionTaken}) /return
-
-|-------------------------------------------------------------------------------------------------------------------------------------#2 Celestial Regen.
-	/if (${celestialRegen_Pct} && ${Group}>2 && ${Me.AltAbilityReady[Celestial Regeneration]}) /call check_celestialRegen
-
-|-----------------------------------------------------------------------------------------------------------------------------------#2 check_CombatBuffs.
-	/if (!${idle} && ${CombatBuffs.Size}) /call CombatBuffs
-		/if (${ActionTaken}) /return
+|-------------------------------------------------------------------------------------------------------------------------------------#1 check_ChainHeal.
+	/if (${Chain_Status.Equal[HEALING]}) /call ChainHeal
+	/if (!${ActionTaken}) {
+	
+	|-----------------------------------------------------------------------------------------------------------------------------------------#2 check_Heals.
+		/if (${Heals}) /call CheckHeals
+		/if (${DivineArb_Pct} && ${Group}>2 && ${Me.AltAbilityReady[Divine Arbitration]}) /call check_DivineArb
+		/if (!${ActionTaken}) {
 		
-|--------------------------------------------------------------------------------------------------------------------------------#3 check_CommandDebuffs.
-	/if (${Debuff_Targets.Size}) /call Debuffs_OnCommand
-		/if (${ActionTaken}) /return
+		|-------------------------------------------------------------------------------------------------------------------------------------#3 Celestial Regen.
+			/if (${celestialRegen_Pct} && ${Group}>2 && ${Me.AltAbilityReady[Celestial Regeneration]}) /call check_celestialRegen
 		
-|------------------------------------------------------------------------------------------------------------------------------------#4 Assist Functions.
-	/if (${Assisting}) /call SHM_Assist
-		/if (${ActionTaken}) /return
-		
-|------------------------------------------------------------------------------------------------------------------------------------------#5 Auto Yaulp.
-/if (${AutoYaulp} && !${Me.Sitting} && !${medBreak} && ${Me.PctMana} < 95) {
-	/if (${Me.SpellReady[Yaulp VI]} && !${Bool[${Me.Buff[Yaulp VI]}]}) {
-		/call e3_Cast ${Me.ID} "Yaulp VI" gem0
-	} else /if (${Me.SpellReady[Yaulp V]} && !${Bool[${Me.Buff[Yaulp V]}]}) {
-		/call e3_Cast ${Me.ID} "Yaulp V" gem0
-	} else /if (${Me.SpellReady[Yaulp IV]} && !${Bool[${Me.Buff[Yaulp IV]}]}) {
-		/call e3_Cast ${Me.ID} "Yaulp IV" gem0
-	} else /if (${Me.SpellReady[Yaulp III]} && !${Bool[${Me.Buff[Yaulp III]}]}) {
-		/call e3_Cast ${Me.ID} "Yaulp III" gem0
-	} else /if (${Me.SpellReady[Yaulp II]} && !${Bool[${Me.Buff[Yaulp II]}]}) {
-		/call e3_Cast ${Me.ID} "Yaulp II" gem0
-	} else /if (${Me.SpellReady[Yaulp]} && !${Bool[${Me.Buff[Yaulp]}]}) {
-		/call e3_Cast ${Me.ID} "Yaulp" gem0
+		|-----------------------------------------------------------------------------------------------------------------------------------#4 check_CombatBuffs.
+			/if (!${idle} && ${CombatBuffs.Size}) /call CombatBuffs
+			/if (!${ActionTaken}) {
+			
+			|--------------------------------------------------------------------------------------------------------------------------------#5 check_CommandDebuffs.
+				/if (${Debuff_Targets.Size}) /call Debuffs_OnCommand
+				/if (!${ActionTaken}) {
+				
+				|------------------------------------------------------------------------------------------------------------------------------------#6 Assist Functions.
+					/if (${Assisting}) /call CLR_Assist
+					/if (!${ActionTaken}) {
+					
+					|------------------------------------------------------------------------------------------------------------------------------------------#7 Auto Yaulp.
+						/if (${AutoYaulp} && !${Me.Sitting} && !${medBreak} && ${Me.PctMana} < 95)  /call auto_Yaulp
+					}
+				}
+			}
+		}
 	}
-}
 
 /if (${Debug}) /echo <== CLR_Main -|
 /return
@@ -80,15 +74,17 @@ Sub CLR_Assist
 	
 |-------------------------------------------------------------------------#4 Debuffs on assist.
 	/if (${Assist_Debuffs.Size}) /call Debuffs_OnAssist
-		/if (${ActionTaken}) /return
-	
-|----------------------------------------------------------------------------#5 Dots on assist.
-	/if (${Assist_DoTs.Size}) /call DoTs_OnAssist
-		/if (${ActionTaken}) /return
+	/if (!${ActionTaken}) {
 		
-|-------------------------------------------------------------------------------------#6 Nukes.		
-	/if (${MyNukes.Size} && !${NukeTimer}) /call Nukes
-
+	|----------------------------------------------------------------------------#5 Dots on assist.
+		/if (${Assist_DoTs.Size}) /call DoTs_OnAssist
+		/if (!${ActionTaken}) {
+		
+		|-------------------------------------------------------------------------------------#6 Nukes.		
+			/if (${MyNukes.Size} && !${NukeTimer}) /call Nukes
+		}
+	}
+	
 /if (${Debug}) /echo <== CLR_Assist -|
 /return
 
@@ -161,13 +157,29 @@ Sub CLR_Background_Events
 sub Event_Rez(string line, string ChatSender)
 /if (${Me.Class.ShortName.Equal[CLR]}) {
 	/if (${ChatSender.Left[1].Compare[ ]}<0) /varset ChatSender ${ChatSender.Right[-2].Left[-1]}
-	/if ( ${Select[${Me.Class},Cleric]} && ${Spawn[${ChatSender}'s].ID}) {
+	/if ( ${Me.Class.ShortName.Equal[CLR]} && ${Spawn[${ChatSender}'s].ID}) {
 		/tell ${ChatSender} Wait4Rez
 		/if (${Select[${Me.Race},High Elf]}) /em pops a toot!
 		/if (${FindItem[Water Sprinkler of Nem Ankh].ID}) {
-			/call e3_Cast ${Spawn[${ChatSender}'s].ID} "Water Sprinkler of Nem Ankh" item 0s
-		} else /if (!${FindItem[Water Sprinkler of Nem Ankh].ID}) {
+			/call e3_Cast ${Spawn[${ChatSender}'s].ID} "Water Sprinkler of Nem Ankh" item
+		} else /if (${Me.Book[Reviviscence]}) {
 			/call e3_Cast ${Spawn[${ChatSender}'s].ID} "Reviviscence" Gem${DefaultGem} 45s
+		} else /if (${Me.Book[Ressurection]}) {
+			/call e3_Cast ${Spawn[${ChatSender}'s].ID} "Ressurection" Gem${DefaultGem} 45s
+		} else /if (${Me.Book[Restoration]}) {
+			/call e3_Cast ${Spawn[${ChatSender}'s].ID} "Restoration" Gem${DefaultGem} 45s
+		} else /if (${Me.Book[Resuscitate]}) {
+			/call e3_Cast ${Spawn[${ChatSender}'s].ID} "Resuscitate" Gem${DefaultGem} 45s
+		} else /if (${Me.Book[Renewal]}) {
+			/call e3_Cast ${Spawn[${ChatSender}'s].ID} "Renewal" Gem${DefaultGem} 45s
+		} else /if (${Me.Book[Revive]}) {
+			/call e3_Cast ${Spawn[${ChatSender}'s].ID} "Revive" Gem${DefaultGem} 45s
+		} else /if (${Me.Book[Reparation]}) {
+			/call e3_Cast ${Spawn[${ChatSender}'s].ID} "Reparation" Gem${DefaultGem} 45s
+		} else /if (${Me.Book[Reconstitution]}) {
+			/call e3_Cast ${Spawn[${ChatSender}'s].ID} "Reconstitution" Gem${DefaultGem} 45s
+		} else /if (${Me.Book[Reanimation]}) {
+			/call e3_Cast ${Spawn[${ChatSender}'s].ID} "Reanimation" Gem${DefaultGem} 45s
 		}
 	} else /if (!${Spawn[${ChatSender}'s].ID}) {
 		/tell ${ChatSender} I don't see any of your corpses in ${Zone}.
@@ -201,3 +213,23 @@ sub check_celestialRegen
 	}
 }
 /return
+
+SUB auto_Yaulp
+/if (${Debug}) /echo |- auto_Yaulp ==>
+
+	/if (${Me.SpellReady[Yaulp VI]} && !${Bool[${Me.Buff[Yaulp VI]}]}) {
+		/call e3_Cast 0 "Yaulp VI" gem0
+	} else /if (${Me.SpellReady[Yaulp V]} && !${Bool[${Me.Buff[Yaulp V]}]}) {
+		/call e3_Cast 0 "Yaulp V" gem0
+	} else /if (${Me.SpellReady[Yaulp IV]} && !${Bool[${Me.Buff[Yaulp IV]}]}) {
+		/call e3_Cast 0 "Yaulp IV" gem0
+	} else /if (${Me.SpellReady[Yaulp III]} && !${Bool[${Me.Buff[Yaulp III]}]}) {
+		/call e3_Cast 0 "Yaulp III" gem0
+	} else /if (${Me.SpellReady[Yaulp II]} && !${Bool[${Me.Buff[Yaulp II]}]}) {
+		/call e3_Cast 0 "Yaulp II" gem0
+	} else /if (${Me.SpellReady[Yaulp]} && !${Bool[${Me.Buff[Yaulp]}]}) {
+		/call e3_Cast 0 "Yaulp" gem0
+	}
+
+/if (${Debug}) /echo <== auto_Yaulp -|
+/RETURN

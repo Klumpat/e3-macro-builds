@@ -18,23 +18,26 @@
 Sub WIZ_Main
 /if (${Debug}) /echo |- WIZ_Main ==>
 
-|------------------------------------------------------------------------------------------------------------------------------------------#1 check_Rain.	
-	/if (${do_Rain} && ${Rain_Spells.Size}) /call Rain
-		/if (${ActionTaken}) /return
-	
-|------------------------------------------------------------------------------------------------------------------------------------#2 Assist Functions.
-	/if (${Assisting}) /call WIZ_Assist
-		/if (${ActionTaken}) /return
-		
-|-----------------------------------------------------------------------------------------------------------------------------------#3 check_CombatBuffs.
+|-----------------------------------------------------------------------------------------------------------------------------------#1 check_CombatBuffs.
 	/if (!${idle} && ${CombatBuffs.Size}) /call CombatBuffs
-		/if (${ActionTaken}) /return
+	/if (!${ActionTaken}) {
+	
+	|------------------------------------------------------------------------------------------------------------------------------------------#2 check_Rain.	
+		/if (${do_Rain} && ${Rain_Spells.Size}) /call Rain
+		/if (!${ActionTaken}) {
 		
-|----------------------------------------------------------------------------------------------------------------------------------------#4 Auto Harvest.
-	/if (${AutoHarvest} && ${Me.PctMana} < ${HarvestAAPct}) /call e3_Cast ${Me.ID} "Harvest of Druzzil" alt
-
-|------------------------------------------------------------------------------------------------------------------------------------------#5 Banish Pet.
-	/if (${Me.Pet.ID}) /pet get lost
+		|------------------------------------------------------------------------------------------------------------------------------------#3 Assist Functions.
+			/if (${Assisting}) /call WIZ_Assist
+			/if (!${ActionTaken}) {
+			
+			|----------------------------------------------------------------------------------------------------------------------------------------#4 Auto Harvest.
+				/if (${autoHarvest} && ${Me.PctMana} < 70) /call e3_Cast ${Me.ID} "Harvest of Druzzil" alt
+			
+			|------------------------------------------------------------------------------------------------------------------------------------------#5 Banish Pet.
+				/if (${Me.Pet.ID} && ${MacroQuest.Server.NotEqual[HiddenForest]}) /pet get lost		
+			}
+		}
+	}
 
 /if (${Debug}) /echo <== WIZ_Main -|	
 /return
@@ -74,10 +77,8 @@ Sub WIZ_Assist
 Sub WIZ_Setup
 /if (${Debug}) /echo |- WIZ_Setup ==>
 
-	/if (!${Ini[${Character_Ini},Wizard].Length}) /call MakeWIZ_Ini
-	/call INItoVar "${Character_Ini},Wizard,Evac on Command (On/Off)" castEvac bool outer
 	/call INItoVar "${Character_Ini},Wizard,Evac (Spell/Gem)" Evac_Spell string outer
-	/call INItoVar "${Character_Ini},Wizard,Auto-Harvest (On/Off)" AutoHarvest bool outer
+	/call INItoVar "${Character_Ini},Wizard,Auto-Harvest (On/Off)" autoHarvest bool outer
 
 /if (${Debug}) /echo <== WIZ_Setup -|
 /return
@@ -92,9 +93,8 @@ Sub WIZ_Setup
 Sub MakeWIZ_Ini
 /if (${Debug}) /echo |- WIZ_Ini ==>
 
-	/call WriteToIni "${Character_Ini},Wizard,Evac on Command (On/Off)" "*Do you want this character to cast Exodus, or a specified evac spell on command?" 0
-	/call WriteToIni "${Character_Ini},Wizard,Evac (Spell/Gem)" "*List an evac spell to use if Exodus is not ready, and the gem to mem it to." 0
-	/call WriteToIni "${Character_Ini},Wizard,Auto-Harvest (On/Off)" "*Do you want this character to use Harvest of Druzzil automatically?" 0
+	/call WriteToIni "${Character_Ini},Wizard,Evac (Spell/Gem)"
+	/call WriteToIni "${Character_Ini},Wizard,Auto-Harvest (On/Off)"
 
 /if (${Debug}) /echo <== WIZ_Ini -|
 /return

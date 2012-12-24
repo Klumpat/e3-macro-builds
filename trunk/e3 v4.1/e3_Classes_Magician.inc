@@ -110,7 +110,7 @@ Sub MAG_Background_Events
 #event petWeapons "#1# tells you, 'Pet Weapons'"
 #event petWeapons "<#1#> Pet Weapons"
 sub event_petWeapons(string line, string ChatSender)
-| /varset Debug TRUE
+/varset Debug TRUE
 /if (${ChatSender.Left[1].Compare[ ]}<0) /varset ChatSender ${ChatSender.Right[-2].Left[-1]}
 /if (${Debug}) /echo |- EVENT_petWeapons ==>
 
@@ -128,6 +128,8 @@ sub event_petWeapons(string line, string ChatSender)
 					/echo I cannot see [${ChatSender}].
 				} else {
 					
+					/tell ${ChatSender} Summoning pet items...
+					
 					/call MoveToSpawn ${Spawn[pet ${Spawn[pc ${ChatSender}].Pet}].ID}
 						
 						/declare i int local
@@ -140,7 +142,7 @@ sub event_petWeapons(string line, string ChatSender)
 						/for i 1 to ${petItems.Size}
 						
 						/if (${Target.Distance} < 20) {
-							/call e3_Cast 0 "${petItems[${i}].Arg[1,/]}" ${petItems[${i}].Arg[2,/]} ${If[${petItems[${i}].Arg[2,/].Left[3].Equal[gem]},10s,]}
+							/call e3_Cast 0 "${petItems[${i}].Arg[1,/]}" ${petItems[${i}].Arg[2,/]} ${If[${petItems[${i}].Arg[2,/].Left[3].Equal[gem]},30s,10s]}
 							/delay 20 ${Cursor.ID}
 							
 							/if (${Cursor.ID}) {
@@ -192,7 +194,7 @@ sub event_petWeapons(string line, string ChatSender)
 								/varset e 0
 								/for x 1 to 8  
 								
-								|------------------------If the item in the packslot is a soulstone, pick it up.
+								|------------------------If the item in the packslot is the summoned item, pick it up.
 									/if (!${Me.Inventory[pack${x}].Container} && ${summonedItem.Equal[${Me.Inventory[pack${x}]}]}) {
 										/if (${Debug}) /echo |- EVENT_petWeapons -| Picking up [${summonedItem}] form pack${x}
 										/itemnotify pack${x} leftmouseup
@@ -224,12 +226,36 @@ sub event_petWeapons(string line, string ChatSender)
 	}
 
 /if (${Debug}) /echo <== EVENT_petWeapons -|
-| /varset Debug FALSE
+/varset Debug FALSE
 /return
 
 
+#event distributePetWeapons "#1# tells you, 'Hand out Pet Weapons'"
+#event distributePetWeapons "<#1#> Hand out Pet Weapons"
+#event distributePetWeapons "#1# tells you, 'Distribute Pet Weapons'"
+#event distributePetWeapons "<#1#> Distribute Pet Weapons"
+sub event_distributePetWeapons
+/if (${Debug}) /echo |- event_distributePetWeapons ==>
 
-sub event_distribute_Weapons
+	/if (${petItems.Size}) {
+	
+		/declare startingLocation string local ${Me.Loc}
+		/declare i int local
+		
+		/for i 1 to ${NetBots.Counts}
+		
+			/if (${SpawnCount[pc ${NetBots.Client[${i}]} radius 100]} && ${NetBots[${NetBots.Client[${i}]}].PetID}) {
+				
+				/call event_petWeapons "<${NetBots.Client[${i}]}> Pet Weapons" ${NetBots.Client[${i}]}
+			}
+		
+		/next i
+	}
+
+/if (${Debug}) /echo <== event_distributePetWeapons -|
+/return
+
+
 /if (${Me.Class.ShortName.Equal[MAG]} && ${petItems.Size}) {
 	/declare centerLoc string local ${Me.Loc.Replace[ ,]}
 	/declare i int local
@@ -274,7 +300,13 @@ sub event_distribute_Weapons
 	/moveto loc ${centerLoc.Arg[1,,]} ${centerLoc.Arg[2,,]}
 }
 /if (${Defined[PetsNearMe]}) /deletevar PetsNearMe
-/return
+
+
+
+
+
+
+
 
 #event CoH_Group "#*# tells the group, 'CoH the group"
 #event CoH_Group "#*# tells the group, 'CoH group"

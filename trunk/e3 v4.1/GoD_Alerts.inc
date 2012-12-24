@@ -12,7 +12,7 @@ SUB event_Define_UquaKey(string line, string KeyToUse)
 /return
 
 #event setClass_Warrior "#*#Brute force and brawn#*#"
-#event setClass_Shaman "#*#Cringe at the appearance of talismans#*#"
+#event setClass_Shaman "#*#Cringes at the appearance of talismans#*#"
 #event setClass_Beastlord "#*#Deep gashes of feral savagery#*#"
 #event setClass_Necromancer "#*#Doom of death#*#"
 #event setClass_Cleric "#*#Dread of celestial spirit#*#"
@@ -153,7 +153,7 @@ SUB event_startClass_Melees
 SUB event_MobSet
 	/if (${murauderKill} < 4) {
 		/if (${Defined[murauderKill]}) /varcalc murauderKill ${murauderKill} + 1
-	} else /if (${murauderKill} == 4) {
+	} else {
 		/if (${Defined[murauderKill]}) /varset murauderKill 1
 	}
 	/if (${murauderKill} == 1) {

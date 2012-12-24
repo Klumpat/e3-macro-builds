@@ -345,8 +345,6 @@ SUB TrueTarget(TargetID)
 			} else {
 				/echo ERROR: Failed to target [${Spawn[id ${TargetID}].CleanName} - ${TargetID}]
 			}
-		} else {
-			/delay 3
 		}
 	}
 

@@ -240,7 +240,7 @@ SUB cast_Spell(int targetID, castName, spellGem, timer giveUpTimer, SubToRun)
 		
 	|-----------------------------------------------------------------reacquire follow, and return twist.
 		/if (${Following} && !${Assisting} && ${NetAdvPath.State} != 1) /call AquireFollow
-		/if (${returnTwist}) /squelch /twist start
+		/if (${returnTwist}) /call unpauseTwist
 	}
 	
 /if (${Debug}) /echo <== cast_Spell -|
@@ -329,14 +329,14 @@ SUB cast_Item(int targetID, itemName, itemTimer, SubToRun)
 		/call SwapItem "${itemName}" ${slotName}
 		
 		/declare pingDelayTimer timer local ${Math.Calc[${MacroQuest.Ping}*.5].Int}
-		
-		:swapDelayLoop
-		/if (${Debug}) /echo |- cast_Item -| :swapDelayLoop
-			
-			/call Background_Events
-		
-		/if (${pingDelayTimer}) /goto :swapDelayLoop
-		
+|**
+	:swapDelayLoop
+	/if (${Debug}) /echo |- cast_Item -| :swapDelayLoop
+
+	/call Background_Events
+
+	/if (${pingDelayTimer}) /goto :swapDelayLoop
+**|
 	}
 	
 	/cast item "${itemName}"
@@ -389,25 +389,11 @@ SUB cast_Item(int targetID, itemName, itemTimer, SubToRun)
 		}
 	}
 	
-|------------------------------------------------------------------If no item timer was given, check the Timers_Ini for one
-	/if (!${Defined[itemTimer]}) {
-		/declare itemTimer timer local 20
-		/if (${Ini[${itemTimers_Ini},${itemName.Left[1]},${itemName}].Length}) {
-			/varset itemTimer ${Ini[${itemTimers_Ini},${itemName.Left[1]},${itemName}]}
-		} else /if (!${Ini[${itemTimers_Ini},${itemName.Left[1]},${itemName}].Length}) {
-			/echo There is no setting recorded for ${itemName}. Adding ${itemName} to ${itemTimers_Ini}, please update this timer to ensure proper macro functionality.
-			/ini ${itemTimers_Ini} ${itemName.Left[1]} "${itemName}" 0
-		}
-	}
-	
-|----------------------------------------------------------------------------------Create a reuse timer for this item.
-	/call CreateTimer item_Timer_${FindItem[${itemName}].ID} ${itemTimer}
-	
 	/if (${Cursor.Name.Equal[${itemName}]}) /call ClearCursor
 	
 |-----------------------------------------------------------------reacquire follow, and return twist.
 	/if (${Following} && !${Assisting} && ${NetAdvPath.State} != 1) /call AquireFollow
-	/if (${returnTwist}) /squelch /twist start	
+	/if (${returnTwist}) /call unpauseTwist
 	:skipCast
 	
 /if (${Debug}) /echo <== cast_Item -|
@@ -460,7 +446,7 @@ SUB cast_AltAbility(int targetID, altName, SubToRun)
 |-----------------------------------------------------------------reacquire follow, and return twist.
 	/if (${Following} && !${Assisting} && ${NetAdvPath.State} != 1) /call AquireFollow
 	
-	/if (${returnTwist}) /squelch /twist start	
+	/if (${returnTwist}) /call unpauseTwist
 	
 /if (${Debug}) /echo <== cast_AltAbility -|
 /RETURN
@@ -488,7 +474,7 @@ SUB useDisc(discToUse)
 		
 		/disc ${discToUse}
 		
-		/if (${returnTwist}) /squelch /twist start
+		/if (${returnTwist}) /call unpauseTwist
 
 /if (${Debug}) /echo |- useDisc ==>	
 /RETURN
@@ -950,9 +936,9 @@ SUB Event_NoHold
 |------------------------|
 |- Currently unused.	-|
 |------------------------|
-#event Missing_Components "You are missing #*#"
-SUB event_Missing_Components
-| /echo testing events...
+#event Missing_Components "You are missing #1#"
+SUB event_Missing_Components(line, missingComponent)
+/echo ${missingComponent}
 /RETURN
 
 
@@ -972,7 +958,7 @@ SUB setup_Casting
 	
 	/if (!${Defined[discTimer_Ini]}) /declare discTimer_Ini string local discTimers.ini
 	/if (!${Ini[${discTimer_Ini}].Length}) /call Make_discTimers_Ini
-	/if (!${Ini[${itemTimers_Ini}].Length}) /call Build_Alphabetized_Ini ${itemTimers_Ini}
+	| /if (!${Ini[${itemTimers_Ini}].Length}) /call Build_Alphabetized_Ini ${itemTimers_Ini}
 
 	/call IniToVar "${Macro_Ini},Casting,Default Spell Set" Default_SpellSet string outer
 	/call IniToVar "${Macro_Ini},Casting,Default Spell Gem" DefaultGem int outer

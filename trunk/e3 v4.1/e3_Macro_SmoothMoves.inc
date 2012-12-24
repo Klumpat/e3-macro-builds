@@ -37,10 +37,7 @@
 |- 	/echo Add Run through zone				-|
 |-	/echo Add Run thru zone					-|
 |--------------------------------------------|
-|- /echo Add Bark 'msg'
-|- 
-
-
+|- 	/echo Add Bark 'msg'					-|
 |-	/echo End Recording						-|
 |-	/echo Stop recording					-|
 |-	/echo Finish recording					-|
@@ -281,7 +278,6 @@ SUB event_end_Recording(bool squelchEchos)
 	} else {
 	
 	|----------------------------------------------------------------------------------------------------------------------------------Output to user.
-		
 		/varset tempRoute ${tempRoute}${Me.Loc.Replace[ ,]}|
 		/if (!${squelchEchos}) /echo Finished recording.  To save this route, use the command '/echo Save Route [Name of Route]'.
 		/if (${Defined[contRecording]}) /deletevar contRecording
@@ -606,31 +602,6 @@ SUB next_WP(float y_loc, float x_loc)
 
 /if (${Debug}) /echo <== next_WP -|
 /RETURN
-
-
-|------------------------------------------------------------------------------Check if movement events were called.
-	/call Movement_Events
-	/call Background_Events
-	
-|------------------------------------------------------------------------------------------Look up, if I'm in water.
-	/if (${Me.Underwater} && ${Me.Look} < 5) /look 5
-	
-|------------------------------------------If a 'stop route' was called, stop moving, and return to event_run_Route.
-	/if (${stop_Route}) {
-		/moveto off
-		/goto :skip_wait4Stop
-	}
-	
-|-------------Calculate distance to my destination.  If I'm closer than 5 units, start moving to the next waypoint.
-	/call Triangulate_Distance ${Me.Loc.Replace[ ,]} ${y_loc},${x_loc}
-	/echo /if (${Macro.Return}<15)
-	/if (${Macro.Return}<15) {
-		/echo skipping to next wp
-		/goto :skip_wait4Stop
-	}
-	
-|---------------------------------------------------------------------------------------------------------------If I'm still moving, wait to stop.
-	/if (${Me.Moving}) /goto :wait4Stop
 
 
 

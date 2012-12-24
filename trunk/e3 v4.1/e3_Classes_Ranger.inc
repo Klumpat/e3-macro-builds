@@ -97,7 +97,7 @@ Sub RNG_Setup
 Sub MakeRNG_Ini
 /if (${Debug}) /echo |- RNG_Ini ==>
 
-	/call WriteToIni "${Character_Ini},${Me.Class},Auto_Forage(On/Off)" "*Do you want this character to automatically forage?" 0
+	/call WriteToIni "${Character_Ini},${Me.Class},Auto-Forage (On/Off)" "*Do you want this character to automatically forage?" 0
 
 	
 /if (${Debug}) /echo <== RNG_Ini -|

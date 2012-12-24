@@ -1,5 +1,5 @@
 |--------------------------------------------------------------------------------|
-|- e3_Classes_Beastlord.inc v2.0 ( originally designed to work with e3.mac )	-|
+|- e3_Classes_Beastlord.inc v2.1 ( originally designed to work with e3.mac )	-|
 |- Written by Killians of PEQ													-|
 |--------------------------------------------------------------------------------|
 |- Contains beastlord specific functions related to,							-|
@@ -20,27 +20,31 @@ Sub BST_Main
 
 |--------------------------------------------------------------------------------------------------------------------------------#1 check_CommandDebuffs.
 	/if (${Debuff_Targets.Size}) /call Debuffs_OnCommand
-		/if (${ActionTaken}) /return
-		
-|--------------------------------------------------------------------------------------------------------------------------------------------#2 Pet heal.
-	/if (${Defined[Pet_Heal]} && ${Me.Pet.ID}) /call PetHeal
-		/if (${ActionTaken}) /return
-
-|-----------------------------------------------------------------------------------------------------------------------------------#3 check_CombatBuffs.
-	/if (!${idle} && ${CombatBuffs.Size}) /call CombatBuffs
-		/if (${ActionTaken}) /return
+	/if (!${ActionTaken}) {
 	
-|-----------------------------------------------------------------------------------------------------------------------------------------#4 check_Heals.
-	/if (${Heals}) /call CheckHeals
-		/if (${ActionTaken}) /return
+	|-----------------------------------------------------------------------------------------------------------------------------------#3 check_CombatBuffs.
+		/if (!${idle} && ${CombatBuffs.Size}) /call CombatBuffs
+		/if (!${ActionTaken}) {
 		
-|------------------------------------------------------------------------------------------------------------------------------------#5 Assist Functions.		
-	/if (${Assisting}) /call BST_Assist
-		/if (${ActionTaken}) /return
-		
-		
-|------------------------------------------------------------------------------------------------------------------------------------------#6 check_DoTs.	
-	/if (${DoT_Targets.Size}) /call DoTs_OnCommand
+		|--------------------------------------------------------------------------------------------------------------------------------------------#2 Pet heal.
+			/if (${Defined[Pet_Heal]} && ${Me.Pet.ID}) /call PetHeal
+			/if (!${ActionTaken}) {
+			
+			|-----------------------------------------------------------------------------------------------------------------------------------------#4 check_Heals.
+				/if (${Heals}) /call CheckHeals
+				/if (!${ActionTaken}) {
+				
+				|------------------------------------------------------------------------------------------------------------------------------------------#6 check_DoTs.	
+					/if (${DoT_Targets.Size}) /call DoTs_OnCommand
+					/if (!${ActionTaken}) {
+					
+					|------------------------------------------------------------------------------------------------------------------------------------#5 Assist Functions.		
+						/if (${Assisting}) /call BST_Assist
+					}
+				}
+			}
+		}
+	}
 
 /if (${Debug}) /echo <== BST_Main -|
 /return
@@ -60,26 +64,25 @@ Sub BST_Assist
 
 |--------------------------------------------------------------------------------#2 QuickBurns.
 	/if (${use_QBurn}) /call QuickBurns
-		/if (${ActionTaken}) /return
-		
+	
 |---------------------------------------------------------------------------------#3 FullBurns.	
 	/if (${use_FBurn}) /call FullBurns
-		/if (${ActionTaken}) /return
-		
+	
 |--------------------------------------------------------------------------#4 Combat Abilities.
 	/if (${MyAbilities.Size}) /call CombatAbilities
-		/if (${ActionTaken}) /return
-		
-|-------------------------------------------------------------------------#5 Debuffs on assist.
-	/if (${Assist_Debuffs.Size}) /call Debuffs_OnAssist
-		/if (${ActionTaken}) /return
 
-|-------------------------------------------------------------------------------------#6 Nukes.		
-	/if (${MyNukes.Size} && !${NukeTimer}) /call Nukes
-		/if (${ActionTaken}) /return
+|-------------------------------------------------------------------------#5 Debuffs on assist.
+	/if (${Assist_Debuffs.Size}) /call Debuffs_OnAssist	
+	/if (!${ActionTaken}) {
+	
+	|-------------------------------------------------------------------------------------#6 Nukes.		
+		/if (${MyNukes.Size} && !${NukeTimer}) /call Nukes
+		/if (!${ActionTaken}) {
 		
-|----------------------------------------------------------------------------#7 Dots on assist.
-	/if (${Assist_DoTs.Size}) /call DoTs_OnAssist
+		|----------------------------------------------------------------------------#7 Dots on assist.
+			/if (${Assist_DoTs.Size}) /call DoTs_OnAssist
+		}
+	}
 
 /if (${Debug}) /echo <== BST_Assist -|	
 /return

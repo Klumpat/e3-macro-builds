@@ -23,7 +23,7 @@ SUB event_UseCoprseSummoner()
 		/declare GiveUpTimer	int outer 600
 	
 	|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------Check Money.
-		/if (${Me.Platinum} < ${SoulStoneCost} && !${FindItemCount[=${SoulStoneToUse}]}) /call withdraw_Plat
+		/if (${Math.Calc[${Me.CashBank} / 1000].Int} > ${SoulStoneCost} && ${Me.Platinum} < ${SoulStoneCost} && !${FindItemCount[=${SoulStoneToUse}]}) /call withdraw_Plat
 		
 	|-------------------------------------------------------------------------------------------------------------------------------------------------------------------Check for soulstone.
 		/if (${Me.Platinum} >= ${SoulStoneCost} && !${FindItemCount[=${SoulStoneToUse}]}) /call buy_SoulStone "${SoulStoneToUse}"
