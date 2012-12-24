@@ -34,7 +34,7 @@ Sub Main
 	}
 
 |----------------------If I've been inactive long enough, check my pets status.  Return to top if I've taken an action.
-	/if (${Pets} && !${suspend_Pets} && !${combatTimer} && !${activeTimer} && !${pet_rebuffTimer}) {
+	/if (${Pets} && !${suspend_Pets} && !${combatTimer} && !${activeTimer}) {
 		/call check_PetStatus
 	}
 	

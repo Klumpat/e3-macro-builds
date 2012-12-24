@@ -15,19 +15,18 @@
 SUB check_PetStatus
 /if (${Debug}) /echo |- check_PetStatus ==>
 
-|--------------------------------------------------------------------------------------------------------------------------------Summon a new pet.
-	/if (!${Me.Pet.ID}) {
-		/call summon_Pet
-		/if (${ActionTaken}) /RETURN
-	} else {
+	/if (!${Me.Pet.ID}) /call summon_Pet
+	/if (!${ActionTaken}) {
 	
 	|------------------------------------------------------------------------------------------------------------------------------Maintain pet buffs.
-		/if (${MyPetBuffs.Size}) /call check_PetBuffs
-			/if (${ActionTaken}) /RETURN
-			
-	|-------------------------------------------------------------------------------------------------------------------Check pet size and AutoShrink.
-		/if (${Pet_AutoShrink} && ${Me.Pet.Height}>1) /call check_AutoShrink
+		/if (${MyPetBuffs.Size} && !${pet_rebuffTimer}) /call check_PetBuffs
+		/if (!${ActionTaken}) {
+		
+		|-----------------------------------------------------------------------------------------------------------------------Check Auto_Shrink.
+			/if (${Pet_AutoShrink} && ${Me.Pet.Height}>1) /call check_AutoShrink
+		}
 	}
+
 /if (${Debug}) /echo <== check_PetStatus -|
 /RETURN
 
@@ -36,22 +35,20 @@ SUB check_PetStatus
 |------------------------------------------------------------|
 |- Summon a new pet.										-|
 |------------------------------------------------------------|
-|- Looks for reageants, and checks mana, before summoning.	-|
+|- Looks for reagents, and checks mana, before summoning.	-|
 |------------------------------------------------------------|
 SUB summon_Pet
 /if (${Debug}) /echo |- summon_Pet ==>
 
-|--------------------------------------------If a reageant is listed, and its available, or if no reageant is listed, summon a pet.
-	/if (${PetSpell.Arg[2,/].Length} && ${FindItemCount[=${PetSpell.Arg[2,/]}]} || ${Defined[PetSpell]} && !${PetSpell.Arg[2,/].Length}) {
+|--------------------------------------------If a reagent is listed, and its available, or if no reagent is listed, summon a pet.
+	/if (${PetSpell.Arg[3,/].Length} && ${FindItemCount[=${PetSpell.Arg[3,/]}]} || !${PetSpell.Arg[3,/].Length}) {
 		/if (${Debug}) /echo |- summon_Pet -| Attempting to summon [${PetSpell.Arg[1,/]}].
-		/call e3_Cast ${Me.ID} "${PetSpell.Arg[1,/]}" gem${DefaultGem} ${If[${Me.Gem[${Spell[${PetSpell.Arg[1,/]}]}]},25,90]}
+		/call e3_Cast ${Me.ID} "${PetSpell.Arg[1,/]}" gem${DefaultGem} 10s
 		
-|--------------------------------------------If I don't have the required reageants to summon a pet, alter, and turn pets off.
-	} else /if (${PetSpell.Arg[2,/].Length} && !${FindItemCount[=${PetSpell.Arg[2,/]}]}) {
-		/if (${Debug} && ${spamTimer}) {
-			/echo I do not have the required reageant to cast [${PetSpell.Arg[1,/]}].
-			/varset Pets FALSE
-		}	
+|--------------------------------------------If I don't have the required reagents to summon a pet, alter, and turn pets off.
+	} else {
+		/echo I do not have the required reagent to cast [${PetSpell.Arg[1,/]}]!  Disabling pets.
+		/varset Pets FALSE	
 	}
 	
 /if (${Debug}) /echo <== summon_Pet -|
@@ -71,7 +68,7 @@ SUB check_PetBuffs
 	/for i 1 to ${MyPetBuffs.Size}
 	
 	|----------------------------------------------------------------------------------------------------------------------------------Cast spell.
-		/if (!${MyPetBuffs[${i}].Arg[2,/].Length} || ${MyPetBuffs[${i}].Arg[2,/].Left[3].Equal[gem]}) {
+		/if (${MyPetBuffs[${i}].Arg[2,/].Left[3].Equal[gem]}) {
 		
 		|---------Check to see if your pet already has the buff, and that it will stack with your pet's current buffs.
 			/if (!${Me.PetBuff[${MyPetBuffs[${i}].Arg[1,/]}]} && ${Spell[${MyPetBuffs[${i}].Arg[1,/]}].StacksPet}) {
@@ -79,7 +76,6 @@ SUB check_PetBuffs
 			|----------------------------------------------------------------------------Cast PetBuff, and return.	
 				/if (${Debug}) /echo |- check_PetBuffs -| Attempting to cast [${MyPetBuffs[${i}].Arg[1,/]}] on [${Spawn[id ${Me.Pet.ID}].CleanName} - ${Me.Pet.ID}] with a retry timer of [].
 				/call e3_Cast ${Me.Pet.ID} "${MyPetBuffs[${i}].Arg[1,/]}" Gem${DefaultGem} ${If[${Me.Gem[${Spell[${MyPetBuffs[${i}].Arg[1,/]}]}]},25,90]}
-				/RETURN
 			}
 			
 	|----------------------------------------------------------------------------------------------------------------------------------Cast item.
@@ -90,7 +86,6 @@ SUB check_PetBuffs
 			
 			|--------------------------------------------------------------------------------Cast PetBuff, and return.
 				/call e3_Cast ${Me.Pet.ID} "${MyPetBuffs[${i}].Arg[1,/]}" item
-				/RETURN
 			}
 			
 	|-----------------------------------------------------------------------------------------------------------------------------Cast AltAbility.		
@@ -101,10 +96,11 @@ SUB check_PetBuffs
 				
 			|--------------------------------------------------------------------------------Cast PetBuff, and return.		
 				/call e3_Cast ${Me.Pet.ID} "${MyPetBuffs[${i}].Arg[1,/]}" alt
-				/RETURN
 			}
 		}
-	/next i
+		
+	/if (!${ActionTaken}) /next i
+	
 	/varset pet_rebuffTimer ${buffCheck_Interval}s
 	
 /if (${Debug}) /echo <== check_PetBuffs -|
@@ -143,6 +139,9 @@ SUB event_shrinkPets
 	
 /if (${Debug}) /echo <== event_shrinkPets -|	
 /RETURN
+
+
+
 #event suspendMinion "<#*#> Suspend Pets"
 SUB event_suspendMinion
 /if (${Me.Pet.ID}) /docommand ${ChatToggle} Suspending my pet
@@ -154,6 +153,9 @@ SUB event_suspendMinion
 /if (${Me.Pet.ID}) /pet get lost
 /if (${Defined[suspend_Pets]}) /varset suspend_Pets TRUE
 /RETURN
+
+
+
 #event returnMinion "#*#Return Pets#*#"
 SUB event_returnMinion
 /if (${suspend_Pets}) /docommand ${ChatToggle} Returning my pet
@@ -189,206 +191,244 @@ SUB PetHeal
 SUB setup_Pets
 /if (${Debug}) /echo |- setup_Pets ==>
 
-	/declare i int local
+|-------------------------------------------------------------------------------------------------------------------------------------Check the Character_Ini for elements within the [Pets] section.
+	/if (${Ini[${Character_Ini},Pets].Length}) {
 	
-/if (${Ini[${Character_Ini},Pets].Length}) {
-
-|-------------------------------------------------------------------------------------------------------------------------------------------Import [Pet Spell].
-	/varcalc Validation_Arg ${Validation_Arg} + 1
-	:Validate_PetSpell
-	/varset Validation_Count 0
-	
-	/if (${Ini[${Character_Ini},Pets,Pet (Spell/Gem/Reageant)].Length}) /call INItoVar "${Character_Ini},Pets,Pet (Spell/Gem/Reageant)" PetSpell string outer
-	
-	/if (!${Ini[${MacroData_Ini},ValidationKey-${MacroQuest.Server},${Me.CleanName}].Length} || ${Ini[${MacroData_Ini},ValidationKey-${MacroQuest.Server},${Me.CleanName}].Arg[${Validation_Arg},-]} != ${Validation_Count}) /varset Validation_On TRUE
-
-|------------------------------------------------------------------------------------------------------------------------------------Validate PetSpell.
-	/if (${Validation_On}) {	
-	|------------------------------------------------------------------------------------------------------------------------------Missing castType.	
-		/if (!${PetSpell.Arg[2,/].Length}) {
-			/echo [Pet Spell] - [${PetSpell}] does not have a specified castType.  Attempting to fix...
+	| -------------------------------------------------------------------------------------------------------------------------------------------Import [PetSpell].
+		/if (${Ini[${Character_Ini},Pets,Pet (Spell/Gem/reagent)].Length}) {
+			/varcalc Validation_Arg ${Validation_Arg} + 1
+			:Validate_PetSpell
+			/varset Validation_Count 0
+		
+			/call INItoVar "${Character_Ini},Pets,Pet (Spell/Gem/reagent)" PetSpell string outer
 			
-			/if (${Int[${Me.Book[${PetSpell.Arg[1,/]}]}]}) {
-				/varset PetSpell ${PetSpell}/gem${If[${Me.Gem[${PetSpell}]},${Me.Gem[${PetSpell}]},${DefaultGem}]}
-				/call WriteToIni "${Character_Ini},Pets,Pet (Spell/Gem/Reageant)" "${PetSpell}" 1
-				/echo [${PetSpell.Arg[1,/]}] was found in my spellbook.  Setting [${PetSpell.Arg[1,/]}] to [${PetSpell.Arg[2,/]}].
-			} else /if (${FindItemCount[${PetSpell.Arg[1,/]}]}) {
-				/varset PetSpell ${PetSpell}/item
-				/call WriteToIni "${Character_Ini},Pets,Pet (Spell/Gem/Reageant)" "${PetSpell}" 1
-				/echo [${PetSpell.Arg[1,/]}] was found in my inventory.  Setting [${PetSpell.Arg[1,/]}] to [${PetSpell.Arg[2,/]}].
-			} else {
-				/varset PetSpell ${PetSpell}/BAD_ENTRY
-				/call WriteToIni "${Character_Ini},Pets,Pet (Spell/Gem/Reageant)" "${PetSpell}" 1
-				/echo ERROR: @[Pet Spell] - Could not find a compatible castType for [${PetSpell}].  Flagging [Pet Spell] as a BAD_ENTRY.
-			}
-		} else {
 			
-			/if (${PetSpell.Arg[2,/].Find[gem]}) {
-				/if (!${Int[${Me.Book[${PetSpell.Arg[1,/]}]}]}) {
-					/varset PetSpell ${PetSpell.Arg[1,/]}/BAD_ENTRY
-					/call WriteToIni "${Character_Ini},Pets,Pet (Spell/Gem/Reageant)" "${PetSpell}" 1
-					/echo ERROR: @[Pet Spell] - [${PetSpell.Arg[1,/]}] was not found in my spellbook.  Flagging [Pet Spell] as a BAD_ENTRY.
-				}
-			} else /if (${PetSpell.Arg[2,/].Equal[item]}) {
-				/if (!${FindItemCount[${PetSpell.Arg[1,/]}]}) {
-					/varset PetSpell ${PetSpell.Arg[1,/]}/BAD_ENTRY
-					/call WriteToIni "${Character_Ini},Pets,Pet (Spell/Gem/Reageant)" "${PetSpell}" 1
-					/echo ERROR: @[Pet Spell] - I do not have [${MyNukes[${i}].Arg[1,/]}] in my inventory.  Flagging [Pet Spell] as a BAD_ENTRY.
-				}
-			} else /if (${PetSpell.Arg[2,/].Equal[BAD_ENTRY]}) {
-				/echo ERROR: @[Pet Spell] - There is a problem with the user entry for [${PetSpell.Arg[1,/]}] in [${Character_Ini}].  Please review this entry, and restart the macro.
-			} else {
-				/if (${Int[${Me.Book[${PetSpell.Arg[1,/]}]}]}) {
-					/varset PetSpell ${PetSpell.Arg[1,/]}/gem${If[${Me.Gem[${PetSpell}]},${Me.Gem[${PetSpell}]},${DefaultGem}]}/${PetSpell.Arg[2,/]}
-					/call WriteToIni "${Character_Ini},Pets,Pet (Spell/Gem/Reageant)" "${PetSpell}" 1
-					/echo [${PetSpell.Arg[1,/]}] was found in my spellbook.  Setting [${PetSpell.Arg[1,/]}] to [${PetSpell.Arg[2,/]}].
-				} else /if (${FindItemCount[${PetSpell.Arg[1,/]}]}) {
-					/varset PetSpell ${PetSpell}/item/${PetSpell.Arg[2,/]}
-					/call WriteToIni "${Character_Ini},Pets,Pet (Spell/Gem/Reageant)" "${PetSpell}" 1
-					/echo [${PetSpell.Arg[1,/]}] was found in my inventory.  Setting [${PetSpell.Arg[1,/]}] to [${PetSpell.Arg[2,/]}].
-				} else {
-					/varset PetSpell ${PetSpell}/BAD_ENTRY
-					/call WriteToIni "${Character_Ini},Pets,Pet (Spell/Gem/Reageant)" "${PetSpell}" 1
-					/echo ERROR: @[Pet Spell] - Could not find a compatible castType for [${PetSpell}].  Flagging [Pet Spell] as a BAD_ENTRY.
-				}
-			}
-		}	
-
-		/call rewrite_ValidationKey ${Validation_Count} ${Validation_Arg}
-		
-		/varset Validation_On FALSE
-		/goto :Validate_PetSpell
-	}
-	
-	/if (${Defined[PetSpell]}) {
-		/declare Pets bool outer TRUE
-		/declare pet_rebuffTimer timer outer
-		/if (!${Defined[suspend_Pets]}) /declare suspend_Pets bool global FALSE
-		/if (!${Defined[currently_Suspended]}) /declare currently_Suspended bool global FALSE
-		/if (${Ini[${Character_Ini},Pets,Pet Auto-Shrink (On/Off)].Length}) /call INItoVar "${Character_Ini},Pets,Pet Auto-Shrink (On/Off)" Pet_AutoShrink bool outer
-		
-	|---------------------------------------------------------------------------------------------------------------------------------Import Pet_Heal
-		/varcalc Validation_Arg ${Validation_Arg} + 1
-		:Validate_PetHeal
-		/varset Validation_Count 0
-		
-		/if (${Ini[${Character_Ini},Pets,Pet Heal (Spell/Gem/Pct)].Length}) /call INItoVar "${Character_Ini},Pets,Pet Heal (Spell/Gem/Pct)" Pet_Heal string outer
-		
-		/if (!${Ini[${MacroData_Ini},ValidationKey-${MacroQuest.Server},${Me.CleanName}].Length} || ${Ini[${MacroData_Ini},ValidationKey-${MacroQuest.Server},${Me.CleanName}].Arg[${Validation_Arg},-]} != ${Validation_Count}) /varset Validation_On TRUE
-
-		/if (${Validation_On}) {
-			/if (${Defined[Pet_Heal]}) {
+			/if (!${Ini[${MacroData_Ini},ValidationKey-${MacroQuest.Server},${Me.CleanName}].Length} || ${Ini[${MacroData_Ini},ValidationKey-${MacroQuest.Server},${Me.CleanName}].Arg[${Validation_Arg},-]} != ${Validation_Count}) /varset Validation_On TRUE
 			
-			|------------------------------------------------------------------------------------------------------------------------------Missing castType.	
-				/if (!${Pet_Heal.Arg[2,/].Length}) {
-					/echo [Pet Heal] - [${Pet_Heal}] does not have a specified castType.  Attempting to fix...
-					
-					/if (${Int[${Me.Book[${Pet_Heal.Arg[1,/]}]}]}) {
-						/varset Pet_Heal ${Pet_Heal}/gem${If[${Me.Gem[${Pet_Heal}},${Me.Gem[${Pet_Heal}]},${DefaultGem}]}
-						/call WriteToIni "${Character_Ini},Pets,Pet Heal (Spell/Gem/Pct)" "${Pet_Heal}" 1
-						/echo [${Pet_Heal.Arg[1,/]}] was found in my spellbook.  Setting [${Pet_Heal.Arg[1,/]}] to [${Pet_Heal.Arg[2,/]}].
-					}
-				} else {
-					
-					/if (${Pet_Heal.Arg[2,/].Find[gem]}) {
-						/if (!${Int[${Me.Book[${Pet_Heal.Arg[1,/]}]}]}) {
-							/varset Pet_Heal ${Pet_Heal.Arg[1,/]}/BAD_ENTRY
-							/call WriteToIni "${Character_Ini},Pets,Pet Heal (Spell/Gem/Pct)" "${Pet_Heal}" 1
-							/echo ERROR: @[Pet Heal] - [${Pet_Heal.Arg[1,/]}] was not found in my spellbook.  Flagging [Pet Heal] as a BAD_ENTRY.
-						}
-					} else /if (${Pet_Heal.Arg[2,/].Equal[BAD_ENTRY]}) {
-						/echo ERROR: @[Pet Heal] - There is a problem with the user entry for [${Pet_Heal.Arg[1,/]}] in [${Character_Ini}].  Please review this entry, and restart the macro.
-					} else {
-						/varset Pet_Heal ${Pet_Heal.Arg[1,/]}/BAD_ENTRY
-						/call WriteToIni "${Character_Ini},Pets,Pet Heal (Spell/Gem/Pct)" "${Pet_Heal}" 1
-						/echo ERROR: @[Pet Heal] - [${Pet_Heal.Arg[2,/]}] is not an acceptable castType.  Flagging [Pet Heal] as a BAD_ENTRY.
-					}
-				}
-			}
-			
-			/call rewrite_ValidationKey ${Validation_Count} ${Validation_Arg}
-		
-			/varset Validation_On FALSE
-			/goto :Validate_PetHeal
-		}
-	
-	|---------------------------------------------------------------------------------------------------------------------------------Import Mend Percent
-		/call INItoVar "${Character_Ini},Pets,Pet Mend (Pct)" Pet_MendPct int outer
-		
-	|---------------------------------------------------------------------------------------------------------------------------------Import PetBuffs
-		/varcalc Validation_Arg ${Validation_Arg} + 1
-		:Validate_PetBuffs
-		/varset Validation_Count 0
-		
-		/if (${Ini[${Character_Ini},Pets,Pet Buff#1].Length}) /call INItoArray "${Character_Ini},Pets,Pet Buff#" MyPetBuffs
-		
-		/if (!${Ini[${MacroData_Ini},ValidationKey-${MacroQuest.Server},${Me.CleanName}].Length} || ${Ini[${MacroData_Ini},ValidationKey-${MacroQuest.Server},${Me.CleanName}].Arg[${Validation_Arg},-]} != ${Validation_Count}) /varset Validation_On TRUE
-
-		/if (${Validation_On}) {
-			/if (${MyPetBuffs.Size}) {
+			/if (${Validation_On} && ${Validation_Count}) {
 				
-				/for i 1 to ${MyPetSpells.Size}
+				/if (${Defined[PetSpell]}) {
 				
-				|------------------------------------------------------------------------------------------------------------------------------Missing castType.	
-					/if (!${MyPetBuffs[${i}].Arg[2,/].Length}) {
-						/echo [PetBuff#${i}] - [${MyPetBuffs[${i}]}] does not have a specified castType.  Attempting to fix...
-						
-						/if (${Int[${Me.Book[${MyPetBuffs[${i}]}]}]}) {
-							/varset MyPetBuffs[${i}] ${MyPetBuffs[${i}]}/gem${If[${Me.Gem[${MyPetBuffs[${i}]}]},${Me.Gem[${MyPetBuffs[${i}]}]},${DefaultGem}]}
-							/call WriteToIni "${Character_Ini},Pets,Pet Buff#${i}" "${MyPetBuffs[${i}]}" 1
-							/echo [${MyPetBuffs[${i}].Arg[1,/]}] was found in my spellbook.  Setting [${MyPetBuffs[${i}].Arg[1,/]}] to [${MyPetBuffs[${i}].Arg[2,/]}].
-						} else /if (${FindItemCount[${MyPetBuffs[${i}].Arg[1,/]}]}) {
-							/varset MyPetBuffs[${i}] ${MyPetBuffs[${i}]}/item
-							/call WriteToIni "${Character_Ini},Pets,Pet Buff#${i}" "${MyPetBuffs[${i}]}" 1
-							/echo [${MyPetBuffs[${i}].Arg[1,/]}] was found in my inventory.  Setting [${MyPetBuffs[${i}].Arg[1,/]}] to [${MyPetBuffs[${i}].Arg[2,/]}].
-						} else /if (${Me.AltAbility[${FullBurns[${i}]}]}) {
-							/varset MyPetBuffs[${i}] ${MyPetBuffs[${i}]}/alt
-							/call WriteToIni "${Character_Ini},Pets,Pet Buff#${i}" "${MyPetBuffs[${i}]}" 1
-							/echo I have ranks spent in [${MyPetBuffs[${i}].Arg[1,/]}].  Setting [${MyPetBuffs[${i}].Arg[1,/]}] to [${MyPetBuffs[${i}].Arg[2,/]}]	
+					/if (!${PetSpell.Arg[2,/].Length}) {
+					|------------------------------------------------------------------------------------------------------------Auto-fix castType
+						/if (${Int[${Me.Book[${PetSpell.Arg[1,/]}]}]}) {
+							/varset PetSpell ${PetSpell}/gem${If[${Me.Gem[${PetSpell}]},${Me.Gem[${PetSpell}]},${DefaultGem}]}
+							/call WriteToIni "${Character_Ini},Pets,Pet (Spell/Gem/reagent)" "${PetSpell}" 1
+							/echo [${PetSpell.Arg[1,/]}] was found in my spellbook.  Setting [${PetSpell.Arg[1,/]}] to [${PetSpell.Arg[2,/]}].
+						} else /if (${FindItemCount[${PetSpell.Arg[1,/]}]}) {
+							/varset PetSpell ${PetSpell}/item
+							/call WriteToIni "${Character_Ini},Pets,Pet (Spell/Gem/reagent)" "${PetSpell}" 1
+							/echo [${PetSpell.Arg[1,/]}] was found in my inventory.  Setting [${PetSpell.Arg[1,/]}] to [${PetSpell.Arg[2,/]}].
 						} else {
-							/varset MyPetBuffs[${i}] ${MyPetBuffs[${i}]}/BAD_ENTRY
-							/call WriteToIni "${Character_Ini},Pets,Pet Buff#${i}" "${MyPetBuffs[${i}]}" 1
-							/echo ERROR: @[Pet Buff#${i}] - Could not find a compatible castType for [${MyPetBuffs[${i}]}].  Flagging [Pet Buff#${i}] as a BAD_ENTRY.
+							/varset PetSpell ${PetSpell}/BAD_ENTRY
+							/call WriteToIni "${Character_Ini},Pets,Pet (Spell/Gem/reagent)" "${PetSpell}" 1
+							/echo ERROR: @[Pet Spell] - Could not find a compatible castType for [${PetSpell}].  Flagging [Pet Spell] as a BAD_ENTRY.
 						}
-						
+					
 					} else {
-						/if (${MyPetBuffs[${i}].Find[gem]}) {
-							/if (!${Int[${Me.Book[${MyPetBuffs[${i}].Arg[1,/]}]}]}) {
-								/varset MyPetBuffs[${i}] ${MyPetBuffs[${i}].Arg[1,/]}/BAD_ENTRY
-								/call WriteToIni "${Character_Ini},Pets,Pet Buff#${i}" "${MyPetBuffs[${i}]}" 1
-								/echo ERROR: @[Pet Buff#${i}] - [${MyPetBuffs[${i}].Arg[1,/]}] was not found in my spellbook.  Flagging [Pet Buff#${i}] as a BAD_ENTRY.
+					
+						/if (${PetSpell.Arg[2,/].Find[gem]}) {
+							/if (!${Int[${Me.Book[${PetSpell.Arg[1,/]}]}]}) {
+								/varset PetSpell ${PetSpell.Arg[1,/]}/BAD_ENTRY
+								/call WriteToIni "${Character_Ini},Pets,Pet (Spell/Gem/reagent)" "${PetSpell}" 1
+								/echo ERROR: @[Pet Spell] - [${PetSpell.Arg[1,/]}] was not found in my spellbook.  Flagging [Pet Spell] as a BAD_ENTRY.
 							}
-						} else /if (${MyPetBuffs[${i}].Arg[2,/].Equal[item]}) {
-							/if (!${FindItemCount[${MyPetBuffs[${i}].Arg[1,/]}]}) {
-								/varset MyPetBuffs[${i}] ${MyPetBuffs[${i}].Arg[1,/]}/BAD_ENTRY
-								/call WriteToIni "${Character_Ini},Pets,Pet Buff#${i}" "${MyPetBuffs[${i}]}" 1
-								/echo ERROR: @[Pet Buff#${i}] - I do not have [${MyPetBuffs[${i}].Arg[1,/]}] in my inventory.  Flagging [Pet Buff#${i}] as a BAD_ENTRY.
+						} else /if (${PetSpell.Arg[2,/].Equal[item]}) {
+							/if (!${FindItemCount[${PetSpell.Arg[1,/]}]}) {
+								/varset PetSpell ${PetSpell.Arg[1,/]}/BAD_ENTRY
+								/call WriteToIni "${Character_Ini},Pets,Pet (Spell/Gem/reagent)" "${PetSpell}" 1
+								/echo ERROR: @[Pet Spell] - I do not have [${PetSpell.Arg[1,/]}] in my inventory.  Flagging [Pet Spell] as a BAD_ENTRY.
 							}
-						} else /if (${MyPetBuffs[${i}].Arg[2,/].Equal[alt]} || ${MyPetBuffs[${i}].Arg[2,/].Equal[aa]}) {
-							/if (!${Me.AltAbility[${MyPetBuffs[${i}].Arg[1,/]}]}) {
-								/varset MyPetBuffs[${i}] ${MyPetBuffs[${i}].Arg[1,/]}/BAD_ENTRY
-								/call WriteToIni "${Character_Ini},Pets,Pet Buff#${i}" "${MyPetBuffs[${i}]}" 1
-								/echo ERROR: @[Pet Buff#${i}] - I do not have any ranks in [${MyPetBuffs[${i}].Arg[1,/]}].  Flagging [Pet Buff#${i}] as a BAD_ENTRY.
+						} else /if (${FindItemCount[${PetSpell.Arg[2,/]}]}) {
+							
+							/if (${Int[${Me.Book[${PetSpell.Arg[1,/]}]}]}) {
+								/varset PetSpell ${PetSpell.Arg[1,/]}/gem${If[${Me.Gem[${PetSpell}]},${Me.Gem[${PetSpell}]},${DefaultGem}]}/${PetSpell.Arg[2,/]}
+								/call WriteToIni "${Character_Ini},Pets,Pet (Spell/Gem/reagent)" "${PetSpell}" 1
+								/echo [${PetSpell.Arg[1,/]}] was found in my spellbook.  Setting [${PetSpell.Arg[1,/]}] to [${PetSpell.Arg[2,/]}].
+							} else /if (${FindItemCount[${PetSpell.Arg[1,/]}]}) {
+								/varset PetSpell ${PetSpell}/item/${PetSpell.Arg[2,/]}
+								/call WriteToIni "${Character_Ini},Pets,Pet (Spell/Gem/reagent)" "${PetSpell}" 1
+								/echo [${PetSpell.Arg[1,/]}] was found in my inventory.  Setting [${PetSpell.Arg[1,/]}] to [${PetSpell.Arg[2,/]}].
+							} else {
+								/varset PetSpell ${PetSpell}/BAD_ENTRY
+								/call WriteToIni "${Character_Ini},Pets,Pet (Spell/Gem/reagent)" "${PetSpell}" 1
+								/echo ERROR: @[Pet Spell] - Could not find a compatible castType for [${PetSpell}].  Flagging [Pet Spell] as a BAD_ENTRY.
 							}
+							
 						} else /if (${PetSpell.Arg[2,/].Equal[BAD_ENTRY]}) {
-							/echo ERROR: @[Pet Buff#${i}] - There is a problem with the user entry for [${MyPetBuffs[${i}].Arg[1,/]}] in [${Character_Ini}].  Please review this entry, and restart the macro.
+							/echo ERROR: @[Pet Spell] - There is a problem with the user entry for [${PetSpell.Arg[1,/]}] in [${Character_Ini}].  Please review this entry, and restart the macro.
 						} else {
-							/varset MyPetBuffs[${i}] ${/varset MyPetBuffs[${i}].Arg[1,/]}/BAD_ENTRY
-							/call WriteToIni "${Character_Ini},Pets,Pet Buff#${i}" "${MyPetBuffs[${i}]}" 1
-							/echo ERROR: @[Pet Buff#${i}] - [${MyPetBuffs[${i}].Arg[2,/]}] is not an acceptable castType.  Flagging [Pet Buff#${i}] as a BAD_ENTRY.
+							/varset PetSpell ${PetSpell}/BAD_ENTRY
+							/call WriteToIni "${Character_Ini},Pets,Pet (Spell/Gem/reagent)" "${PetSpell}" 1
+							/echo ERROR: @[Pet Spell] - Could not find a compatible castType for [${PetSpell}].  Flagging [Pet Spell] as a BAD_ENTRY.
 						}
 					}
+				}
 				
-				/next i
+				/call rewrite_ValidationKey ${Validation_Count} ${Validation_Arg}
+				
+				/varset Validation_On FALSE
+				/goto :Validate_PetSpell
+			}
+		}
+		
+	|----------------------------------------------------------------If PetSpell is defined, declare and import pet related variables.
+		/if (${Defined[PetSpell]}) {
+		
+			/declare Pets bool outer TRUE
+			
+			/if (!${Defined[suspend_Pets]}) /declare suspend_Pets bool global FALSE
+			/if (!${Defined[currently_Suspended]}) /declare currently_Suspended bool global FALSE
+			
+		| -------------------------------------------------------------------------------------------------------------------------------------------Import [Pet_AutoShrink].
+			/if (${Ini[${Character_Ini},Pets,Pet Auto-Shrink (On/Off)].Length}) /call INItoVar "${Character_Ini},Pets,Pet Auto-Shrink (On/Off)" Pet_AutoShrink bool outer
+			
+		| -------------------------------------------------------------------------------------------------------------------------------------------Import [Pet_Heal].
+			/if (${Ini[${Character_Ini},Pets,Pet Heal (Spell/Gem/Pct)].Length}) {
+				/varcalc Validation_Arg ${Validation_Arg} + 1
+				:Validate_PetHeal
+				/varset Validation_Count 0
+			
+				/call INItoVar "${Character_Ini},Pets,Pet Heal (Spell/Gem/Pct)" Pet_Heal string outer
+			
+				/if (!${Ini[${MacroData_Ini},ValidationKey-${MacroQuest.Server},${Me.CleanName}].Length} || ${Ini[${MacroData_Ini},ValidationKey-${MacroQuest.Server},${Me.CleanName}].Arg[${Validation_Arg},-]} != ${Validation_Count}) /varset Validation_On TRUE
+			
+				/if (${Validation_On} && ${Validation_Count}) {
+				
+					/if (${Defined[Pet_Heal]}) {
+					
+					|------------------------------------------------------------------------------------------------------------------------------Missing castType.	
+						/if (!${Pet_Heal.Arg[2,/].Length}) {
+							/echo [Pet Heal] - [${Pet_Heal}] does not have a specified castType.  Attempting to fix...
+							
+							/if (${Int[${Me.Book[${Pet_Heal}]}]}) {
+								/varset Pet_Heal ${Pet_Heal}/gem${If[${Me.Gem[${Pet_Heal}},${Me.Gem[${Pet_Heal}]},${DefaultGem}]}
+								/call WriteToIni "${Character_Ini},Pets,Pet Heal (Spell/Gem/Pct)" "${Pet_Heal}" 1
+								/echo [${Pet_Heal.Arg[1,/]}] was found in my spellbook.  Setting [${Pet_Heal.Arg[1,/]}] to [${Pet_Heal.Arg[2,/]}].
+							} else /if (${FindItemCount[${Pet_Heal}]}) {
+								/varset Pet_Heal ${Pet_Heal}/item
+								/call WriteToIni "${Character_Ini},Pets,Pet Heal (Spell/Gem/Pct)" "${Pet_Heal}" 1
+								/echo [${Pet_Heal.Arg[1,/]}] was found in my inventory.  Setting [${Pet_Heal.Arg[1,/]}] to [${Pet_Heal.Arg[2,/]}].
+							}
+							
+						} else {
+							
+							/if (${Pet_Heal.Arg[2,/].Find[gem]}) {
+								/if (!${Int[${Me.Book[${Pet_Heal.Arg[1,/]}]}]}) {
+									/varset Pet_Heal ${Pet_Heal.Arg[1,/]}/BAD_ENTRY
+									/call WriteToIni "${Character_Ini},Pets,Pet Heal (Spell/Gem/Pct)" "${Pet_Heal}" 1
+									/echo ERROR: @[Pet Heal] - [${Pet_Heal.Arg[1,/]}] was not found in my spellbook.  Flagging [Pet Heal] as a BAD_ENTRY.
+								}
+							} else /if (${Pet_Heal.Arg[2,/].Equal[item]}) {
+								/if (!${FindItemCount[${Pet_Heal.Arg[1,/]}]}) {
+									/varset Pet_Heal ${Pet_Heal.Arg[1,/]}/BAD_ENTRY
+									/call WriteToIni "${Character_Ini},Pets,Pet Heal (Spell/Gem/Pct)" "${Pet_Heal}" 1
+									/echo ERROR: @[Pet Heal] - I do not have [${Pet_Heal.Arg[1,/]}] in my inventory.  Flagging [Pet Heal] as a BAD_ENTRY.
+								}
+							} else /if (${Pet_Heal.Arg[2,/].Equal[BAD_ENTRY]}) {
+								/echo ERROR: @[Pet Heal] - There is a problem with the user entry for [${Pet_Heal.Arg[1,/]}] in [${Character_Ini}].  Please review this entry, and restart the macro.
+							} else {
+								/varset Pet_Heal ${Pet_Heal.Arg[1,/]}/BAD_ENTRY
+								/call WriteToIni "${Character_Ini},Pets,Pet Heal (Spell/Gem/Pct)" "${Pet_Heal}" 1
+								/echo ERROR: @[Pet Heal] - [${Pet_Heal.Arg[2,/]}] is not an acceptable castType.  Flagging [Pet Heal] as a BAD_ENTRY.
+							}
+						}
+					}
+
+					/call rewrite_ValidationKey ${Validation_Count} ${Validation_Arg}
+		
+					/varset Validation_On FALSE
+					/goto :Validate_PetHeal
+				}
 			}
 			
-			/call rewrite_ValidationKey ${Validation_Count} ${Validation_Arg}
+		| -------------------------------------------------------------------------------------------------------------------------------------------Import [Pet_MendPct].
+			/if (${Ini[${Character_Ini},Pets,Pet Mend (Pct)].Length}) /call INItoVar "${Character_Ini},Pets,Pet Mend (Pct)" Pet_MendPct int outer
+			
+		| -------------------------------------------------------------------------------------------------------------------------------------------Import [Pet_Buffs].
+			/if (${Ini[${Character_Ini},Pets,Pet Buff#1].Length}) {
+				
+				/declare i int local
+			
+				/varcalc Validation_Arg ${Validation_Arg} + 1
+				:Validate_PetBuffs
+				/varset Validation_Count 0
+			
+				/call INItoArray "${Character_Ini},Pets,Pet Buff#" MyPetBuffs
+			
+				/if (!${Ini[${MacroData_Ini},ValidationKey-${MacroQuest.Server},${Me.CleanName}].Length} || ${Ini[${MacroData_Ini},ValidationKey-${MacroQuest.Server},${Me.CleanName}].Arg[${Validation_Arg},-]} != ${Validation_Count}) /varset Validation_On TRUE
+			
+				/if (${Validation_On} && ${Validation_Count}) {
+			
+					/if (${MyPetBuffs.Size}) {
+			
+						/for i 1 to ${MyPetSpells.Size}
+				
+						|------------------------------------------------------------------------------------------------------------------------------Missing castType.	
+							/if (!${MyPetBuffs[${i}].Arg[2,/].Length}) {
+								/echo [PetBuff#${i}] - [${MyPetBuffs[${i}]}] does not have a specified castType.  Attempting to fix...
+								
+								/if (${Int[${Me.Book[${MyPetBuffs[${i}]}]}]}) {
+									/varset MyPetBuffs[${i}] ${MyPetBuffs[${i}]}/gem${If[${Me.Gem[${MyPetBuffs[${i}]}]},${Me.Gem[${MyPetBuffs[${i}]}]},${DefaultGem}]}
+									/call WriteToIni "${Character_Ini},Pets,Pet Buff#${i}" "${MyPetBuffs[${i}]}" 1
+									/echo [${MyPetBuffs[${i}].Arg[1,/]}] was found in my spellbook.  Setting [${MyPetBuffs[${i}].Arg[1,/]}] to [${MyPetBuffs[${i}].Arg[2,/]}].
+								} else /if (${FindItemCount[${MyPetBuffs[${i}].Arg[1,/]}]}) {
+									/varset MyPetBuffs[${i}] ${MyPetBuffs[${i}]}/item
+									/call WriteToIni "${Character_Ini},Pets,Pet Buff#${i}" "${MyPetBuffs[${i}]}" 1
+									/echo [${MyPetBuffs[${i}].Arg[1,/]}] was found in my inventory.  Setting [${MyPetBuffs[${i}].Arg[1,/]}] to [${MyPetBuffs[${i}].Arg[2,/]}].
+								} else /if (${Me.AltAbility[${FullBurns[${i}]}]}) {
+									/varset MyPetBuffs[${i}] ${MyPetBuffs[${i}]}/alt
+									/call WriteToIni "${Character_Ini},Pets,Pet Buff#${i}" "${MyPetBuffs[${i}]}" 1
+									/echo I have ranks spent in [${MyPetBuffs[${i}].Arg[1,/]}].  Setting [${MyPetBuffs[${i}].Arg[1,/]}] to [${MyPetBuffs[${i}].Arg[2,/]}]	
+								} else {
+									/varset MyPetBuffs[${i}] ${MyPetBuffs[${i}]}/BAD_ENTRY
+									/call WriteToIni "${Character_Ini},Pets,Pet Buff#${i}" "${MyPetBuffs[${i}]}" 1
+									/echo ERROR: @[Pet Buff#${i}] - Could not find a compatible castType for [${MyPetBuffs[${i}]}].  Flagging [Pet Buff#${i}] as a BAD_ENTRY.
+								}
+								
+							} else {
+								/if (${MyPetBuffs[${i}].Find[gem]}) {
+									/if (!${Int[${Me.Book[${MyPetBuffs[${i}].Arg[1,/]}]}]}) {
+										/varset MyPetBuffs[${i}] ${MyPetBuffs[${i}].Arg[1,/]}/BAD_ENTRY
+										/call WriteToIni "${Character_Ini},Pets,Pet Buff#${i}" "${MyPetBuffs[${i}]}" 1
+										/echo ERROR: @[Pet Buff#${i}] - [${MyPetBuffs[${i}].Arg[1,/]}] was not found in my spellbook.  Flagging [Pet Buff#${i}] as a BAD_ENTRY.
+									}
+								} else /if (${MyPetBuffs[${i}].Arg[2,/].Equal[item]}) {
+									/if (!${FindItemCount[${MyPetBuffs[${i}].Arg[1,/]}]}) {
+										/varset MyPetBuffs[${i}] ${MyPetBuffs[${i}].Arg[1,/]}/BAD_ENTRY
+										/call WriteToIni "${Character_Ini},Pets,Pet Buff#${i}" "${MyPetBuffs[${i}]}" 1
+										/echo ERROR: @[Pet Buff#${i}] - I do not have [${MyPetBuffs[${i}].Arg[1,/]}] in my inventory.  Flagging [Pet Buff#${i}] as a BAD_ENTRY.
+									}
+								} else /if (${MyPetBuffs[${i}].Arg[2,/].Equal[alt]} || ${MyPetBuffs[${i}].Arg[2,/].Equal[aa]}) {
+									/if (!${Me.AltAbility[${MyPetBuffs[${i}].Arg[1,/]}]}) {
+										/varset MyPetBuffs[${i}] ${MyPetBuffs[${i}].Arg[1,/]}/BAD_ENTRY
+										/call WriteToIni "${Character_Ini},Pets,Pet Buff#${i}" "${MyPetBuffs[${i}]}" 1
+										/echo ERROR: @[Pet Buff#${i}] - I do not have any ranks in [${MyPetBuffs[${i}].Arg[1,/]}].  Flagging [Pet Buff#${i}] as a BAD_ENTRY.
+									}
+								} else /if (${PetSpell.Arg[2,/].Equal[BAD_ENTRY]}) {
+									/echo ERROR: @[Pet Buff#${i}] - There is a problem with the user entry for [${MyPetBuffs[${i}].Arg[1,/]}] in [${Character_Ini}].  Please review this entry, and restart the macro.
+								} else {
+									/varset MyPetBuffs[${i}] ${/varset MyPetBuffs[${i}].Arg[1,/]}/BAD_ENTRY
+									/call WriteToIni "${Character_Ini},Pets,Pet Buff#${i}" "${MyPetBuffs[${i}]}" 1
+									/echo ERROR: @[Pet Buff#${i}] - [${MyPetBuffs[${i}].Arg[2,/]}] is not an acceptable castType.  Flagging [Pet Buff#${i}] as a BAD_ENTRY.
+								}
+							}
+						
+						/next i
+					}
+				
+					/call rewrite_ValidationKey ${Validation_Count} ${Validation_Arg}
 		
-			/varset Validation_On FALSE
-			/goto :Validate_PetBuffs
+					/varset Validation_On FALSE
+					/goto :Validate_PetBuffs
+				}
+				/if (${Defined[MyPetBuffs]}) {
+					
+					/declare pet_rebuffTimer timer outer
+				}	
+			}
 		}
 	}
-}	
 	
 /if (${Debug}) /echo <== setup_Pets -|
 /RETURN

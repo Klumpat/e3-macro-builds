@@ -1,5 +1,5 @@
 |----------------------------------------------------------------------------|
-|- e3_Classes_Shaman.inc v2.0 ( originally designed to work with e3.mac )	-|
+|- e3_Classes_Shaman.inc v2.1 ( originally designed to work with e3.mac )	-|
 |- Written by Killians of PEQ												-|
 |----------------------------------------------------------------------------|
 |- Contains shaman specific functions related to,							-|
@@ -20,35 +20,40 @@ Sub SHM_Main
 
 |--------------------------------------------------------------------------------------------------------------------------------#1 check_CommandDebuffs.
 	/if (${Debuff_Targets.Size}) /call Debuffs_OnCommand
-		/if (${ActionTaken}) /return
+	/if (!${ActionTaken}) {
 	
-|-----------------------------------------------------------------------------------------------------------------------------------------#2 check_Heals.
-	/if (${Heals}) /call CheckHeals
-		/if (${ActionTaken}) /return
-	
-|-----------------------------------------------------------------------------------------------------------------------------------#3 check_CombatBuffs.
-	/if (!${idle} && ${CombatBuffs.Size}) /call CombatBuffs
-		/if (${ActionTaken}) /return
-
-|------------------------------------------------------------------------------------------------------------------------------------------#4 check_DoTs.	
-	/if (${DoT_Targets.Size}) /call DoTs_OnCommand
-		/if (${ActionTaken}) /return
+	|-----------------------------------------------------------------------------------------------------------------------------------------#2 check_Heals.
+		/if (${Heals}) /call CheckHeals
+		/if (!${ActionTaken}) {
 		
-|------------------------------------------------------------------------------------------------------------------------------------------#5 check_Rain.	
-	/if (${do_Rain} && ${Rain_Spells.Size}) /call Rain
-		/if (${ActionTaken}) /return
+		|-----------------------------------------------------------------------------------------------------------------------------------#3 check_CombatBuffs.
+			/if (!${idle} && ${CombatBuffs.Size}) /call CombatBuffs
+			/if (!${ActionTaken}) {
+			
+			|------------------------------------------------------------------------------------------------------------------------------------------#4 check_DoTs.	
+				/if (${DoT_Targets.Size}) /call DoTs_OnCommand
+				/if (!${ActionTaken}) {
+				
+				|------------------------------------------------------------------------------------------------------------------------------------------#5 check_Rain.	
+					/if (${do_Rain} && ${Rain_Spells.Size}) /call Rain
+					/if (!${ActionTaken}) {
+					
+					|------------------------------------------------------------------------------------------------------------------------------------#6 Assist Functions.
+						/if (${Assisting}) /call SHM_Assist
+						/if (!${ActionTaken}) {
+						
+						|--------------------------------------------------------------------------------------------------------------------------------------------#8 Pet heal.
+							/if (${Defined[Pet_Heal]} && ${Me.Pet.ID}) /call PetHeal
+							
+						|-------------------------------------------------------------------------------------------------------------------------------------------#7 AutoCanni.
+							/if (${AutoCanni} && ${Me.PctMana} < 95) /call autoCanni	
+						}
+					}
+				}
+			}
+		}
+	}
 
-|------------------------------------------------------------------------------------------------------------------------------------#6 Assist Functions.
-	/if (${Assisting}) /call SHM_Assist
-		/if (${ActionTaken}) /return
-
-|-------------------------------------------------------------------------------------------------------------------------------------------#7 AutoCanni.
-	
-	/if (${AutoCanni} && ${Me.PctMana} < 95) /call autoCanni
-	
-|--------------------------------------------------------------------------------------------------------------------------------------------#8 Pet heal.
-	/if (${Defined[Pet_Heal]} && ${Me.Pet.ID}) /call PetHeal
-	
 /if (${Debug}) /echo <== SHM_Main -|
 /return
 
@@ -70,23 +75,25 @@ Sub SHM_Assist
 	
 |---------------------------------------------------------------------------------#3 FullBurns.	
 	/if (${use_FBurn}) /call FullBurns
-
+	
 |-------------------------------------------------------------------------#4 Debuffs on assist.
 	/if (${Assist_Debuffs.Size}) /call Debuffs_OnAssist
-		/if (${ActionTaken}) /return
+	/if (!${ActionTaken}) {
+	
+	|----------------------------------------------------------------------------#5 Dots on assist.
+		/if (${Assist_DoTs.Size}) /call DoTs_OnAssist
+		/if (!${ActionTaken}) {
 		
-|----------------------------------------------------------------------------#5 Dots on assist.
-	/if (${Assist_DoTs.Size}) /call DoTs_OnAssist
-		/if (${ActionTaken}) /return
-		
-|-------------------------------------------------------------------------------------#6 Nukes.		
-	/if (${MyNukes.Size} && !${NukeTimer}) /call Nukes
+		|-------------------------------------------------------------------------------------#6 Nukes.		
+			/if (${MyNukes.Size} && !${NukeTimer}) /call Nukes
+		}
+	}
 	
 /if (${Debug}) /echo <== SHM_Assist -|
 /return
 
 
-
+	
 |------------------------------------------------------------------------|
 |- SHM_Setup															-|
 |------------------------------------------------------------------------|
@@ -95,7 +102,6 @@ Sub SHM_Assist
 Sub SHM_Setup
 /if (${Debug}) /echo |- SHM_Setup ==>
 
-	/if (!${Ini[${Character_Ini},Shaman].Length}) /call MakeSHM_Ini
 	/call INItoVar "${Character_Ini},Shaman,Auto-Canni (On/Off)" AutoCanni bool outer
 
 /if (${Debug}) /echo <== SHM_Setup -|

@@ -1,5 +1,5 @@
 |------------------------------------------------------------------------|
-|- e3_Classes_Bard.inc v2.0 ( originally designed to work with e3.mac )	-|
+|- e3_Classes_Bard.inc v2.3 ( originally designed to work with e3.mac )	-|
 |- Written by Killians of PEQ											-|
 |------------------------------------------------------------------------|
 |- Contains bard specific functions related to,							-|
@@ -18,17 +18,21 @@
 Sub BRD_Main
 /if (${Debug}) /echo |- BRD_Main ==>
 
+|----------------------------------------------------------------------------------------------------------------Check melody
+	/if (${playingMelody} && !${Twist.Twisting}) /call restart_Melody
+
 |-----------------------------------------------------------------------------------------------------------------------------------#1 check_CombatBuffs.
 	/if (!${idle} && ${CombatBuffs.Size}) /call CombatBuffs
-		/if (${ActionTaken}) /return
+	/if (!${ActionTaken}) {
 
-|------------------------------------------------------------------------------------------------------------------------------------#2 Assist Functions.
-	/if (${Assisting}) /call BRD_Assist
-		/if (${ActionTaken}) /return
+	|------------------------------------------------------------------------------------------------------------------------------------#2 Assist Functions.
+		/if (${Assisting}) /call BRD_Assist
+		/if (!${ActionTaken}) {
 		
-|-----------------------------------------------------------------------------------------------------------------------------------------#3 Auto Forage.	
-	/if (${autoForage}) /call AutoForage
-		/if (${ActionTaken}) /return
+		|-----------------------------------------------------------------------------------------------------------------------------------------#3 Auto Forage.	
+			/if (${autoForage}) /call AutoForage
+		}
+	}
 	
 /if (${Debug}) /echo <== BRD_Main -|
 /return
@@ -72,9 +76,17 @@ Sub BRD_Setup
 /if (${Debug}) /echo |- BRD_Setup ==>
 
 	/if (!${Ini[${Character_Ini},${Me.Class}].Length}) /call Make${Me.Class.ShortName}_Ini
+	
 	/declare returnTwist bool outer 0
 	
-|--------------Convert melody syntax from v4.1 (Song Name,#) to v4.2 (Song Name/gem#)
+	/if (!${Defined[playingMelody]}) /declare playingMelody bool global
+	/if (!${Defined[songSet]}) /declare songSet string global
+
+
+	
+| ---------------------------------------------------------------------------|
+| Convert melody syntax from v4.1 (Song Name,#) to v4.2 (Song Name/gem#)	-|
+| ---------------------------------------------------------------------------|
 	/declare i int local 1
 	/declare e int local
 	
@@ -122,8 +134,12 @@ Sub MakeBRD_Ini
 |- Events to add to the Background_Events, that are bard specific.	-|
 |--------------------------------------------------------------------|
 Sub BRD_Background_Events
-/doevents save_Melody
-/doevents Set_Melody
+/if (${Debug}) /echo |- BRD_Background_Events ==>
+
+	/doevents save_Melody
+	/doevents Set_Melody
+	
+/if (${Debug}) /echo <== BRD_Background_Events -|	
 /return
 
 
@@ -198,7 +214,10 @@ SUB EVENT_startMelody(line, melodyName)
 		/if (!${Ini[${Character_Ini},${melodyName}_Melody,Song#1].Length}) {
 		
 		|----------------------------------------------------------------------------If Stop, end, or pause were used, stop the melody.
-			/if (${Select[${melodyName},Stop,End,Pause]}) { 
+			/if (${Select[${melodyName},Stop,End,Pause]}) {
+				/varset playingMelody FALSE
+				/varset songSet
+			
 				/docommand ${ChatToggle} Ending melody.
 				/twist end
 			} else {
@@ -242,6 +261,9 @@ SUB EVENT_startMelody(line, melodyName)
 			/if (${Ini[${Character_Ini},${melodyName}_Melody,Song#${i}].Length}) /goto :check_nextSong
 		
 		|-------------------------------------------------------------------------------------------------------------Twist the newly built songList.
+			/varset playingMelody TRUE
+			/varset songSet ${songList}
+			
 			/docommand ${ChatToggle} Playing [${melodyName}] melody...
 			/twist ${songList}
 			
@@ -251,3 +273,13 @@ SUB EVENT_startMelody(line, melodyName)
 /if (${Debug}) /echo <== EVENT_startMelody -|
 | /varset Debug 0
 /return
+
+
+
+SUB restart_Melody
+/if (${Debug}) /echo |- check_Melody ==>
+
+	/twist ${Twist.List}
+
+/if (${Debug}) /echo <== check_Melody -|
+/RETURN

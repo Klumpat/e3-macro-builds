@@ -172,7 +172,7 @@ SUB check_Pets
 /if (${NetBots[${NetBots.Client[${i}]}].PetID}) {
 	/if (${NetBots[${NetBots.Client[${i}]}].PetHP} < ${PetHeal_Pct} && ${Spawn[${NetBots[${NetBots.Client[${i}]}].PetID}].Distance} < ${Spell[${PetHeal_Spell}].MyRange}) {
 		/if (${Target.ID} != ${NetBots[${NetBots.Client[${i}]}].PetID}) /call TrueTarget ${NetBots[${NetBots.Client[${i}]}].PetID}
-		/call e3_Cast ${Spell[${PetHeal_Spell}].ID} Gem${PetHeal_Gem} 0s
+		/call e3_Cast ${NetBots[${NetBots.Client[${i}]}].PetID} "${Spell[${PetHeal_Spell}].ID}" Gem${PetHeal_Gem} 3s
 		/varset ActionTaken TRUE
 	}
 }

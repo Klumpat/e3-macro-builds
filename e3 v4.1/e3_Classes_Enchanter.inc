@@ -1,5 +1,5 @@
 |--------------------------------------------------------------------------------|
-|- e3_Classes_Enchanter.inc v2.0 ( originally designed to work with e3.mac )	-|
+|- e3_Classes_Enchanter.inc v2.2 ( originally designed to work with e3.mac )	-|
 |- Written by Killians of PEQ													-|
 |--------------------------------------------------------------------------------|
 |- Contains enchanter specific functions related to,							-|
@@ -19,27 +19,37 @@ Sub ENC_Main
 /if (${Debug}) /echo |- ENC_Main ==>
 
 |-----------------------------------------------------------------------------------------------------------------------------------#1 check_PriorityBuffs (Rune).
-	/if (!${idle} && ${CombatBuffs.Size}) /call CombatBuffs
-		/if (${ActionTaken}) /return
-
-|------------------------------------------------------------------------------------------------------------------------------------------------#2 check_AutoMez.
-	/if (!${idle} && ${do_AutoMez} && ${SpawnCount[npc radius 100]} > 2) /call event_AutoMez
-		/if (${ActionTaken}) /return
-
-|------------------------------------------------------------------------------------------------------------------------------------------------#3 check_Debuffs.
-	/if (${Debuff_Targets.Size}) /call Debuffs_OnCommand
-		/if (${ActionTaken}) /return
+	/if (!${idle} && ${RuneTargets.Size}) /call ChainRune
+	/if (!${ActionTaken}) {
 	
-|---------------------------------------------------------------------------------------------------------------------------------------------------#4 check_DoTs.	
-	/if (${DoT_Targets.Size}) /call DoTs_OnCommand
-		/if (${ActionTaken}) /return
-	
-|---------------------------------------------------------------------------------------------------------------------------------------------------#5 check_Rain.	
-	/if (${do_Rain} && ${Rain_Spells.Size}) /call Rain
-		/if (${ActionTaken}) /return
+	|-----------------------------------------------------------------------------------------------------------------------------------#1 check_PriorityBuffs (Rune).
+		/if (!${idle} && ${CombatBuffs.Size}) /call CombatBuffs
+		/if (!${ActionTaken}) {
 		
-|---------------------------------------------------------------------------------------------------------------------------------------------#6 Assist Functions.
-	/if (${Assisting}) /call ENC_Assist
+		|------------------------------------------------------------------------------------------------------------------------------------------------#2 check_AutoMez.
+			/if (!${idle} && ${do_AutoMez} && ${SpawnCount[npc radius 100]} > 2) /call event_AutoMez
+			/if (!${ActionTaken}) {
+			
+			|------------------------------------------------------------------------------------------------------------------------------------------------#3 check_Debuffs.
+				/if (${Debuff_Targets.Size}) /call Debuffs_OnCommand
+				/if (!${ActionTaken}) {
+				
+				|---------------------------------------------------------------------------------------------------------------------------------------------------#4 check_DoTs.	
+					/if (${DoT_Targets.Size}) /call DoTs_OnCommand
+					/if (!${ActionTaken}) {
+					
+					|---------------------------------------------------------------------------------------------------------------------------------------------------#5 check_Rain.	
+						/if (${do_Rain} && ${Rain_Spells.Size}) /call Rain
+						/if (!${ActionTaken}) {
+						
+						|---------------------------------------------------------------------------------------------------------------------------------------------#6 Assist Functions.
+							/if (${Assisting}) /call ENC_Assist
+						}
+					}
+				}
+			}
+		}
+	}
 	
 /if (${Debug}) /echo <== ENC_Main -|
 /return
@@ -62,17 +72,19 @@ Sub ENC_Assist
 	
 |---------------------------------------------------------------------------------#3 FullBurns.	
 	/if (${use_FBurn}) /call FullBurns
-
+	
 |-------------------------------------------------------------------------#4 Debuffs on assist.
 	/if (${Assist_Debuffs.Size}) /call Debuffs_OnAssist
-		/if (${ActionTaken}) /return
+	/if (!${ActionTaken}) {
+	
+	|----------------------------------------------------------------------------#5 Dots on assist.
+		/if (${Assist_DoTs.Size}) /call DoTs_OnAssist
+		/if (!${ActionTaken}) {
 		
-|----------------------------------------------------------------------------#5 Dots on assist.
-	/if (${Assist_DoTs.Size}) /call DoTs_OnAssist
-		/if (${ActionTaken}) /return
-		
-|-------------------------------------------------------------------------------------#6 Nukes.		
-	/if (${MyNukes.Size} && !${NukeTimer}) /call Nukes
+		|-------------------------------------------------------------------------------------#6 Nukes.		
+			/if (${MyNukes.Size} && !${NukeTimer}) /call Nukes
+		}
+	}
 	
 /if (${Debug}) /echo <== ENC_Assist -|
 /return
@@ -87,25 +99,17 @@ Sub ENC_Assist
 Sub ENC_Setup
 /if (${Debug}) /echo |- ENC_Setup ==>
 
-	/if (!${Ini[${Character_Ini},Enchanter].Length}) /call MakeENC_Ini
-	/if (${Ini[${Character_Ini},Enchanter,Rune(Spell/Gem)].Length}) {
-		/call INItoVar "${Character_Ini},Enchanter,Rune (Spell/Gem)" UNDEFINED string local
-		/declare Rune_Spell string outer ${Macro.Return.Arg[1,/]}
-		/declare Rune_Gem string outer ${Macro.Return.Arg[2,/]}
-	}
-	/call INItoVar "${Character_Ini},Enchanter,Auto-Mez (On/Off)" do_AutoMez bool outer
-	/if (${Ini[${Character_Ini},Enchanter,Auto-Mez (Spell/Gem/MaxLevel)].Length}) {
-		/call INItoVar "${Character_Ini},Enchanter,Auto-Mez (Spell/Gem/MaxLevel)" UNDEFINED string local
-		/declare AutoMez_Spell string outer ${Macro.Return.Arg[1,/]}
-		/declare AutoMez_Gem string outer ${Macro.Return.Arg[2,/]}
-		/declare MaxMezLevel int outer ${Macro.Return.Arg[3,/]}
-	}
-	/if (!${Defined[do_AutoMez]}) /declare do_AutoMez bool outer FALSE
-		
+	/if (${Ini[${Character_Ini},Enchanter,Rune (Spell/Gem)].Length}) /call IniToVar "${Character_Ini},Enchanter,Rune (Spell/Gem)" chainRune string outer
+	
+	/if (${Ini[${Character_Ini},Enchanter,${Character_Ini},Enchanter,Auto-Mez (On/Off)].Length}) /call IniToVar "${Character_Ini},Enchanter,Auto-Mez (On/Off)" autoMez bool outer
+	/if (${Ini[${Character_Ini},Enchanter,Auto-Mez (Spell/Gem/MaxLevel)].Length}) /call IniToVar "${Character_Ini},Enchanter,Auto-Mez (Spell/Gem/MaxLevel)" autoMez_Spell string outer
+	
+	/if (${Ini[${Character_Ini},Enchanter,Chain Stun#1].Length}) /call IniToArray "${Character_Ini},Enchanter,Chain Stun#" chainStuns
+	
 /if (${Debug}) /echo <== ENC_Setup -|
 /return
 
-
+	/if (!${Ini[${Character_Ini},Enchanter].Length}) /call MakeENC_Ini
 
 |--------------------------------------------------------------------|
 |- MakeENC_Ini														-|
@@ -115,12 +119,13 @@ Sub ENC_Setup
 Sub MakeENC_Ini
 /if (${Debug}) /echo |- ENC_Ini ==>
 
-	| /call WriteToIni "${Character_Ini},Enchanter,Auto-Mez (On/Off)" "*Do you want this character to automatically mez mobs when there are more than 2 in camp?" 0
-	| /call WriteToIni "${Character_Ini},Enchanter,Auto-Mez (Spell/Gem/MaxLevel)" "*Mez spell to use, gem to mem it to, and max effective level of the spell." 0
-	/call WriteToIni "${Character_Ini},Enchanter,Rune (Spell/Gem)" "*Rune spell to cast for chain rune, and the gem to mem it to." 0
-	/call WriteToIni "${Character_Ini},Enchanter,Cast Stuns (On/Off)" "*Do you want this character to chain cast stun spells on command?" 0
-	/call WriteToIni "${Character_Ini},Enchanter,Stun#1" "*List stun spells to chain cast." 0
+	/call WriteToIni "${Character_Ini},Enchanter,Rune (Spell/Gem)"
+|** Work in progress...
+	/call WriteToIni "${Character_Ini},Enchanter,Auto-Mez (On/Off)"
+	/call WriteToIni "${Character_Ini},Enchanter,Auto-Mez (Spell/Gem/MaxLevel)"
 	
+	/call WriteToIni "${Character_Ini},Enchanter,Chain Stun#1"
+**|
 /if (${Debug}) /echo <== ENC_Ini -|
 /return
 
@@ -132,46 +137,128 @@ Sub MakeENC_Ini
 |- Events to add to the Background_Events, that are enchanter specific.	-|
 |------------------------------------------------------------------------|
 Sub ENC_Background_Events
-/doevents Cast_Rune
-/doevents Rune_Off
-/doevents Stuns_Off
-/doevents MezTarget
-/doevents AutoMez_Off
-/doevents AutoMez_On
+/if (${Debug}) /echo |- ENC_Background_Events ==>
+
+	/doevents add_RuneTarget
+	/doevents remove_RuneTarget
+	
+/if (${Debug}) /echo <== ENC_Background_Events -|
 /return
 
 
 
-#event Cast_Rune "<#1#> Rune on"
-#event Cast_Rune "<#*#> Rune on #1#"
-sub event_Cast_Rune(string line, string RuneTarget)
+#event add_RuneTarget "<#1#> Rune on"
+#event add_RuneTarget "<#*#> Rune on #1#"
+sub event_add_RuneTarget(string line, string RuneTarget)
 /if (${Me.Class.ShortName.Equal[ENC]}) {
-	/if (!${Defined[PriorityBuffs]}) {
-		/declare PriorityBuffs[1] string outer
-		/varset PriorityBuffs[1] ${RuneTarget}/${Rune_Spell}/${Rune_Gem}
-	} else /if (${Defined[PriorityBuffs]}) {
-		/call BuildArray PriorityBuffs ${RuneTarget}/${Rune_Spell}/${Rune_Gem}
+/if (${Debug}) /echo |- event_add_RuneTarget ==>
+	
+	/if (!${SpawnCount[pc ${RuneTarget}]}) {
+		/docommand ${ChatToggle} I don't see any PCs matching [${RuneTarget}]...
+	} else {
+	
+		/varset RuneTarget ${Spawn[pc ${RuneTarget}].CleanName}
+	
+		/if (!${Defined[RuneTargets]}) {
+			/declare RuneTargets[1] string outer
+			/varset RuneTargets[1] ${RuneTarget}
+			/docommand ${ChatToggle} Maintaining [${chainRune.Arg[1,/]}] on [${RuneTarget}].
+		} else {
+			
+			/declare i int local
+			
+			/declare RuneTarget_Names string local
+			
+			/for i 1 to ${RuneTargets.Size}
+			
+				/varset RuneTarget_Names ${RuneTarget_Names}${RuneTargets[${i}]},
+			
+			/next i
+			
+			/if (${Select[${RuneTarget},${RuneTarget_Names}]}) {
+				/docommand ${ChatToggle} I am already maintaining [${chainRune.Arg[1,/]}] on [${RuneTarget}].
+			} else {
+				/call BuildArray RuneTargets ${RuneTarget}
+				/docommand ${ChatToggle} Maintaining [${chainRune.Arg[1,/]}] on [${RuneTarget_Names}${RuneTarget}].
+			}
+		}
 	}
-	/if (!${Defined[Cast_Rune]}) /declare Cast_Rune bool outer TRUE
-	/if (${Verbosity}) {
-		/docommand ${ChatToggle} Maintaining ${Rune_Spell} on,
-		/declare i int local
-		/for i 1 to ${PriorityBuffs.Size}
-			/docommand ${ChatToggle} ${PriorityBuffs[${i}]}
-		/next i
-	}
+	
+/if (${Debug}) /echo <== add_RuneTarget -|
 }
 /return
 
-#event Rune_Off "<#*#> Rune Off"
-sub event_Rune_Off
-/if (${Cast_Rune}) {
-	/deletevar PriorityBuffs
+
+
+#event remove_RuneTarget "<#1#> Rune Off"
+#event remove_RuneTarget "<#*#> Rune Off #1#"
+#event remove_RuneTarget "<#*#> End Rune on #1#"
+#event remove_RuneTarget "<#*#> All runes off"
+#event remove_RuneTarget "<#*#> end runes"
+sub event_remove_RuneTarget(line, ChatSender)
+/if (${Me.Class.ShortName.Equal[ENC]}) {
+/if (${Debug}) /echo |- remove_RuneTarget ==>
+
+	/if (${Defined[RuneTargets]}) {
+
+		/if (${Defined[ChatSender]}) {
+		
+			/declare i int local
+			
+			/for i 1 to ${RuneTargets.Size}
+
+				/if (${RuneTargets[${i}].Equal[${ChatSender}]}) {
+					/docommand ${ChatToggle} No longer maintaining [${chainRune.Arg[1,/]}] on [${RuneTargets[${i}]}].
+					/call RemoveArrayElement RuneTargets "${RuneTargets[${i}]}"
+				}
+			
+			/next i
+			
+		} else {
+			/docommand ${ChatToggle} Ending chain runes.
+			/deletevar RuneTargets
+		}
+		
+	}
+	
+/if (${Debug}) /echo <== remove_RuneTarget -|
 }
 /return
+
+
+
+SUB chainRune
+/if (${Debug}) /echo |- chainRune ==>
+
+	/declare i int local
+	
+	/declare runeSpell string local ${chainRune.Arg[1,/]}
+	/declare runeGem string local ${chainRune.Arg[2,/].Right[1]}
+	/if (${chainRune.Arg[3,/].Length} && ${chainRune.Arg[3,/].Find[reagent::]}) /declare runeReagent string local ${chainRune.Arg[3,/].Arg[2,::]}
+	
+	/if (${Defined[runeReagent]} && !${FindItemCount[${runeReagent}]}) {
+		/docommand ${ChatToggle} I have run out of [${runeReagent}] and can no longer maintain [${runeSpell}].  Ending chain runes.
+		/deletevar RuneTargets
+	} else {
+	
+		/for i 1 to ${RuneTargets.Size}
+			/if (${Spawn[pc ${RuneTargets[${i}]}].Distance} < ${Spell[${runeSpell}].MyRange} && ${Me.CurrentMana} > ${Spell[${runeSpell}].Mana} && !${NetBots[${RuneTargets[${i}]}].Buff.Find[${Spell[${runeSpell}].ID}]}) {
+				/call e3_Cast ${NetBots[${RuneTargets[${i}]}].ID} "${runeSpell}" gem${runeGem} ${If[${Me.Gem[${runeSpell}]},3s,${Spell[${runeSpell}].RecastTime}s]}
+			}
+		/if (!${ActionTaken}) /next i
+	}
+
+/if (${Debug}) /echo <== chainRune -|
+/RETURN
+
+|** Work in progress...
+
 #event Stuns_On "<#*#> Stuns On"
 #event Stuns_Off "<#*#> Stuns Off"
 Sub Event_Stuns_On
+
+/return
+
 /call INItoVar "${Character_Ini},Enchanter,Cast Stuns (On/Off)" StunsOn bool outer 
 /if (${StunsOn}) {
 	/declare StunZone int local ${Zone.ID}
@@ -198,8 +285,11 @@ Sub Event_Stuns_On
 	}
 	:end
 }
-/return
+
 Sub Event_Stuns_Off
+
+/return
+
 /if (${Defined[do_Stuns]}) {
 	/deletevar do_Stuns
 	/docommand ${ChatToggle} Ending stuns
@@ -207,10 +297,19 @@ Sub Event_Stuns_Off
 	/doevents flush
 	/varset CombatTimer 7s
 }
-/return
+
 Sub StunCheck
-/doevents Stuns_Off
+
 /return
+
+/doevents Stuns_Off
+
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+/notify largeDialogWindow LDW_YesButton leftmouse up
+
+${Window[ConfirmationDialogBox].Child[CD_TextOutput].Text.Find[ re]}
+
 #event AutoMez "<#*#> Mez All"
 sub event_AutoMez
 /if (${Debug}) /echo |- AutoMez -| ==>

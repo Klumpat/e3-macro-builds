@@ -19,28 +19,35 @@
 Sub DRU_Main
 /if (${Debug}) /echo |- DRU_Main ==>
 
-/if (${Heals}) /call CheckHeals
-/if (${spiritofWood_Pct} && ${Group}>2 && !${alt_Timer_173}) /call check_spiritofWood
-/if (!${idle} && ${CombatBuffs.Size}) /call CombatBuffs
-	/if (${ActionTaken}) /return
+|-------------------------------------------------------------------------------------------------------------------------------------#1 check_ChainHeal.
+	/if (${Chain_Status.Equal[HEALING]}) {
+		/call ChainHeal
+		/if (${ActionTaken}) /return
+	}
+
+|-----------------------------------------------------------------------------------------------------------------------------------------#2 check_Heals.
+	/if (${Heals}) /call CheckHeals
+	/if (${spiritofWood_Pct} && ${Group}>2 && !${alt_Timer_173}) /call check_spiritofWood
+	/if (!${idle} && ${CombatBuffs.Size}) /call CombatBuffs
+		/if (${ActionTaken}) /return
 	
-|--------------------------------------------------------------------------------------------------------------------------------#1 check_CommandDebuffs.
+|--------------------------------------------------------------------------------------------------------------------------------#3 check_CommandDebuffs.
 	/if (${Debuff_Targets.Size}) /call Debuffs_OnCommand
 		/if (${ActionTaken}) /return
 		
-|------------------------------------------------------------------------------------------------------------------------------------------#2 check_Rain.	
+|------------------------------------------------------------------------------------------------------------------------------------------#4 check_Rain.	
 	/if (${do_Rain} && ${Rain_Spells.Size}) /call Rain
 		/if (${ActionTaken}) /return
 		
-|------------------------------------------------------------------------------------------------------------------------------------------#3 check_DoTs.	
+|------------------------------------------------------------------------------------------------------------------------------------------#5 check_DoTs.	
 	/if (${DoT_Targets.Size}) /call DoTs_OnCommand
 		/if (${ActionTaken}) /return
 		
-|------------------------------------------------------------------------------------------------------------------------------------#4 Assist Functions.
+|------------------------------------------------------------------------------------------------------------------------------------#6 Assist Functions.
 	/if (${Assisting}) /call DRU_Assist
 		/if (${ActionTaken}) /return
 		
-|-----------------------------------------------------------------------------------------------------------------------------------------#5 Auto Forage.
+|-----------------------------------------------------------------------------------------------------------------------------------------#7 Auto Forage.
 	/if (${autoForage}) /call AutoForage
 	
 /if (${Debug}) /echo <== DRU_Main -|
@@ -90,7 +97,6 @@ Sub DRU_Setup
 /if (${Debug}) /echo |- DRU_Setup ==>
 
 	/if (!${Ini[${Character_Ini},Druid].Length}) /call MakeDRU_Ini
-	/call INItoVar "${Character_Ini},Druid,Evac on Command (On/Off)" castEvac bool outer
 	/call INItoVar "${Character_Ini},Druid,Evac Spell" Evac_Spell string outer
 	/call IniToVar "${Character_Ini},Druid,Spirit of Wood (Pct)" spiritofWood_Pct int outer
 
@@ -108,7 +114,6 @@ Sub MakeDRU_Ini
 /if (${Debug}) /echo |- DRU_Ini ==>
 
 	/call WriteToIni "${Character_Ini},Druid,Auto-Forage (On/Off)" "*Do you want this character to automatically forage?" 0
-	/call WriteToIni "${Character_Ini},Druid,Evac on Command (On/Off)" "*Do you want this character to cast Exodus, or a specified evac spell on command?" 0
 	/call WriteToIni "${Character_Ini},Druid,Evac Spell" "*List an evac spell to use if Exodus is not ready." 0
 	/call WriteToIni "${Character_Ini},Druid,Spirit of Wood (Pct)" "*Average group health to cast Spirit of Wood." 0
 		

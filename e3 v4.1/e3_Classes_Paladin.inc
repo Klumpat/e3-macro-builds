@@ -54,6 +54,10 @@ Sub PAL_Assist
 |--------------------------------------------------------------------------#4 Combat Abilities.	
 	/if (${MyAbilities.Size}) /call CombatAbilities
 	
+|	This is located in e3_Classes_Cleric.inc ==>
+|------------------------------------------------------------------------------------------------------------------------------------------#7 Auto Yaulp.
+	/if (${AutoYaulp})  /call auto_Yaulp
+	
 |-------------------------------------------------------------------------------------#5 Nukes.		
 	/if (${MyNukes.Size} && !${NukeTimer}) /call Nukes
 
@@ -70,7 +74,7 @@ Sub PAL_Assist
 Sub PAL_Setup
 /if (${Debug}) /echo |- PAL_Setup ==>
 	
-	| /if (!${Ini[${Character_Ini},${Me.Class}].Length}) /call Make${Me.Class.ShortName}_Ini
+	/call INItoVar "${Character_Ini},Paladin,Auto-Yaulp (On/Off)" AutoYaulp bool outer
 	
 /if (${Debug}) /echo <== PAL_Setup -|
 /return
@@ -85,7 +89,7 @@ Sub PAL_Setup
 Sub MakePAL_Ini
 /if (${Debug}) /echo |- PAL_Ini ==>
 
-
+	/call WriteToIni "${Character_Ini},Paladin,Auto-Yaulp (On/Off)" On 0
 	
 /if (${Debug}) /echo <== PAL_Ini -|
 /return

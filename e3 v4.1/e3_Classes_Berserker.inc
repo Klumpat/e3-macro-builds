@@ -1,5 +1,5 @@
 |--------------------------------------------------------------------------------|
-|- e3_Classes_Berserker.inc v2.0 ( originally designed to work with e3.mac )	-|
+|- e3_Classes_Berserker.inc v2.1 ( originally designed to work with e3.mac )	-|
 |- Written by Killians of PEQ													-|
 |--------------------------------------------------------------------------------|
 |- Contains berserker specific functions related to,							-|
@@ -20,11 +20,13 @@ Sub BER_Main
 
 |-----------------------------------------------------------------------------------------------------------------------------------#1 check_CombatBuffs.
 	/if (!${idle} && ${CombatBuffs.Size}) /call CombatBuffs
-		/if (${ActionTaken}) /return
+		/if (${ActionTaken}) {
 		
-|------------------------------------------------------------------------------------------------------------------------------------#2 Assist Functions.
-	/if (${Assisting}) /call BER_Assist
-	
+		|------------------------------------------------------------------------------------------------------------------------------------#2 Assist Functions.
+			/if (${Assisting}) /call BER_Assist
+		}
+	}
+
 /if (${Debug}) /echo <== BER_Main -|
 /return
 

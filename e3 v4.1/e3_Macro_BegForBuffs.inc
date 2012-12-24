@@ -143,6 +143,7 @@ SUB setup_BegForBuffs
 
 	/if (!${Ini[${SpellAliases_Ini}].Length}) /call MakeSpellAliases_Ini
 	/if (${Ini[${Macro_Ini},Buffs,Restricted Buffs].Length}) /call IniToVar "${Macro_Ini},Buffs,Restricted Buffs" restrictedBuffs string outer
-	
+	/call IniToVar "${Macro_Ini},Buffs,Allow Buff Requests (On/Off/PWOnly)" allow_BuffRequests ${If[${Ini[${Macro_Ini},Buffs,Allow Buff Requests (On/Off/PWOnly)].Equal[pwonly]},string,bool]} outer
+
 /if (${Debug}) /echo <== setup_BegForBuffs -|
 /RETURN
