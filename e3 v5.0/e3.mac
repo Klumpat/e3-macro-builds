@@ -1,0 +1,117 @@
+|--------------------------------|
+|- e3.mac	v5.0				-|
+|- Written by Killians of PEQ.	-|
+|--------------------------------|
+
+#turbo 40
+
+#include e3_Setup.inc
+
+Sub Main(modeSelect)
+
+/call e3_Initialize ${If[${Defined[modeSelect]},${modeSelect},]}
+
+:MainLoop
+/if (${Debug}) /echo |- MainLoop ==>
+| ==>
+	/call Background_Services
+	/if (!${activeTimer} && !${ActionTaken}) {
+
+		/if (${Bool[${Me.Class}]}) /call ${Me.Class.ShortName}_Main
+		
+		| --------------------Additional macro code here.-------------------------		
+		/if (!${ActionTaken}) /call Tertiary_Services
+	}
+| <==
+/if (${Debug}) {
+	/echo <== MainLoop -|
+	/delay 5
+}	
+/goto :MainLoop
+/return
+
+
+
+|--------------------------------------------------------------------|
+|- Background.inc's mainLoop hook.									-|
+|--------------------------------------------------------------------|
+|- Calls background functions, as an extention of the main loop.	-|
+|--------------------------------------------------------------------|
+SUB Background_Services
+/if (${Debug}) /echo |- Background_Services ==>
+
+	/if (!${Bool[${Me.Class}]}) /endmacro
+	/if (${ActionTaken}) /varset ActionTaken FALSE
+	/if (${auto_AssistOn} && !${Assisting}) /call check_AutoAssist
+	/if (${currentZone} != ${Zone.ID}) /call check_Zone
+	/if (${Following} && !${Assisting}) /call check_Follow
+	
+	/call Background_Events
+	
+	/doevents
+	
+	/call check_Idle
+	/call check_Active
+	/call check_Combat
+	
+	| - Check if I'm holding something.
+	/if (!${Cursor.ID}) {
+		/if (!${Me.Casting.ID} || ${Me.Casting.ID} && ${Me.Class.ShortName.Equal[BRD]}) {
+
+			| Check LifeSupport
+			/if (${lifeSupport.Size}) /call check_lifeSupport
+		
+			| Maintain instant buffs.
+			/if (${InstantBuffs.Size} && ${Me.FreeBuffSlots} > ${MaxBuffs}) /call buffInstants
+			
+			| Swap old items back.
+			/if (${swapItemBack} && !${itemExchange_Timer}) {
+				/call completePendingExchange
+				/if (${Bool[${Macro.Return}]}) /varset swapItemBack FALSE
+			}
+		}
+	}
+
+/if (${Debug}) /echo <== Background_Services -|
+/RETURN
+
+
+
+|------------------------------------------------------------|
+|- Background.inc's Tertiary mainloop hook.					-|
+|------------------------------------------------------------|											
+|- Calls clean-up and maintenance functions.				-|	
+|------------------------------------------------------------|
+SUB Tertiary_Services
+/if (${Debug}) /echo |- Tertiary_Services ==>
+	
+	| Check pets.
+	/if (${Pets} && !${suspend_Pets} && !${combatTimer} && !${activeTimer}) /call check_PetStatus
+	
+	| Buff Check.
+	/if (${BuffCheck} && !${combatTimer} && !${activeTimer} && !${rebuffTimer}) /call buffCheck
+	
+	| Maintain macro timers.
+	/if (${timerArray.Size}) /call check_macroTimers
+
+/if (${Debug}) /echo <== Tertiary_Services -|
+/RETURN
+
+
+
+|--------------------------------------------------------------------------------------------------------------------|
+|- Background events and run-times that are checked even while casting or otherwise considered active.		   		-|
+|--------------------------------------------------------------------------------------------------------------------|
+|- This function is checked constantly, included events and functions should have minimal character interaction.	-|
+|--------------------------------------------------------------------------------------------------------------------|
+SUB Background_Events
+	
+	/call assist_Background_Events
+	/call basics_Background_Events
+	/call buffCheck_Background_Events
+	/call casting_Background_Events
+	/call heal_Background_Events
+	/call pet_Background_Events
+	/if (${Bool[${Me.Class}]}) /call ${Me.Class.ShortName}_Background_Events
+
+/RETURN
